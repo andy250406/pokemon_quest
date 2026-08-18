@@ -856,9 +856,7 @@
         try {
           await OneSignal.init({
             appId: "5aaa7314-9ff3-4934-960e-11da2521b448",
-            allowLocalhostAsSecureOrigin: true,
-            serviceWorkerParam: { scope: "/pokemon_quest/" },
-            serviceWorkerPath: "OneSignalSDKWorker.js"
+            allowLocalhostAsSecureOrigin: true
           });
 
           console.log("[OneSignal] Init Success");
@@ -937,16 +935,6 @@
       const btn = document.getElementById('btnSubscribePush');
       if (btn) btn.innerText = "⏳ OneSignal 서버 등록 중...";
 
-      // 1. 서비스 워커 등록
-      if ('serviceWorker' in navigator) {
-        try {
-          await navigator.serviceWorker.register('OneSignalSDKWorker.js', { scope: './' });
-        } catch (swErr) {
-          console.warn("SW register notice:", swErr);
-        }
-      }
-
-      // 2. OneSignal 권한 요청 및 서버 optIn
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
         try {
@@ -957,19 +945,23 @@
             await OneSignal.User.PushSubscription.optIn();
           }
 
-          setTimeout(async () => {
-            if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
+          let checkCount = 0;
+          const pollInterval = setInterval(() => {
+            checkCount++;
             const subId = OneSignal.User?.PushSubscription?.id;
             const token = OneSignal.User?.PushSubscription?.token;
 
-            if (subId || token) {
+            if (subId || token || checkCount >= 5) {
+              clearInterval(pollInterval);
+              if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
               updateOneSignalStatus();
-              alert(`🎉 OneSignal 서버에 기기 등록이 성공했습니다!\n\n기기 ID: ${subId || '연결 완료'}\n\n이제 [OneSignal 테스트 푸시 즉시 발송] 버튼을 눌러보세요!`);
-            } else {
-              alert("브라우저 알림이 허용되었습니다. OneSignal 서버 반영 후 [테스트 푸시 발송]을 눌러보세요!");
-              updateOneSignalStatus();
+              if (subId) {
+                alert(`🎉 OneSignal 서버에 기기 등록이 성공했습니다!\n\n기기 ID: ${subId}\n\n이제 [OneSignal 테스트 푸시 즉시 발송] 버튼을 눌러보세요!`);
+              } else {
+                alert("브라우저 알림 권한이 허용되었습니다! [테스트 푸시 발송]을 눌러보세요!");
+              }
             }
-          }, 1200);
+          }, 500);
 
         } catch (e) {
           if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
