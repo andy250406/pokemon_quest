@@ -1,0 +1,3981 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>포켓Tasks</title>
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="icon" type="image/png" href="./images/items/poke-ball.png">
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: #121212;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+    }
+
+    /* 📱 메인 앱 프레임 */
+    .app-screen {
+      position: relative;
+      width: 100%;
+      max-width: 440px;
+      height: 100vh;
+      height: 100dvh;
+      max-height: 920px;
+      background: linear-gradient(180deg, #60c5ba, #3b8d99);
+      background-position: center center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-radius: 24px;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.5);
+    }
+
+    @media (max-width: 440px) {
+      .app-screen {
+        max-width: 100vw;
+        max-height: 100dvh;
+        border-radius: 0;
+        box-shadow: none;
+      }
+    }
+
+    /* 상단 헤더 */
+    .top-header {
+      position: absolute;
+      top: max(14px, env(safe-area-inset-top));
+      left: max(14px, env(safe-area-inset-left));
+      right: max(14px, env(safe-area-inset-right));
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      z-index: 20;
+    }
+
+    /* 포켓몬 정보 카드 */
+    .pokemon-card {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(10px);
+      padding: clamp(6px, 2vw, 10px) clamp(10px, 2.8vw, 14px);
+      border-radius: clamp(14px, 4vw, 18px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      flex: 1;
+      max-width: calc(100% - 115px);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 0px;
+      line-height: 1;
+    }
+
+    .level-badge {
+      background: #4CAF50;
+      color: white;
+      font-size: clamp(10px, 2.8vw, 11px);
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 5px;
+      flex-shrink: 0;
+    }
+
+    .pokemon-name {
+      font-size: clamp(13px, 3.8vw, 15px);
+      font-weight: 800;
+      color: #222;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .gender-symbol.male { color: #1976D2; font-weight: 900; }
+    .gender-symbol.female { color: #E91E63; font-weight: 900; }
+
+    .type-nature-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: -5px 0 -2px 0;
+      line-height: 1;
+    }
+
+    .type-icons-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .type-icon-img {
+      height: 26px;
+      width: auto;
+      max-width: 52px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+      display: block;
+      margin: 0; padding: 0;
+    }
+
+    .nature-tag {
+      background: #eceff1;
+      color: #455a64;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid #cfd8dc;
+      white-space: nowrap;
+    }
+
+    .xp-text {
+      font-size: clamp(9px, 2.5vw, 10px);
+      color: #666;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2px;
+      margin-bottom: 2px;
+      line-height: 1.1;
+    }
+
+    .xp-bar-bg {
+      width: 100%;
+      height: clamp(5px, 1.5vw, 6px);
+      background: #E0E0E0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .xp-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4CAF50, #8BC34A);
+      width: 35%;
+      transition: width 0.35s ease;
+    }
+
+    .quest-badge {
+      background: rgba(33, 150, 243, 0.92);
+      color: white;
+      padding: clamp(6px, 2vw, 8px) clamp(10px, 3vw, 14px);
+      border-radius: 20px;
+      font-size: clamp(11px, 3.2vw, 12px);
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      backdrop-filter: blur(6px);
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .quest-badge:active { transform: scale(0.95); }
+
+    /* 🌳 나무열매 파밍 레이어 */
+    .berry-harvest-layer {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    .berry-item {
+      position: absolute;
+      pointer-events: auto;
+      cursor: pointer;
+      filter: drop-shadow(0 6px 8px rgba(0,0,0,0.35));
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease;
+      transform-origin: top center;
+    }
+
+    .berry-item.hanging {
+      animation: berryBranchSway 2.5s ease-in-out infinite alternate;
+    }
+
+    .berry-item.falling {
+      transition: transform 0.8s cubic-bezier(0.5, 0, 1, 1), opacity 0.8s ease;
+      transform: translateY(140px) rotate(25deg) !important;
+      opacity: 0 !important;
+      pointer-events: none;
+    }
+
+    .berry-item.small {
+      width: 36px;
+      height: 36px;
+    }
+
+    .berry-item.big {
+      width: 64px;
+      height: 64px;
+      filter: drop-shadow(0 0 14px rgba(255, 215, 0, 0.85));
+      animation: bigBerryPulse 1.8s ease-in-out infinite alternate;
+    }
+
+    @keyframes berryBranchSway {
+      0% { transform: rotate(-8deg); }
+      100% { transform: rotate(8deg); }
+    }
+
+    @keyframes bigBerryPulse {
+      0% { transform: scale(1) rotate(-6deg); filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.7)); }
+      100% { transform: scale(1.1) rotate(6deg); filter: drop-shadow(0 0 20px rgba(255, 235, 59, 1)); }
+    }
+
+    .harvest-float-text {
+      position: absolute;
+      color: #FFEB3B;
+      font-size: 14px;
+      font-weight: 900;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      animation: floatUpFade 1.2s ease-out forwards;
+      pointer-events: none;
+      z-index: 25;
+    }
+
+    @keyframes floatUpFade {
+      0% { transform: translateY(0) scale(0.8); opacity: 1; }
+      50% { transform: translateY(-25px) scale(1.2); opacity: 1; }
+      100% { transform: translateY(-50px) scale(1); opacity: 0; }
+    }
+
+    /* 🍒 우측 하단 열매 적립 & 먹어치우기 위젯 */
+    .berry-basket-widget {
+      position: absolute;
+      bottom: clamp(75px, 11vh, 90px);
+      right: 14px;
+      background: rgba(31, 36, 46, 0.95);
+      backdrop-filter: blur(10px);
+      border: 2px solid #FF9800;
+      border-radius: 20px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      z-index: 20;
+      transform: scale(0);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .berry-basket-widget.show { transform: scale(1); }
+    .basket-info { display: flex; align-items: center; gap: 4px; }
+    .basket-icon { font-size: 18px; }
+    .basket-xp { font-size: 13px; font-weight: 900; color: #FFEB3B; }
+
+    .btn-eat-berries {
+      background: linear-gradient(135deg, #FF9800, #F57C00);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(245, 124, 0, 0.4);
+      white-space: nowrap;
+    }
+    .btn-eat-berries:active { transform: scale(0.95); }
+
+    /* 중앙 서식지 & 포켓몬 / 알 */
+    .stage-area {
+      position: absolute;
+      left: 0; right: 0;
+      bottom: clamp(23%, 27vh, 30%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+    }
+
+    .speech-bubble {
+      background: white;
+      padding: clamp(4px, 1.5vw, 6px) clamp(10px, 3vw, 14px);
+      border-radius: 14px;
+      font-size: clamp(11px, 3vw, 12px);
+      font-weight: 800;
+      color: #333;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      margin-bottom: 8px;
+      opacity: 0;
+      transform: translateY(4px);
+      transition: all 0.25s ease;
+    }
+    .speech-bubble.active { opacity: 1; transform: translateY(0); }
+
+    .pokemon-sprite {
+      width: clamp(90px, 26vw, 115px);
+      height: clamp(90px, 26vw, 115px);
+      object-fit: contain;
+      image-rendering: pixelated;
+      filter: drop-shadow(0 12px 10px rgba(0, 0, 0, 0.35));
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    /* 알 전용 애니메이션 */
+    .egg-wobble {
+      animation: eggGentleWobble 2.5s ease-in-out infinite alternate;
+    }
+    @keyframes eggGentleWobble {
+      0% { transform: rotate(-5deg); }
+      50% { transform: rotate(0deg); }
+      100% { transform: rotate(5deg); }
+    }
+
+    @keyframes eggExcitedHop {
+      0% { transform: translateY(0) rotate(0deg); }
+      25% { transform: translateY(-12px) rotate(-14deg) scale(1.08); }
+      50% { transform: translateY(0) rotate(14deg) scale(0.95); }
+      75% { transform: translateY(-8px) rotate(-8deg); }
+      100% { transform: translateY(0) rotate(0deg); }
+    }
+    .egg-hop { animation: eggExcitedHop 0.6s ease; }
+
+    @keyframes happyHop {
+      0% { transform: translateY(0) scale(1); }
+      30% { transform: translateY(-16px) scale(1.15); }
+      60% { transform: translateY(0) scale(0.95); }
+      80% { transform: translateY(-8px) scale(1.05); }
+      100% { transform: translateY(0) scale(1); }
+    }
+    .hopping { animation: happyHop 0.6s ease; }
+
+    @keyframes tackleAttack {
+      0% { transform: scale(1) translateY(0) rotate(0deg); }
+      20% { transform: scale(0.9) translateY(8px) rotate(-6deg); }
+      50% { transform: scale(1.3) translateY(-24px) translateX(16px) rotate(10deg); filter: brightness(1.3) drop-shadow(0 0 14px rgba(255, 235, 59, 0.85)); }
+      75% { transform: scale(1.1) translateY(-8px) translateX(-4px) rotate(-3deg); }
+      100% { transform: scale(1) translateY(0) rotate(0deg); filter: drop-shadow(0 12px 10px rgba(0, 0, 0, 0.35)); }
+    }
+    .attacking { animation: tackleAttack 0.8s cubic-bezier(0.25, 1, 0.5, 1); }
+
+    /* 부화 / 진화 / 박제 컷씬 공통 오버레이 */
+    .cutscene-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.92);
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+      padding: 24px;
+      text-align: center;
+    }
+    .cutscene-overlay.show { opacity: 1; pointer-events: auto; }
+
+    .glow-circle {
+      position: absolute;
+      width: 260px; height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,235,59,0.95) 0%, rgba(255,152,0,0.5) 60%, transparent 80%);
+      animation: pulseGlow 1.5s infinite alternate;
+    }
+    @keyframes pulseGlow {
+      0% { transform: scale(0.8); opacity: 0.6; }
+      100% { transform: scale(1.3); opacity: 1; }
+    }
+
+    /* 🛠️ 개발자 테스트 콘솔 바 & 플로팅 트리거 */
+    .dev-console-bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      background: #151a24;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 500;
+      border-bottom: 2px solid #FF9800;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+      transform: translateY(-100%);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .dev-console-bar.open { transform: translateY(0); }
+
+    .dev-input {
+      flex: 1;
+      background: #232a38;
+      border: 1.5px solid #FF9800;
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #FFEB3B;
+      font-size: 13px;
+      font-family: monospace;
+      outline: none;
+    }
+    .dev-btn {
+      background: #FF9800;
+      color: black;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .dev-toggle-trigger {
+      position: absolute;
+      bottom: clamp(75px, 11vh, 90px);
+      left: 14px;
+      background: rgba(33, 150, 243, 0.92);
+      color: white;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 25;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .dev-toggle-trigger:active { transform: scale(0.95); }
+
+    /* 하단 네비게이션 바 (5개 메뉴) */
+    .bottom-nav {
+      position: absolute;
+      bottom: max(12px, env(safe-area-inset-bottom));
+      left: max(10px, env(safe-area-inset-left));
+      right: max(10px, env(safe-area-inset-right));
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(12px);
+      border-radius: clamp(18px, 5vw, 24px);
+      padding: clamp(8px, 2vw, 10px) clamp(8px, 2vw, 12px);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      z-index: 10;
+    }
+
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: none;
+      border: none;
+      color: #666;
+      font-size: clamp(9px, 2.5vw, 11px);
+      font-weight: 800;
+      cursor: pointer;
+      gap: 2px;
+      flex: 1;
+    }
+    .nav-btn .icon { font-size: clamp(16px, 4.8vw, 20px); }
+    .nav-btn.active { color: #2196F3; }
+
+    /* 모달 공통 오버레이 */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #181c24;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(100%);
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+    }
+    .modal-overlay.open {
+      transform: translateY(0);
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-header {
+      padding: max(14px, env(safe-area-inset-top)) 16px 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      background: #1f242e;
+    }
+
+    .modal-title {
+      font-size: clamp(15px, 4vw, 17px);
+      font-weight: 800;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-actions { display: flex; align-items: center; gap: 8px; }
+
+    .icon-btn {
+      background: rgba(255,255,255,0.12);
+      border: none;
+      color: white;
+      font-size: 16px;
+      font-weight: 800;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-body {
+      flex: 1;
+      padding: 16px;
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+      overflow-y: auto;
+    }
+
+    /* 📋 퀘스트 목록 카드 */
+    .quest-card {
+      background: #252b36;
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .quest-info { text-align: left; }
+    .quest-title { font-size: 15px; font-weight: 800; color: white; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .req-tag { background: #FF9800; color: white; font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 4px; }
+    .quest-meta { font-size: 11px; color: #8892a0; display: flex; gap: 8px; align-items: center; }
+
+    .quest-card-btns { display: flex; align-items: center; gap: 6px; }
+    .btn-quest-edit {
+      background: #374151; color: #9ca3af; border: none; padding: 7px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer;
+    }
+    .btn-quest-done {
+      background: #4CAF50; color: white; border: none; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap;
+    }
+    .btn-quest-done.disabled { background: #3a4250; color: #788290; cursor: default; }
+
+    /* 📊 퀘스트 기록(Streak) 카드 */
+    .streak-card {
+      background: #252b36;
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      border-left: 4px solid #FF9800;
+    }
+    .streak-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .streak-title { font-size: 15px; font-weight: 800; color: white; }
+    .streak-badge {
+      background: linear-gradient(135deg, #FF9800, #F57C00);
+      color: white;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .streak-meta {
+      font-size: 12px;
+      color: #90a4ae;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* 알림 설정 탭 */
+    .notif-tab-bar {
+      display: flex; background: #1f242e; border-radius: 12px; padding: 4px; margin-bottom: 16px; gap: 4px;
+    }
+    .notif-tab-btn {
+      flex: 1; padding: 9px; border-radius: 8px; border: none; background: none; color: #8892a0; font-size: 13px; font-weight: 800; cursor: pointer; transition: all 0.2s ease;
+    }
+    .notif-tab-btn.active { background: #2196F3; color: white; }
+
+    .notif-item {
+      background: #252b36; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+      display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+    }
+    .notif-item-title { font-size: 14px; font-weight: 700; color: white; }
+    .notif-item-time { font-size: 12px; color: #64b5f6; font-weight: 800; }
+
+    /* 서브 모달 */
+    .sub-modal {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+      width: 90%; max-width: 360px; background: #1f242e; border-radius: 20px; padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 200; display: none;
+    }
+    .sub-modal.open { display: block; transform: translate(-50%, -50%) scale(1); }
+
+    .time-picker-row { display: flex; gap: 8px; justify-content: center; margin: 16px 0; }
+    .time-picker-row select {
+      background: #2c3340; color: white; border: none; padding: 8px 12px; border-radius: 10px; font-size: 16px; font-weight: 800;
+    }
+
+    .form-btn-row { display: flex; gap: 8px; margin-top: 20px; }
+    .form-btn { flex: 1; padding: 10px; border-radius: 10px; border: none; font-size: 13px; font-weight: 800; cursor: pointer; }
+    .form-btn.save { background: #2196F3; color: white; }
+    .form-btn.cancel { background: #3a4250; color: #bbb; }
+    .form-btn.delete { background: #f44336; color: white; flex: 0.6; }
+
+    /* 도감 그리드 */
+    .pokedex-grid-container {
+      flex: 1; padding: clamp(10px, 3vw, 16px); padding-bottom: max(20px, env(safe-area-inset-bottom));
+      overflow-y: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(8px, 2.5vw, 12px);
+    }
+    .dex-card {
+      background: #252b36; border-radius: clamp(10px, 3vw, 14px); padding: clamp(8px, 2.5vw, 12px) 4px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+    .dex-sprite { width: clamp(56px, 17vw, 78px); height: clamp(56px, 17vw, 78px); object-fit: contain; image-rendering: pixelated; margin-bottom: 4px; }
+    .dex-sprite.locked { filter: brightness(0); opacity: 0.65; }
+    .dex-num { font-size: clamp(9px, 2.6vw, 11px); font-weight: 800; color: #8892a0; }
+    .dex-name { font-size: clamp(10px, 2.8vw, 12px); font-weight: 700; color: #e0e0e0; margin-top: 2px; max-width: 80px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  
+    /* 📱 갤럭시 Z 폴드(펼침) & 태블릿/PC 가로 화면 2열 분할 UI 지원 */
+    @media (min-width: 769px) {
+      .app-screen {
+        max-width: 1020px !important;
+        max-height: 860px !important;
+        display: flex !important;
+        flex-direction: row-reverse !important;
+        border-radius: 24px !important;
+        box-shadow: 0 16px 45px rgba(0,0,0,0.6) !important;
+      }
+      .modal-overlay {
+        position: relative !important;
+        width: 50% !important;
+        height: 100% !important;
+        transform: none !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+        border-right: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 24px 0 0 24px !important;
+      }
+      .modal-overlay:not(.open) {
+        display: none !important;
+      }
+      .modal-overlay.open {
+        display: flex !important;
+      }
+    }
+
+  </style>
+  <!-- OneSignal Web SDK v16 -->
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+
+</head>
+<body>
+
+  <div class="app-screen" id="appScreen">
+    
+    <!-- 1. 상단 헤더 -->
+    <div class="top-header">
+      <div class="pokemon-card">
+        <div class="card-top">
+          <span class="level-badge" id="lvBadge">알 상태</span>
+          <span class="pokemon-name" id="pokeName">신비한 알 <span class="gender-symbol" id="genderSymbol">?</span></span>
+        </div>
+        
+        <div class="type-nature-row">
+          <div class="type-icons-row" id="typeIconsRow"></div>
+          <span class="nature-tag" id="natureTag">월요일 8시 부화 🥚</span>
+        </div>
+
+        <div class="xp-text">
+          <span>EXP</span>
+          <span id="xpValues">0 / 100</span>
+        </div>
+        <div class="xp-bar-bg">
+          <div class="xp-bar-fill" id="xpBarFill" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <div class="quest-badge" id="questBadge" onclick="openQuestModal(true)">
+        📝 필수 퀘스트 <span id="questText">0/2</span>
+      </div>
+    </div>
+
+    <!-- 🌳 숲 배경 전용 나무열매 파밍 레이어 -->
+    <div class="berry-harvest-layer" id="berryLayer"></div>
+
+    <!-- 🍒 우측 하단 열매 적립 & 먹어치우기 위젯 -->
+    <div class="berry-basket-widget" id="berryBasketWidget">
+      <div class="basket-info">
+        <span class="basket-icon">🍒</span>
+        <span class="basket-xp" id="pendingBerryXpText">+0 XP</span>
+      </div>
+      <button class="btn-eat-berries" onclick="onFeedAccumulatedBerries()">먹어치우기 😋</button>
+    </div>
+
+    <!-- 2. 중앙 서식지 & 포켓몬 / 알 캐릭터 -->
+    <div class="stage-area">
+      <div class="speech-bubble" id="speechBubble">토독... 토독... 🥚</div>
+      <img 
+        id="pokemonImage" 
+        class="pokemon-sprite egg-wobble" 
+        src="./images/items/egg.png" 
+        alt="포켓몬"
+        onclick="onCharacterClick()"
+      />
+    </div>
+
+    <!-- 🛠️ 테스트 전용 치트 콘솔 (우측 상단 ⚙️ 또는 입력창) -->
+    <button class="dev-toggle-trigger" onclick="toggleDevConsole()">⚙️ 치트 콘솔</button>
+    <div class="dev-console-bar" id="devConsoleBar">
+      <input type="text" id="devCommandInput" class="dev-input" placeholder="명령어 입력 (help 입력 시 전체 목록)" onkeydown="if(event.key==='Enter') executeDevCommand()">
+      <button class="dev-btn" onclick="executeDevCommand()">실행</button>
+      <button class="dev-btn" style="background:#455a64; color:white;" onclick="toggleDevConsole()">✕</button>
+    </div>
+
+    <!-- 3. 주간 알 부화 / 진화 / 도감 박제 컷씬 오버레이 -->
+    <div class="cutscene-overlay" id="globalCutscene">
+      <div class="glow-circle"></div>
+      <img id="cutsceneMainImg" src="./images/items/egg.png" style="width: 130px; height: 130px; object-fit: contain; z-index: 310; filter: drop-shadow(0 0 20px white);" class="egg-hop">
+      <div id="cutsceneTitle" style="color: #FFEB3B; font-size: 20px; font-weight: 900; margin-top: 20px; z-index: 310; text-align: center;">어라...? 상태가...! ✨</div>
+      <div id="cutsceneSub" style="color: white; font-size: 14px; font-weight: 700; margin-top: 8px; z-index: 310; opacity: 0.9;">빛을 내며 변화하고 있습니다!</div>
+    </div>
+
+    <!-- 하단 메뉴 네비게이션 바 (5개 메뉴) -->
+    <div class="bottom-nav">
+      <button class="nav-btn active" onclick="openQuestModal(false)">
+        <span class="icon">📋</span>
+        <span>퀘스트</span>
+      </button>
+      <button class="nav-btn" onclick="openStreakHistoryModal()">
+        <span class="icon">📊</span>
+        <span>기록</span>
+      </button>
+      <button class="nav-btn" onclick="openMiniGame()">
+        <span class="icon">🎮</span>
+        <span>미니게임</span>
+      </button>
+      <button class="nav-btn" onclick="openPokedex()">
+        <span class="icon">📖</span>
+        <span>도감</span>
+      </button>
+      <button class="nav-btn" onclick="openNotifModal()">
+        <span class="icon">🔔</span>
+        <span>알림</span>
+      </button>
+    </div>
+
+    <!-- 📋 퀘스트 목록 모달 -->
+    <div class="modal-overlay" id="questModal">
+      <div class="modal-header">
+        <div class="modal-title" id="questModalTitle">📋 전체 퀘스트 목록</div>
+        <div class="modal-actions">
+          <button class="icon-btn" onclick="openAddQuestModal()">+</button>
+          <button class="icon-btn" onclick="closeQuestModal()">✕</button>
+        </div>
+      </div>
+      <div class="modal-body" id="questListContainer"></div>
+    </div>
+
+    <!-- 📊 퀘스트 기록(Streak) 모달 -->
+    <div class="modal-overlay" id="streakModal">
+      <div class="modal-header">
+        <div class="modal-title">📊 퀘스트 연속 실천 기록</div>
+        <button class="icon-btn" onclick="closeStreakModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: #252b36; border-radius: 14px; padding: 14px; margin-bottom: 16px; border: 1px solid #FF9800;">
+          <div style="font-size: 15px; font-weight: 900; color: #FFEB3B; margin-bottom: 4px;">🔥 매일 매일 꾸준한 습관 형성!</div>
+          <div style="font-size: 11px; color: #90a4ae;">자정이 지나도 매일 실천하면 연속 달성일수(Streak)가 누적됩니다.</div>
+        </div>
+        <div id="streakListContainer"></div>
+      </div>
+    </div>
+
+    <!-- 신규 퀘스트 추가 모달 -->
+    <div class="sub-modal" id="addQuestModal">
+      <h3 style="color: white; margin-bottom: 14px; font-size: 16px;">✨ 신규 퀘스트 추가</h3>
+      <input id="newQuestName" type="text" placeholder="퀘스트 이름 (예: 물 1잔 마시기)" style="width: 100%; padding: 10px; border-radius: 8px; border: none; background: #2c3340; color: white; margin-bottom: 10px; font-weight: 700;">
+      <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+        <input id="newQuestTime" type="time" style="flex: 1; padding: 10px; border-radius: 8px; border: none; background: #2c3340; color: white; font-weight: 700;">
+        <input id="newQuestXp" type="number" placeholder="보상 XP (20)" value="20" style="width: 90px; padding: 10px; border-radius: 8px; border: none; background: #2c3340; color: white; font-weight: 700;">
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; background: #2c3340; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
+        <input type="checkbox" id="newQuestIsRequired" style="width: 18px; height: 18px;">
+        <label for="newQuestIsRequired" style="color: white; font-size: 12px; font-weight: 700; cursor: pointer;">필수 퀘스트로 지정 ⭐</label>
+      </div>
+      <div class="form-btn-row">
+        <button class="form-btn cancel" onclick="closeAddQuestModal()">취소</button>
+        <button class="form-btn save" onclick="onSaveNewQuest()">추가하기</button>
+      </div>
+    </div>
+
+    <!-- 퀘스트 수정 모달 (삭제 버튼 포함) -->
+    <div class="sub-modal" id="editQuestModal">
+      <h3 style="color: white; margin-bottom: 14px; font-size: 16px;">✏️ 퀘스트 수정</h3>
+      <input id="editQuestId" type="hidden">
+      <input id="editQuestName" type="text" style="width: 100%; padding: 10px; border-radius: 8px; border: none; background: #2c3340; color: white; margin-bottom: 10px; font-weight: 700;">
+      <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+        <input id="editQuestTime" type="time" style="flex: 1; padding: 10px; border-radius: 8px; border: none; background: #2c3340; color: white; font-weight: 700;">
+        <input id="editQuestXp" type="number" style="width: 90px; padding: 10px; border-radius: 8px; border: none; background: #2c3340; color: white; font-weight: 700;">
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; background: #2c3340; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;">
+        <input type="checkbox" id="editQuestIsRequired" style="width: 18px; height: 18px;">
+        <label for="editQuestIsRequired" style="color: white; font-size: 12px; font-weight: 700; cursor: pointer;">필수 퀘스트로 지정 ⭐</label>
+      </div>
+      <div class="form-btn-row">
+        <button class="form-btn delete" onclick="onDeleteCurrentQuest()">삭제</button>
+        <button class="form-btn cancel" onclick="closeEditQuestModal()">취소</button>
+        <button class="form-btn save" onclick="onSaveEditQuest()">저장</button>
+      </div>
+    </div>
+
+    <!-- 🔔 알림 설정 모달 -->
+    <div class="modal-overlay" id="notifModal">
+      <div class="modal-header">
+        <div class="modal-title">🔔 알림 설정</div>
+        <button class="icon-btn" onclick="closeNotifModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: #252b36; border-radius: 14px; padding: 14px; margin-bottom: 16px; border: 1px solid #2196F3;">
+          <div style="font-size: 14px; font-weight: 800; color: white; margin-bottom: 6px;">📲 스마트폰 로컬 정밀 알람 테스트</div>
+          <p style="font-size: 11px; color: #8892a0; margin-bottom: 10px;">화면이 꺼져 있어도 설정된 정시에 몬스터볼 알림과 진동이 울립니다.</p>
+          
+          <button id="btnTestPush" onclick="onTestPushToPhone()" style="width: 100%; background: #4CAF50; color: white; border: none; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer;">
+            ⚡ 테스트 알림 즉시 울리기
+          </button>
+        </div>
+
+        <div class="notif-tab-bar">
+          <button class="notif-tab-btn active" id="tabOnBtn" onclick="switchNotifTab('ON')">🔔 알림 ON</button>
+          <button class="notif-tab-btn" id="tabOffBtn" onclick="switchNotifTab('OFF')">🔕 알림 OFF</button>
+        </div>
+
+        
+        <!-- OneSignal 즉시 발송 카드 -->
+        <div style="background:#252b36; border-radius:14px; padding:14px; margin-bottom:14px; border:1px solid #2196F3;">
+          <div style="font-size:14px; font-weight:800; color:white; margin-bottom:4px;">📲 OneSignal 스마트폰 푸시 테스트</div>
+          <p style="font-size:11px; color:#8892a0; margin-bottom:10px;">스마트폰 상단바로 몬스터볼 알림과 햅틱 진동이 즉시 울립니다.</p>
+          <button id="btnTestPushDirect" onclick="triggerOneSignalTestPush()" style="width:100%; background:#4CAF50; color:white; border:none; padding:10px; border-radius:8px; font-size:13px; font-weight:800; cursor:pointer;">
+            ⚡ OneSignal 테스트 푸시 즉시 발송
+          </button>
+        </div>
+
+        <div id="notifOnListContainer"></div>
+        <div id="notifOffListContainer" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- 알림 상세 설정 서브 모달 -->
+    <div class="sub-modal" id="notifDetailModal">
+      <h3 id="detailQuestTitle" style="color: white; font-size: 15px; margin-bottom: 10px;">퀘스트 알림 설정</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; background: #2c3340; padding: 10px 14px; border-radius: 10px; margin-bottom: 12px;">
+        <span style="color: white; font-weight: 700; font-size: 13px;">알림 활성화</span>
+        <input type="checkbox" id="notifToggle" style="width: 20px; height: 20px;">
+      </div>
+
+      <div style="color: #8892a0; font-size: 12px; font-weight: 700; margin-bottom: 4px;">알림 시간</div>
+      <div class="time-picker-row">
+        <select id="selectHour"></select>
+        <span style="color: white; font-size: 20px; line-height: 36px;">:</span>
+        <select id="selectMinute"></select>
+      </div>
+
+      <div class="form-btn-row">
+        <button class="form-btn cancel" onclick="closeNotifDetailModal()">취소</button>
+        <button class="form-btn save" onclick="onSaveNotifDetail()">설정 저장</button>
+      </div>
+    </div>
+
+    <!-- 📖 포켓몬 도감 모달 -->
+    <div class="modal-overlay" id="pokedexModal">
+      <div class="modal-header">
+        <div class="modal-title">📖 포켓몬 도감 (1세대 151)</div>
+        <button class="icon-btn" onclick="closePokedex()">✕</button>
+      </div>
+      <div class="pokedex-grid-container" id="pokedexGrid"></div>
+    </div>
+
+  </div>
+
+  
+  <script>
+  // Auto-generated Bundled Database for 0ms Offline Execution
+window.BUNDLED_INITIAL_STATE = {
+  "userStats": {
+    "level": 1,
+    "currentXp": 0,
+    "requiredXp": 100,
+    "stageName": "알 상태"
+  },
+  "eggState": {
+    "isEgg": true,
+    "eggName": "신비한 포켓몬의 알 🥚",
+    "eggSprite": "./images/items/egg.png",
+    "targetPokemonId": 1,
+    "targetPokemonName": "이상해씨",
+    "hatchAtMondayHour": 8
+  },
+  "pokemon": {
+    "id": 1,
+    "name": "이상해씨",
+    "gender": "♂",
+    "nature": "고집",
+    "natureBuff": "+공격",
+    "type": "풀/독",
+    "idleGif": "./images/pokemon/showdown/1.gif"
+  },
+  "unlockedPokemonIds": [
+    1
+  ],
+  "quests": [
+    {
+      "id": "H101",
+      "name": "아침 물 1잔 마시기",
+      "notifyTime": "08:00",
+      "rewardXp": 20,
+      "isActive": true,
+      "lastCompletedDate": "",
+      "consecutiveDays": 0,
+      "isRequired": false,
+      "days": "매일"
+    },
+    {
+      "id": "H102",
+      "name": "점심 스트레칭 10분",
+      "notifyTime": "12:30",
+      "rewardXp": 30,
+      "isActive": true,
+      "lastCompletedDate": "",
+      "consecutiveDays": 0,
+      "isRequired": true,
+      "days": "매일"
+    },
+    {
+      "id": "H103",
+      "name": "저녁 영양제 챙겨먹기",
+      "notifyTime": "21:00",
+      "rewardXp": 15,
+      "isActive": true,
+      "lastCompletedDate": "",
+      "consecutiveDays": 0,
+      "isRequired": true,
+      "days": "매일"
+    }
+  ],
+  "backgroundMap": {
+    "PogoGrasslandBg": "./images/backgrounds/PogoGrasslandBg.png",
+    "PogoBeachBg": "./images/backgrounds/PogoBeachBg.png",
+    "PogoOceanBg": "./images/backgrounds/PogoOceanBg.png",
+    "PogoSkyBg": "./images/backgrounds/PogoSkyBg.png",
+    "PogoCityBg": "./images/backgrounds/PogoCityBg.png",
+    "PogoCaveBg": "./images/backgrounds/PogoCaveBg.png"
+  }
+};
+window.BUNDLED_POKEMON_DB = [
+  {
+    "id": 1,
+    "name": "이상해씨",
+    "stage": "1단계",
+    "type": "풀/독",
+    "idleGif": "./images/pokemon/showdown/1.gif",
+    "sprite": "./images/pokemon/sprites/1.png"
+  },
+  {
+    "id": 2,
+    "name": "이상해풀",
+    "stage": "2단계",
+    "type": "풀/독",
+    "idleGif": "./images/pokemon/showdown/2.gif",
+    "sprite": "./images/pokemon/sprites/2.png"
+  },
+  {
+    "id": 3,
+    "name": "이상해꽃",
+    "stage": "3단계",
+    "type": "풀/독",
+    "idleGif": "./images/pokemon/showdown/3.gif",
+    "sprite": "./images/pokemon/sprites/3.png"
+  },
+  {
+    "id": 4,
+    "name": "파이리",
+    "stage": "1단계",
+    "type": "불꽃",
+    "idleGif": "./images/pokemon/showdown/4.gif",
+    "sprite": "./images/pokemon/sprites/4.png"
+  },
+  {
+    "id": 5,
+    "name": "리자드",
+    "stage": "2단계",
+    "type": "불꽃",
+    "idleGif": "./images/pokemon/showdown/5.gif",
+    "sprite": "./images/pokemon/sprites/5.png"
+  },
+  {
+    "id": 6,
+    "name": "리자몽",
+    "stage": "3단계",
+    "type": "불꽃/비행",
+    "idleGif": "./images/pokemon/showdown/6.gif",
+    "sprite": "./images/pokemon/sprites/6.png"
+  },
+  {
+    "id": 7,
+    "name": "꼬부기",
+    "stage": "1단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/7.gif",
+    "sprite": "./images/pokemon/sprites/7.png"
+  },
+  {
+    "id": 8,
+    "name": "어니부기",
+    "stage": "2단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/8.gif",
+    "sprite": "./images/pokemon/sprites/8.png"
+  },
+  {
+    "id": 9,
+    "name": "거북왕",
+    "stage": "3단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/9.gif",
+    "sprite": "./images/pokemon/sprites/9.png"
+  },
+  {
+    "id": 10,
+    "name": "캐터피",
+    "stage": "1단계",
+    "type": "벌레",
+    "idleGif": "./images/pokemon/showdown/10.gif",
+    "sprite": "./images/pokemon/sprites/10.png"
+  },
+  {
+    "id": 11,
+    "name": "단데기",
+    "stage": "2단계",
+    "type": "벌레",
+    "idleGif": "./images/pokemon/showdown/11.gif",
+    "sprite": "./images/pokemon/sprites/11.png"
+  },
+  {
+    "id": 12,
+    "name": "버터플",
+    "stage": "3단계",
+    "type": "벌레/비행",
+    "idleGif": "./images/pokemon/showdown/12.gif",
+    "sprite": "./images/pokemon/sprites/12.png"
+  },
+  {
+    "id": 13,
+    "name": "뿔충이",
+    "stage": "1단계",
+    "type": "벌레/독",
+    "idleGif": "./images/pokemon/showdown/13.gif",
+    "sprite": "./images/pokemon/sprites/13.png"
+  },
+  {
+    "id": 14,
+    "name": "딱충이",
+    "stage": "2단계",
+    "type": "벌레/독",
+    "idleGif": "./images/pokemon/showdown/14.gif",
+    "sprite": "./images/pokemon/sprites/14.png"
+  },
+  {
+    "id": 15,
+    "name": "독침붕",
+    "stage": "3단계",
+    "type": "벌레/독",
+    "idleGif": "./images/pokemon/showdown/15.gif",
+    "sprite": "./images/pokemon/sprites/15.png"
+  },
+  {
+    "id": 16,
+    "name": "구구",
+    "stage": "1단계",
+    "type": "노말/비행",
+    "idleGif": "./images/pokemon/showdown/16.gif",
+    "sprite": "./images/pokemon/sprites/16.png"
+  },
+  {
+    "id": 17,
+    "name": "피전",
+    "stage": "2단계",
+    "type": "노말/비행",
+    "idleGif": "./images/pokemon/showdown/17.gif",
+    "sprite": "./images/pokemon/sprites/17.png"
+  },
+  {
+    "id": 18,
+    "name": "피전투",
+    "stage": "3단계",
+    "type": "노말/비행",
+    "idleGif": "./images/pokemon/showdown/18.gif",
+    "sprite": "./images/pokemon/sprites/18.png"
+  },
+  {
+    "id": 19,
+    "name": "꼬렛",
+    "stage": "1단계",
+    "type": "노말",
+    "idleGif": "./images/pokemon/showdown/19.gif",
+    "sprite": "./images/pokemon/sprites/19.png"
+  },
+  {
+    "id": 20,
+    "name": "레트라",
+    "stage": "2단계",
+    "type": "노말",
+    "idleGif": "./images/pokemon/showdown/20.gif",
+    "sprite": "./images/pokemon/sprites/20.png"
+  },
+  {
+    "id": 21,
+    "name": "깨비참",
+    "stage": "1단계",
+    "type": "노말/비행",
+    "idleGif": "./images/pokemon/showdown/21.gif",
+    "sprite": "./images/pokemon/sprites/21.png"
+  },
+  {
+    "id": 22,
+    "name": "깨비드리",
+    "stage": "2단계",
+    "type": "노말/비행",
+    "idleGif": "./images/pokemon/showdown/22.gif",
+    "sprite": "./images/pokemon/sprites/22.png"
+  },
+  {
+    "id": 23,
+    "name": "아보",
+    "stage": "1단계",
+    "type": "독",
+    "idleGif": "./images/pokemon/showdown/23.gif",
+    "sprite": "./images/pokemon/sprites/23.png"
+  },
+  {
+    "id": 24,
+    "name": "아보크",
+    "stage": "2단계",
+    "type": "독",
+    "idleGif": "./images/pokemon/showdown/24.gif",
+    "sprite": "./images/pokemon/sprites/24.png"
+  },
+  {
+    "id": 25,
+    "name": "피카츄",
+    "stage": "1단계",
+    "type": "전기",
+    "idleGif": "./images/pokemon/showdown/25.gif",
+    "sprite": "./images/pokemon/sprites/25.png"
+  },
+  {
+    "id": 26,
+    "name": "라이츄",
+    "stage": "2단계",
+    "type": "전기",
+    "idleGif": "./images/pokemon/showdown/26.gif",
+    "sprite": "./images/pokemon/sprites/26.png"
+  },
+  {
+    "id": 27,
+    "name": "모래두지",
+    "stage": "1단계",
+    "type": "땅",
+    "idleGif": "./images/pokemon/showdown/27.gif",
+    "sprite": "./images/pokemon/sprites/27.png"
+  },
+  {
+    "id": 28,
+    "name": "고지",
+    "stage": "2단계",
+    "type": "땅",
+    "idleGif": "./images/pokemon/showdown/28.gif",
+    "sprite": "./images/pokemon/sprites/28.png"
+  },
+  {
+    "id": 29,
+    "name": "니드런♀",
+    "stage": "1단계",
+    "type": "독",
+    "idleGif": "./images/pokemon/showdown/29.gif",
+    "sprite": "./images/pokemon/sprites/29.png"
+  },
+  {
+    "id": 30,
+    "name": "니드리나",
+    "stage": "2단계",
+    "type": "독",
+    "idleGif": "./images/pokemon/showdown/30.gif",
+    "sprite": "./images/pokemon/sprites/30.png"
+  },
+  {
+    "id": 31,
+    "name": "니드퀸",
+    "stage": "3단계",
+    "type": "독/땅",
+    "idleGif": "./images/pokemon/showdown/31.gif",
+    "sprite": "./images/pokemon/sprites/31.png"
+  },
+  {
+    "id": 32,
+    "name": "니드런♂",
+    "stage": "1단계",
+    "type": "독",
+    "idleGif": "./images/pokemon/showdown/32.gif",
+    "sprite": "./images/pokemon/sprites/32.png"
+  },
+  {
+    "id": 33,
+    "name": "니드리노",
+    "stage": "2단계",
+    "type": "독",
+    "idleGif": "./images/pokemon/showdown/33.gif",
+    "sprite": "./images/pokemon/sprites/33.png"
+  },
+  {
+    "id": 34,
+    "name": "니드킹",
+    "stage": "3단계",
+    "type": "독/땅",
+    "idleGif": "./images/pokemon/showdown/34.gif",
+    "sprite": "./images/pokemon/sprites/34.png"
+  },
+  {
+    "id": 35,
+    "name": "삐삐",
+    "stage": "1단계",
+    "type": "페어리",
+    "idleGif": "./images/pokemon/showdown/35.gif",
+    "sprite": "./images/pokemon/sprites/35.png"
+  },
+  {
+    "id": 36,
+    "name": "픽시",
+    "stage": "2단계",
+    "type": "페어리",
+    "idleGif": "./images/pokemon/showdown/36.gif",
+    "sprite": "./images/pokemon/sprites/36.png"
+  },
+  {
+    "id": 37,
+    "name": "식스테일",
+    "stage": "1단계",
+    "type": "불꽃",
+    "idleGif": "./images/pokemon/showdown/37.gif",
+    "sprite": "./images/pokemon/sprites/37.png"
+  },
+  {
+    "id": 38,
+    "name": "나인테일",
+    "stage": "2단계",
+    "type": "불꽃",
+    "idleGif": "./images/pokemon/showdown/38.gif",
+    "sprite": "./images/pokemon/sprites/38.png"
+  },
+  {
+    "id": 39,
+    "name": "푸린",
+    "stage": "1단계",
+    "type": "노말/페어리",
+    "idleGif": "./images/pokemon/showdown/39.gif",
+    "sprite": "./images/pokemon/sprites/39.png"
+  },
+  {
+    "id": 40,
+    "name": "푸크린",
+    "stage": "2단계",
+    "type": "노말/페어리",
+    "idleGif": "./images/pokemon/showdown/40.gif",
+    "sprite": "./images/pokemon/sprites/40.png"
+  },
+  {
+    "id": 41,
+    "name": "주뱃",
+    "stage": "1단계",
+    "type": "독/비행",
+    "idleGif": "./images/pokemon/showdown/41.gif",
+    "sprite": "./images/pokemon/sprites/41.png"
+  },
+  {
+    "id": 42,
+    "name": "골뱃",
+    "stage": "2단계",
+    "type": "독/비행",
+    "idleGif": "./images/pokemon/showdown/42.gif",
+    "sprite": "./images/pokemon/sprites/42.png"
+  },
+  {
+    "id": 43,
+    "name": "뚜벅쵸",
+    "stage": "1단계",
+    "type": "풀/독",
+    "idleGif": "./images/pokemon/showdown/43.gif",
+    "sprite": "./images/pokemon/sprites/43.png"
+  },
+  {
+    "id": 44,
+    "name": "냄새꼬",
+    "stage": "2단계",
+    "type": "풀/독",
+    "idleGif": "./images/pokemon/showdown/44.gif",
+    "sprite": "./images/pokemon/sprites/44.png"
+  },
+  {
+    "id": 45,
+    "name": "라플레시아",
+    "stage": "3단계",
+    "type": "풀/독",
+    "idleGif": "./images/pokemon/showdown/45.gif",
+    "sprite": "./images/pokemon/sprites/45.png"
+  },
+  {
+    "id": 46,
+    "name": "파라스",
+    "stage": "1단계",
+    "type": "벌레/풀",
+    "idleGif": "./images/pokemon/showdown/46.gif",
+    "sprite": "./images/pokemon/sprites/46.png"
+  },
+  {
+    "id": 47,
+    "name": "파라섹트",
+    "stage": "2단계",
+    "type": "벌레/풀",
+    "idleGif": "./images/pokemon/showdown/47.gif",
+    "sprite": "./images/pokemon/sprites/47.png"
+  },
+  {
+    "id": 48,
+    "name": "콘팡",
+    "stage": "1단계",
+    "type": "벌레/독",
+    "idleGif": "./images/pokemon/showdown/48.gif",
+    "sprite": "./images/pokemon/sprites/48.png"
+  },
+  {
+    "id": 49,
+    "name": "도나리",
+    "stage": "2단계",
+    "type": "벌레/독",
+    "idleGif": "./images/pokemon/showdown/49.gif",
+    "sprite": "./images/pokemon/sprites/49.png"
+  },
+  {
+    "id": 50,
+    "name": "디그다",
+    "stage": "1단계",
+    "type": "땅",
+    "idleGif": "./images/pokemon/showdown/50.gif",
+    "sprite": "./images/pokemon/sprites/50.png"
+  },
+  {
+    "id": 51,
+    "name": "닥트리오",
+    "stage": "2단계",
+    "type": "땅",
+    "idleGif": "./images/pokemon/showdown/51.gif",
+    "sprite": "./images/pokemon/sprites/51.png"
+  },
+  {
+    "id": 52,
+    "name": "나옹",
+    "stage": "1단계",
+    "type": "노말",
+    "idleGif": "./images/pokemon/showdown/52.gif",
+    "sprite": "./images/pokemon/sprites/52.png"
+  },
+  {
+    "id": 53,
+    "name": "페르시온",
+    "stage": "2단계",
+    "type": "노말",
+    "idleGif": "./images/pokemon/showdown/53.gif",
+    "sprite": "./images/pokemon/sprites/53.png"
+  },
+  {
+    "id": 54,
+    "name": "고라파덕",
+    "stage": "1단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/54.gif",
+    "sprite": "./images/pokemon/sprites/54.png"
+  },
+  {
+    "id": 55,
+    "name": "골덕",
+    "stage": "2단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/55.gif",
+    "sprite": "./images/pokemon/sprites/55.png"
+  },
+  {
+    "id": 56,
+    "name": "망키",
+    "stage": "1단계",
+    "type": "격투",
+    "idleGif": "./images/pokemon/showdown/56.gif",
+    "sprite": "./images/pokemon/sprites/56.png"
+  },
+  {
+    "id": 57,
+    "name": "성원숭",
+    "stage": "2단계",
+    "type": "격투",
+    "idleGif": "./images/pokemon/showdown/57.gif",
+    "sprite": "./images/pokemon/sprites/57.png"
+  },
+  {
+    "id": 58,
+    "name": "가디",
+    "stage": "1단계",
+    "type": "불꽃",
+    "idleGif": "./images/pokemon/showdown/58.gif",
+    "sprite": "./images/pokemon/sprites/58.png"
+  },
+  {
+    "id": 59,
+    "name": "윈디",
+    "stage": "2단계",
+    "type": "불꽃",
+    "idleGif": "./images/pokemon/showdown/59.gif",
+    "sprite": "./images/pokemon/sprites/59.png"
+  },
+  {
+    "id": 60,
+    "name": "발챙이",
+    "stage": "1단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/60.gif",
+    "sprite": "./images/pokemon/sprites/60.png"
+  },
+  {
+    "id": 61,
+    "name": "슈륙챙이",
+    "stage": "2단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/61.gif",
+    "sprite": "./images/pokemon/sprites/61.png"
+  },
+  {
+    "id": 62,
+    "name": "강챙이",
+    "stage": "3단계",
+    "type": "물/격투",
+    "idleGif": "./images/pokemon/showdown/62.gif",
+    "sprite": "./images/pokemon/sprites/62.png"
+  },
+  {
+    "id": 63,
+    "name": "캐이시",
+    "stage": "1단계",
+    "type": "에스퍼",
+    "idleGif": "./images/pokemon/showdown/63.gif",
+    "sprite": "./images/pokemon/sprites/63.png"
+  },
+  {
+    "id": 64,
+    "name": "윤겔라",
+    "stage": "2단계",
+    "type": "에스퍼",
+    "idleGif": "./images/pokemon/showdown/64.gif",
+    "sprite": "./images/pokemon/sprites/64.png"
+  },
+  {
+    "id": 65,
+    "name": "후딘",
+    "stage": "3단계",
+    "type": "에스퍼",
+    "idleGif": "./images/pokemon/showdown/65.gif",
+    "sprite": "./images/pokemon/sprites/65.png"
+  },
+  {
+    "id": 66,
+    "name": "알통몬",
+    "stage": "1단계",
+    "type": "격투",
+    "idleGif": "./images/pokemon/showdown/66.gif",
+    "sprite": "./images/pokemon/sprites/66.png"
+  },
+  {
+    "id": 67,
+    "name": "근육몬",
+    "stage": "2단계",
+    "type": "격투",
+    "idleGif": "./images/pokemon/showdown/67.gif",
+    "sprite": "./images/pokemon/sprites/67.png"
+  },
+  {
+    "id": 68,
+    "name": "괴력몬",
+    "stage": "3단계",
+    "type": "격투",
+    "idleGif": "./images/pokemon/showdown/68.gif",
+    "sprite": "./images/pokemon/sprites/68.png"
+  },
+  {
+    "id": 69,
+    "name": "모다피",
+    "stage": "1단계",
+    "type": "풀/독",
+    "idleGif": "./images/pokemon/showdown/69.gif",
+    "sprite": "./images/pokemon/sprites/69.png"
+  },
+  {
+    "id": 70,
+    "name": "우츠동",
+    "stage": "2단계",
+    "type": "풀/독",
+    "idleGif": "./images/pokemon/showdown/70.gif",
+    "sprite": "./images/pokemon/sprites/70.png"
+  },
+  {
+    "id": 71,
+    "name": "우츠보트",
+    "stage": "3단계",
+    "type": "풀/독",
+    "idleGif": "./images/pokemon/showdown/71.gif",
+    "sprite": "./images/pokemon/sprites/71.png"
+  },
+  {
+    "id": 72,
+    "name": "왕눈해",
+    "stage": "1단계",
+    "type": "물/독",
+    "idleGif": "./images/pokemon/showdown/72.gif",
+    "sprite": "./images/pokemon/sprites/72.png"
+  },
+  {
+    "id": 73,
+    "name": "독파리",
+    "stage": "2단계",
+    "type": "물/독",
+    "idleGif": "./images/pokemon/showdown/73.gif",
+    "sprite": "./images/pokemon/sprites/73.png"
+  },
+  {
+    "id": 74,
+    "name": "꼬마돌",
+    "stage": "1단계",
+    "type": "바위/땅",
+    "idleGif": "./images/pokemon/showdown/74.gif",
+    "sprite": "./images/pokemon/sprites/74.png"
+  },
+  {
+    "id": 75,
+    "name": "데구리",
+    "stage": "2단계",
+    "type": "바위/땅",
+    "idleGif": "./images/pokemon/showdown/75.gif",
+    "sprite": "./images/pokemon/sprites/75.png"
+  },
+  {
+    "id": 76,
+    "name": "딱구리",
+    "stage": "3단계",
+    "type": "바위/땅",
+    "idleGif": "./images/pokemon/showdown/76.gif",
+    "sprite": "./images/pokemon/sprites/76.png"
+  },
+  {
+    "id": 77,
+    "name": "포니타",
+    "stage": "1단계",
+    "type": "불꽃",
+    "idleGif": "./images/pokemon/showdown/77.gif",
+    "sprite": "./images/pokemon/sprites/77.png"
+  },
+  {
+    "id": 78,
+    "name": "날쌩마",
+    "stage": "2단계",
+    "type": "불꽃",
+    "idleGif": "./images/pokemon/showdown/78.gif",
+    "sprite": "./images/pokemon/sprites/78.png"
+  },
+  {
+    "id": 79,
+    "name": "야돈",
+    "stage": "1단계",
+    "type": "물/에스퍼",
+    "idleGif": "./images/pokemon/showdown/79.gif",
+    "sprite": "./images/pokemon/sprites/79.png"
+  },
+  {
+    "id": 80,
+    "name": "야도란",
+    "stage": "2단계",
+    "type": "물/에스퍼",
+    "idleGif": "./images/pokemon/showdown/80.gif",
+    "sprite": "./images/pokemon/sprites/80.png"
+  },
+  {
+    "id": 81,
+    "name": "코일",
+    "stage": "1단계",
+    "type": "전기/강철",
+    "idleGif": "./images/pokemon/showdown/81.gif",
+    "sprite": "./images/pokemon/sprites/81.png"
+  },
+  {
+    "id": 82,
+    "name": "레어코일",
+    "stage": "2단계",
+    "type": "전기/강철",
+    "idleGif": "./images/pokemon/showdown/82.gif",
+    "sprite": "./images/pokemon/sprites/82.png"
+  },
+  {
+    "id": 83,
+    "name": "파오리",
+    "stage": "단일",
+    "type": "노말/비행",
+    "idleGif": "./images/pokemon/showdown/83.gif",
+    "sprite": "./images/pokemon/sprites/83.png"
+  },
+  {
+    "id": 84,
+    "name": "두두",
+    "stage": "1단계",
+    "type": "노말/비행",
+    "idleGif": "./images/pokemon/showdown/84.gif",
+    "sprite": "./images/pokemon/sprites/84.png"
+  },
+  {
+    "id": 85,
+    "name": "두트리오",
+    "stage": "2단계",
+    "type": "노말/비행",
+    "idleGif": "./images/pokemon/showdown/85.gif",
+    "sprite": "./images/pokemon/sprites/85.png"
+  },
+  {
+    "id": 86,
+    "name": "쥬쥬",
+    "stage": "1단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/86.gif",
+    "sprite": "./images/pokemon/sprites/86.png"
+  },
+  {
+    "id": 87,
+    "name": "쥬레곤",
+    "stage": "2단계",
+    "type": "물/얼음",
+    "idleGif": "./images/pokemon/showdown/87.gif",
+    "sprite": "./images/pokemon/sprites/87.png"
+  },
+  {
+    "id": 88,
+    "name": "질퍽이",
+    "stage": "1단계",
+    "type": "독",
+    "idleGif": "./images/pokemon/showdown/88.gif",
+    "sprite": "./images/pokemon/sprites/88.png"
+  },
+  {
+    "id": 89,
+    "name": "질뻐기",
+    "stage": "2단계",
+    "type": "독",
+    "idleGif": "./images/pokemon/showdown/89.gif",
+    "sprite": "./images/pokemon/sprites/89.png"
+  },
+  {
+    "id": 90,
+    "name": "셀러",
+    "stage": "1단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/90.gif",
+    "sprite": "./images/pokemon/sprites/90.png"
+  },
+  {
+    "id": 91,
+    "name": "파르셀",
+    "stage": "2단계",
+    "type": "물/얼음",
+    "idleGif": "./images/pokemon/showdown/91.gif",
+    "sprite": "./images/pokemon/sprites/91.png"
+  },
+  {
+    "id": 92,
+    "name": "고스",
+    "stage": "1단계",
+    "type": "고스트/독",
+    "idleGif": "./images/pokemon/showdown/92.gif",
+    "sprite": "./images/pokemon/sprites/92.png"
+  },
+  {
+    "id": 93,
+    "name": "고스트",
+    "stage": "2단계",
+    "type": "고스트/독",
+    "idleGif": "./images/pokemon/showdown/93.gif",
+    "sprite": "./images/pokemon/sprites/93.png"
+  },
+  {
+    "id": 94,
+    "name": "팬텀",
+    "stage": "3단계",
+    "type": "고스트/독",
+    "idleGif": "./images/pokemon/showdown/94.gif",
+    "sprite": "./images/pokemon/sprites/94.png"
+  },
+  {
+    "id": 95,
+    "name": "롱스톤",
+    "stage": "단일",
+    "type": "바위/땅",
+    "idleGif": "./images/pokemon/showdown/95.gif",
+    "sprite": "./images/pokemon/sprites/95.png"
+  },
+  {
+    "id": 96,
+    "name": "슬리프",
+    "stage": "1단계",
+    "type": "에스퍼",
+    "idleGif": "./images/pokemon/showdown/96.gif",
+    "sprite": "./images/pokemon/sprites/96.png"
+  },
+  {
+    "id": 97,
+    "name": "슬리퍼",
+    "stage": "2단계",
+    "type": "에스퍼",
+    "idleGif": "./images/pokemon/showdown/97.gif",
+    "sprite": "./images/pokemon/sprites/97.png"
+  },
+  {
+    "id": 98,
+    "name": "크랩",
+    "stage": "1단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/98.gif",
+    "sprite": "./images/pokemon/sprites/98.png"
+  },
+  {
+    "id": 99,
+    "name": "킹크랩",
+    "stage": "2단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/99.gif",
+    "sprite": "./images/pokemon/sprites/99.png"
+  },
+  {
+    "id": 100,
+    "name": "찌리리공",
+    "stage": "1단계",
+    "type": "전기",
+    "idleGif": "./images/pokemon/showdown/100.gif",
+    "sprite": "./images/pokemon/sprites/100.png"
+  },
+  {
+    "id": 101,
+    "name": "붐볼",
+    "stage": "2단계",
+    "type": "전기",
+    "idleGif": "./images/pokemon/showdown/101.gif",
+    "sprite": "./images/pokemon/sprites/101.png"
+  },
+  {
+    "id": 102,
+    "name": "아라리",
+    "stage": "1단계",
+    "type": "풀/에스퍼",
+    "idleGif": "./images/pokemon/showdown/102.gif",
+    "sprite": "./images/pokemon/sprites/102.png"
+  },
+  {
+    "id": 103,
+    "name": "나시",
+    "stage": "2단계",
+    "type": "풀/에스퍼",
+    "idleGif": "./images/pokemon/showdown/103.gif",
+    "sprite": "./images/pokemon/sprites/103.png"
+  },
+  {
+    "id": 104,
+    "name": "탕구리",
+    "stage": "1단계",
+    "type": "땅",
+    "idleGif": "./images/pokemon/showdown/104.gif",
+    "sprite": "./images/pokemon/sprites/104.png"
+  },
+  {
+    "id": 105,
+    "name": "텅구리",
+    "stage": "2단계",
+    "type": "땅",
+    "idleGif": "./images/pokemon/showdown/105.gif",
+    "sprite": "./images/pokemon/sprites/105.png"
+  },
+  {
+    "id": 106,
+    "name": "시라소몬",
+    "stage": "단일",
+    "type": "격투",
+    "idleGif": "./images/pokemon/showdown/106.gif",
+    "sprite": "./images/pokemon/sprites/106.png"
+  },
+  {
+    "id": 107,
+    "name": "홍수몬",
+    "stage": "단일",
+    "type": "격투",
+    "idleGif": "./images/pokemon/showdown/107.gif",
+    "sprite": "./images/pokemon/sprites/107.png"
+  },
+  {
+    "id": 108,
+    "name": "내루미",
+    "stage": "단일",
+    "type": "노말",
+    "idleGif": "./images/pokemon/showdown/108.gif",
+    "sprite": "./images/pokemon/sprites/108.png"
+  },
+  {
+    "id": 109,
+    "name": "또가스",
+    "stage": "1단계",
+    "type": "독",
+    "idleGif": "./images/pokemon/showdown/109.gif",
+    "sprite": "./images/pokemon/sprites/109.png"
+  },
+  {
+    "id": 110,
+    "name": "또도가스",
+    "stage": "2단계",
+    "type": "독",
+    "idleGif": "./images/pokemon/showdown/110.gif",
+    "sprite": "./images/pokemon/sprites/110.png"
+  },
+  {
+    "id": 111,
+    "name": "뿔카노",
+    "stage": "1단계",
+    "type": "바위/땅",
+    "idleGif": "./images/pokemon/showdown/111.gif",
+    "sprite": "./images/pokemon/sprites/111.png"
+  },
+  {
+    "id": 112,
+    "name": "코뿌리",
+    "stage": "2단계",
+    "type": "바위/땅",
+    "idleGif": "./images/pokemon/showdown/112.gif",
+    "sprite": "./images/pokemon/sprites/112.png"
+  },
+  {
+    "id": 113,
+    "name": "럭키",
+    "stage": "단일",
+    "type": "노말",
+    "idleGif": "./images/pokemon/showdown/113.gif",
+    "sprite": "./images/pokemon/sprites/113.png"
+  },
+  {
+    "id": 114,
+    "name": "덩쿠리",
+    "stage": "단일",
+    "type": "풀",
+    "idleGif": "./images/pokemon/showdown/114.gif",
+    "sprite": "./images/pokemon/sprites/114.png"
+  },
+  {
+    "id": 115,
+    "name": "캥카",
+    "stage": "단일",
+    "type": "노말",
+    "idleGif": "./images/pokemon/showdown/115.gif",
+    "sprite": "./images/pokemon/sprites/115.png"
+  },
+  {
+    "id": 116,
+    "name": "쏘드라",
+    "stage": "1단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/116.gif",
+    "sprite": "./images/pokemon/sprites/116.png"
+  },
+  {
+    "id": 117,
+    "name": "시드라",
+    "stage": "2단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/117.gif",
+    "sprite": "./images/pokemon/sprites/117.png"
+  },
+  {
+    "id": 118,
+    "name": "콘치",
+    "stage": "1단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/118.gif",
+    "sprite": "./images/pokemon/sprites/118.png"
+  },
+  {
+    "id": 119,
+    "name": "왕콘치",
+    "stage": "2단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/119.gif",
+    "sprite": "./images/pokemon/sprites/119.png"
+  },
+  {
+    "id": 120,
+    "name": "별가사리",
+    "stage": "1단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/120.gif",
+    "sprite": "./images/pokemon/sprites/120.png"
+  },
+  {
+    "id": 121,
+    "name": "아쿠스타",
+    "stage": "2단계",
+    "type": "물/에스퍼",
+    "idleGif": "./images/pokemon/showdown/121.gif",
+    "sprite": "./images/pokemon/sprites/121.png"
+  },
+  {
+    "id": 122,
+    "name": "마임맨",
+    "stage": "단일",
+    "type": "에스퍼/페어리",
+    "idleGif": "./images/pokemon/showdown/122.gif",
+    "sprite": "./images/pokemon/sprites/122.png"
+  },
+  {
+    "id": 123,
+    "name": "스라크",
+    "stage": "단일",
+    "type": "벌레/비행",
+    "idleGif": "./images/pokemon/showdown/123.gif",
+    "sprite": "./images/pokemon/sprites/123.png"
+  },
+  {
+    "id": 124,
+    "name": "루주라",
+    "stage": "단일",
+    "type": "얼음/에스퍼",
+    "idleGif": "./images/pokemon/showdown/124.gif",
+    "sprite": "./images/pokemon/sprites/124.png"
+  },
+  {
+    "id": 125,
+    "name": "에레브",
+    "stage": "단일",
+    "type": "전기",
+    "idleGif": "./images/pokemon/showdown/125.gif",
+    "sprite": "./images/pokemon/sprites/125.png"
+  },
+  {
+    "id": 126,
+    "name": "마그마",
+    "stage": "단일",
+    "type": "불꽃",
+    "idleGif": "./images/pokemon/showdown/126.gif",
+    "sprite": "./images/pokemon/sprites/126.png"
+  },
+  {
+    "id": 127,
+    "name": "쁘사이저",
+    "stage": "단일",
+    "type": "벌레",
+    "idleGif": "./images/pokemon/showdown/127.gif",
+    "sprite": "./images/pokemon/sprites/127.png"
+  },
+  {
+    "id": 128,
+    "name": "켄타로스",
+    "stage": "단일",
+    "type": "노말",
+    "idleGif": "./images/pokemon/showdown/128.gif",
+    "sprite": "./images/pokemon/sprites/128.png"
+  },
+  {
+    "id": 129,
+    "name": "잉어킹",
+    "stage": "1단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/129.gif",
+    "sprite": "./images/pokemon/sprites/129.png"
+  },
+  {
+    "id": 130,
+    "name": "갸라도스",
+    "stage": "2단계",
+    "type": "물/비행",
+    "idleGif": "./images/pokemon/showdown/130.gif",
+    "sprite": "./images/pokemon/sprites/130.png"
+  },
+  {
+    "id": 131,
+    "name": "라프라스",
+    "stage": "단일",
+    "type": "물/얼음",
+    "idleGif": "./images/pokemon/showdown/131.gif",
+    "sprite": "./images/pokemon/sprites/131.png"
+  },
+  {
+    "id": 132,
+    "name": "메타몽",
+    "stage": "단일",
+    "type": "노말",
+    "idleGif": "./images/pokemon/showdown/132.gif",
+    "sprite": "./images/pokemon/sprites/132.png"
+  },
+  {
+    "id": 133,
+    "name": "이브이",
+    "stage": "1단계",
+    "type": "노말",
+    "idleGif": "./images/pokemon/showdown/133.gif",
+    "sprite": "./images/pokemon/sprites/133.png"
+  },
+  {
+    "id": 134,
+    "name": "샤미드",
+    "stage": "2단계",
+    "type": "물",
+    "idleGif": "./images/pokemon/showdown/134.gif",
+    "sprite": "./images/pokemon/sprites/134.png"
+  },
+  {
+    "id": 135,
+    "name": "쥬피썬더",
+    "stage": "2단계",
+    "type": "전기",
+    "idleGif": "./images/pokemon/showdown/135.gif",
+    "sprite": "./images/pokemon/sprites/135.png"
+  },
+  {
+    "id": 136,
+    "name": "부스터",
+    "stage": "2단계",
+    "type": "불꽃",
+    "idleGif": "./images/pokemon/showdown/136.gif",
+    "sprite": "./images/pokemon/sprites/136.png"
+  },
+  {
+    "id": 137,
+    "name": "폴리곤",
+    "stage": "단일",
+    "type": "노말",
+    "idleGif": "./images/pokemon/showdown/137.gif",
+    "sprite": "./images/pokemon/sprites/137.png"
+  },
+  {
+    "id": 138,
+    "name": "암나이트",
+    "stage": "1단계",
+    "type": "바위/물",
+    "idleGif": "./images/pokemon/showdown/138.gif",
+    "sprite": "./images/pokemon/sprites/138.png"
+  },
+  {
+    "id": 139,
+    "name": "암스타",
+    "stage": "2단계",
+    "type": "바위/물",
+    "idleGif": "./images/pokemon/showdown/139.gif",
+    "sprite": "./images/pokemon/sprites/139.png"
+  },
+  {
+    "id": 140,
+    "name": "투구",
+    "stage": "1단계",
+    "type": "바위/물",
+    "idleGif": "./images/pokemon/showdown/140.gif",
+    "sprite": "./images/pokemon/sprites/140.png"
+  },
+  {
+    "id": 141,
+    "name": "투구푸스",
+    "stage": "2단계",
+    "type": "바위/물",
+    "idleGif": "./images/pokemon/showdown/141.gif",
+    "sprite": "./images/pokemon/sprites/141.png"
+  },
+  {
+    "id": 142,
+    "name": "프테라",
+    "stage": "단일",
+    "type": "바위/비행",
+    "idleGif": "./images/pokemon/showdown/142.gif",
+    "sprite": "./images/pokemon/sprites/142.png"
+  },
+  {
+    "id": 143,
+    "name": "잠만보",
+    "stage": "단일",
+    "type": "노말",
+    "idleGif": "./images/pokemon/showdown/143.gif",
+    "sprite": "./images/pokemon/sprites/143.png"
+  },
+  {
+    "id": 144,
+    "name": "프리져",
+    "stage": "전설",
+    "type": "얼음/비행",
+    "idleGif": "./images/pokemon/showdown/144.gif",
+    "sprite": "./images/pokemon/sprites/144.png"
+  },
+  {
+    "id": 145,
+    "name": "썬더",
+    "stage": "전설",
+    "type": "전기/비행",
+    "idleGif": "./images/pokemon/showdown/145.gif",
+    "sprite": "./images/pokemon/sprites/145.png"
+  },
+  {
+    "id": 146,
+    "name": "파이어",
+    "stage": "전설",
+    "type": "불꽃/비행",
+    "idleGif": "./images/pokemon/showdown/146.gif",
+    "sprite": "./images/pokemon/sprites/146.png"
+  },
+  {
+    "id": 147,
+    "name": "미뇽",
+    "stage": "1단계",
+    "type": "드래곤",
+    "idleGif": "./images/pokemon/showdown/147.gif",
+    "sprite": "./images/pokemon/sprites/147.png"
+  },
+  {
+    "id": 148,
+    "name": "신뇽",
+    "stage": "2단계",
+    "type": "드래곤",
+    "idleGif": "./images/pokemon/showdown/148.gif",
+    "sprite": "./images/pokemon/sprites/148.png"
+  },
+  {
+    "id": 149,
+    "name": "망나뇽",
+    "stage": "3단계",
+    "type": "드래곤/비행",
+    "idleGif": "./images/pokemon/showdown/149.gif",
+    "sprite": "./images/pokemon/sprites/149.png"
+  },
+  {
+    "id": 150,
+    "name": "뮤츠",
+    "stage": "전설",
+    "type": "에스퍼",
+    "idleGif": "./images/pokemon/showdown/150.gif",
+    "sprite": "./images/pokemon/sprites/150.png"
+  },
+  {
+    "id": 151,
+    "name": "뮤",
+    "stage": "전설",
+    "type": "에스퍼",
+    "idleGif": "./images/pokemon/showdown/151.gif",
+    "sprite": "./images/pokemon/sprites/151.png"
+  }
+];
+window.BUNDLED_NATURE_DB = [
+  {
+    "nature": "NatureID",
+    "nature_en": "NatureName_KR",
+    "nature_jp": "NatureName_EN",
+    "stat_buff": "BuffStat"
+  },
+  {
+    "nature": "N01",
+    "nature_en": "고집",
+    "nature_jp": "Adamant",
+    "stat_buff": "공격 (+10%)"
+  },
+  {
+    "nature": "N02",
+    "nature_en": "외로움",
+    "nature_jp": "Lonely",
+    "stat_buff": "공격 (+10%)"
+  },
+  {
+    "nature": "N03",
+    "nature_en": "용감",
+    "nature_jp": "Brave",
+    "stat_buff": "공격 (+10%)"
+  },
+  {
+    "nature": "N04",
+    "nature_en": "개구쟁이",
+    "nature_jp": "Naughty",
+    "stat_buff": "공격 (+10%)"
+  },
+  {
+    "nature": "N05",
+    "nature_en": "대담",
+    "nature_jp": "Bold",
+    "stat_buff": "방어 (+10%)"
+  },
+  {
+    "nature": "N06",
+    "nature_en": "장난꾸러기",
+    "nature_jp": "Impish",
+    "stat_buff": "방어 (+10%)"
+  },
+  {
+    "nature": "N07",
+    "nature_en": "무사태평",
+    "nature_jp": "Relaxed",
+    "stat_buff": "방어 (+10%)"
+  },
+  {
+    "nature": "N08",
+    "nature_en": "덜렁",
+    "nature_jp": "Lax",
+    "stat_buff": "방어 (+10%)"
+  },
+  {
+    "nature": "N09",
+    "nature_en": "조심",
+    "nature_jp": "Modest",
+    "stat_buff": "특수공격 (+10%)"
+  },
+  {
+    "nature": "N10",
+    "nature_en": "의젓",
+    "nature_jp": "Mild",
+    "stat_buff": "특수공격 (+10%)"
+  },
+  {
+    "nature": "N11",
+    "nature_en": "냉정",
+    "nature_jp": "Quiet",
+    "stat_buff": "특수공격 (+10%)"
+  },
+  {
+    "nature": "N12",
+    "nature_en": "무모",
+    "nature_jp": "Rash",
+    "stat_buff": "특수공격 (+10%)"
+  },
+  {
+    "nature": "N13",
+    "nature_en": "차분",
+    "nature_jp": "Calm",
+    "stat_buff": "특수방어 (+10%)"
+  },
+  {
+    "nature": "N14",
+    "nature_en": "얌전",
+    "nature_jp": "Gentle",
+    "stat_buff": "특수방어 (+10%)"
+  },
+  {
+    "nature": "N15",
+    "nature_en": "건방",
+    "nature_jp": "Sassy",
+    "stat_buff": "특수방어 (+10%)"
+  },
+  {
+    "nature": "N16",
+    "nature_en": "신중",
+    "nature_jp": "Careful",
+    "stat_buff": "특수방어 (+10%)"
+  },
+  {
+    "nature": "N17",
+    "nature_en": "겁쟁이",
+    "nature_jp": "Timid",
+    "stat_buff": "스피드 (+10%)"
+  },
+  {
+    "nature": "N18",
+    "nature_en": "성급",
+    "nature_jp": "Hasty",
+    "stat_buff": "스피드 (+10%)"
+  },
+  {
+    "nature": "N19",
+    "nature_en": "명랑",
+    "nature_jp": "Jolly",
+    "stat_buff": "스피드 (+10%)"
+  },
+  {
+    "nature": "N20",
+    "nature_en": "순진",
+    "nature_jp": "Naive",
+    "stat_buff": "스피드 (+10%)"
+  },
+  {
+    "nature": "N21",
+    "nature_en": "수줍음",
+    "nature_jp": "Bashful",
+    "stat_buff": "없음"
+  },
+  {
+    "nature": "N22",
+    "nature_en": "노력",
+    "nature_jp": "Hardy",
+    "stat_buff": "없음"
+  },
+  {
+    "nature": "N23",
+    "nature_en": "솔직",
+    "nature_jp": "Docile",
+    "stat_buff": "없음"
+  },
+  {
+    "nature": "N24",
+    "nature_en": "변덕",
+    "nature_jp": "Quirky",
+    "stat_buff": "없음"
+  },
+  {
+    "nature": "N25",
+    "nature_en": "진지",
+    "nature_jp": "Serious",
+    "stat_buff": "없음"
+  }
+];
+window.BUNDLED_ITEMS_DB = [
+  {
+    "id": "water-stone",
+    "name": "물의돌",
+    "category": "진화의 돌",
+    "icon": "./images/items/water-stone.png",
+    "desc": "특정 물타입 포켓몬을 진화시키는 신비한 돌."
+  },
+  {
+    "id": "fire-stone",
+    "name": "불꽃의돌",
+    "category": "진화의 돌",
+    "icon": "./images/items/fire-stone.png",
+    "desc": "특정 불꽃타입 포켓몬을 진화시키는 신비한 돌."
+  },
+  {
+    "id": "thunder-stone",
+    "name": "천둥의돌",
+    "category": "진화의 돌",
+    "icon": "./images/items/thunder-stone.png",
+    "desc": "특정 전기타입 포켓몬을 진화시키는 신비한 돌."
+  },
+  {
+    "id": "leaf-stone",
+    "name": "리프의돌",
+    "category": "진화의 돌",
+    "icon": "./images/items/leaf-stone.png",
+    "desc": "특정 풀타입 포켓몬을 진화시키는 신비한 돌."
+  },
+  {
+    "id": "moon-stone",
+    "name": "달의돌",
+    "category": "진화의 돌",
+    "icon": "./images/items/moon-stone.png",
+    "desc": "달빛을 받아 빛나는 신비한 진화의 돌."
+  },
+  {
+    "id": "sun-stone",
+    "name": "태양의돌",
+    "category": "진화의 돌",
+    "icon": "./images/items/sun-stone.png",
+    "desc": "태양의 에너지를 품은 신비한 진화의 돌."
+  },
+  {
+    "id": "shiny-stone",
+    "name": "빛의돌",
+    "category": "진화의 돌",
+    "icon": "./images/items/shiny-stone.png",
+    "desc": "눈부신 빛을 내뿜는 신비한 진화의 돌."
+  },
+  {
+    "id": "dusk-stone",
+    "name": "어둠의돌",
+    "category": "진화의 돌",
+    "icon": "./images/items/dusk-stone.png",
+    "desc": "깊은 어둠을 머금은 신비한 진화의 돌."
+  },
+  {
+    "id": "dawn-stone",
+    "name": "각성의돌",
+    "category": "진화의 돌",
+    "icon": "./images/items/dawn-stone.png",
+    "desc": "눈처럼 반짝이는 신비한 진화의 돌."
+  },
+  {
+    "id": "ice-stone",
+    "name": "얼음의돌",
+    "category": "진화의 돌",
+    "icon": "./images/items/ice-stone.png",
+    "desc": "얼음 무늬가 있는 신비한 진화의 돌."
+  },
+  {
+    "id": "oval-stone",
+    "name": "동글동글돌",
+    "category": "진화의 돌",
+    "icon": "./images/items/oval-stone.png",
+    "desc": "둥근 알 형태의 매끄러운 돌."
+  },
+  {
+    "id": "health-wing",
+    "name": "체력의날개",
+    "category": "깃털",
+    "icon": "./images/items/health-wing.png",
+    "desc": "포켓몬의 체력 잠재력을 높여주는 날개."
+  },
+  {
+    "id": "muscle-wing",
+    "name": "근력의날개",
+    "category": "깃털",
+    "icon": "./images/items/muscle-wing.png",
+    "desc": "포켓몬의 공격 잠재력을 높여주는 날개."
+  },
+  {
+    "id": "resist-wing",
+    "name": "저항의날개",
+    "category": "깃털",
+    "icon": "./images/items/resist-wing.png",
+    "desc": "포켓몬의 방어 잠재력을 높여주는 날개."
+  },
+  {
+    "id": "genius-wing",
+    "name": "지성의날개",
+    "category": "깃털",
+    "icon": "./images/items/genius-wing.png",
+    "desc": "포켓몬의 특수공격 잠재력을 높여주는 날개."
+  },
+  {
+    "id": "clever-wing",
+    "name": "정신의날개",
+    "category": "깃털",
+    "icon": "./images/items/clever-wing.png",
+    "desc": "포켓몬의 특수방어 잠재력을 높여주는 날개."
+  },
+  {
+    "id": "swift-wing",
+    "name": "순발의날개",
+    "category": "깃털",
+    "icon": "./images/items/swift-wing.png",
+    "desc": "포켓몬의 스피드 잠재력을 높여주는 날개."
+  },
+  {
+    "id": "pretty-wing",
+    "name": "예쁜날개",
+    "category": "깃털",
+    "icon": "./images/items/pretty-wing.png",
+    "desc": "반짝이고 아름다운 희귀한 날개."
+  },
+  {
+    "id": "rare-candy",
+    "name": "이상한사탕",
+    "category": "도구",
+    "icon": "./images/items/rare-candy.png",
+    "desc": "먹으면 즉시 +100 EXP를 획득하는 특별한 사탕."
+  },
+  {
+    "id": "lucky-egg",
+    "name": "행복의알",
+    "category": "도구",
+    "icon": "./images/items/lucky-egg.png",
+    "desc": "지니고 있으면 퀘스트 경험치가 상승하는 알."
+  },
+  {
+    "id": "leftovers",
+    "name": "먹다남은음식",
+    "category": "도구",
+    "icon": "./images/items/leftovers.png",
+    "desc": "포켓몬이 항상 배부르게 유지되도록 돕는 음식."
+  },
+  {
+    "id": "soothe-bell",
+    "name": "평온의방울",
+    "category": "도구",
+    "icon": "./images/items/soothe-bell.png",
+    "desc": "맑은 방울 소리로 친밀도를 빠르게 올려주는 도구."
+  },
+  {
+    "id": "exp-share",
+    "name": "학습장치",
+    "category": "도구",
+    "icon": "./images/items/exp-share.png",
+    "desc": "성장 효율을 높여주는 최첨단 장치."
+  }
+];
+window.BUNDLED_VOICES_DB = {
+  "cries": {
+    "1": "이상해~ 씨!",
+    "2": "이-상해풀!",
+    "3": "이상해- 꽃!",
+    "4": "파이! 파이리!",
+    "5": "리자-드!",
+    "6": "크아아앙! (리자몽)",
+    "7": "꼬북~ 꼬북!",
+    "8": "어니- 부기!",
+    "9": "거북~ 왕!",
+    "10": "캐터~ 피!",
+    "11": "단데~ 기!",
+    "12": "버터~ 플!",
+    "13": "뿔충~ 이!",
+    "14": "딱충~ 이!",
+    "15": "독침~ 붕!",
+    "16": "구~ 구!",
+    "17": "피~ 전!",
+    "18": "피전~ 투!",
+    "19": "꼬~ 렛!",
+    "20": "레트~ 라!",
+    "21": "깨비~ 참!",
+    "22": "깨비드~ 리!",
+    "23": "아~ 보!",
+    "24": "아보~ 크!",
+    "25": "피카- 츄!",
+    "26": "라이~ 츄!",
+    "27": "모래두~ 지!",
+    "28": "고~ 지!",
+    "29": "니드런~ ♀!",
+    "30": "니드리~ 나!",
+    "31": "니드~ 퀸!",
+    "32": "니드런~ ♂!",
+    "33": "니드리~ 노!",
+    "34": "니드~ 킹!",
+    "35": "삐~ 삐!",
+    "36": "픽~ 시!",
+    "37": "식스테~ 일!",
+    "38": "나인테~ 일!",
+    "39": "푸~ 푸린!",
+    "40": "푸크~ 린!",
+    "41": "주~ 뱃!",
+    "42": "골~ 뱃!",
+    "43": "뚜벅~ 쵸!",
+    "44": "냄새~ 꼬!",
+    "45": "라플레시~ 아!",
+    "46": "파라~ 스!",
+    "47": "파라섹~ 트!",
+    "48": "콘~ 팡!",
+    "49": "도나~ 리!",
+    "50": "디그~ 다!",
+    "51": "닥트리~ 오!",
+    "52": "나옹~ 이다옹!",
+    "53": "페르시~ 온!",
+    "54": "고라~ 파덕?",
+    "55": "골~ 덕!",
+    "56": "망~ 키!",
+    "57": "성원~ 숭!",
+    "58": "가~ 디!",
+    "59": "윈~ 디!",
+    "60": "발챙~ 이!",
+    "61": "슈륙챙~ 이!",
+    "62": "강챙~ 이!",
+    "63": "캐이~ 시!",
+    "64": "윤겔~ 라!",
+    "65": "후~ 딘!",
+    "66": "알통~ 몬!",
+    "67": "근육~ 몬!",
+    "68": "괴력~ 몬!",
+    "69": "모다~ 피!",
+    "70": "우츠~ 동!",
+    "71": "우츠보~ 트!",
+    "72": "왕눈~ 해!",
+    "73": "독파~ 리!",
+    "74": "꼬마~ 돌!",
+    "75": "데구~ 리!",
+    "76": "딱구~ 리!",
+    "77": "포니~ 타!",
+    "78": "날쌩~ 마!",
+    "79": "야~ 돈!",
+    "80": "야도~ 란!",
+    "81": "코~ 일!",
+    "82": "레어코~ 일!",
+    "83": "파오~ 리!",
+    "84": "두~ 두!",
+    "85": "두트리~ 오!",
+    "86": "쥬~ 쥬!",
+    "87": "쥬레~ 곤!",
+    "88": "질퍽~ 이!",
+    "89": "질뻐~ 기!",
+    "90": "셀~ 러!",
+    "91": "파르~ 셀!",
+    "92": "고~ 스!",
+    "93": "고스~ 트!",
+    "94": "팬~ 텀!",
+    "95": "롱스~ 톤!",
+    "96": "슬리~ 프!",
+    "97": "슬리~ 퍼!",
+    "98": "크~ 랩!",
+    "99": "킹크~ 랩!",
+    "100": "찌리리~ 공!",
+    "101": "붐~ 볼!",
+    "102": "아라~ 리!",
+    "103": "나~ 시!",
+    "104": "탕구~ 리!",
+    "105": "텅구~ 리!",
+    "106": "시라소~ 몬!",
+    "107": "홍수~ 몬!",
+    "108": "내루~ 미!",
+    "109": "또가~ 스!",
+    "110": "또도가~ 스!",
+    "111": "뿔카~ 노!",
+    "112": "코뿌~ 리!",
+    "113": "럭~ 키!",
+    "114": "덩쿠~ 리!",
+    "115": "캥~ 카!",
+    "116": "쏘드~ 라!",
+    "117": "시드~ 라!",
+    "118": "콘~ 치!",
+    "119": "왕콘~ 치!",
+    "120": "별가사~ 리!",
+    "121": "아쿠스~ 타!",
+    "122": "마임~ 맨!",
+    "123": "스라~ 크!",
+    "124": "루주~ 라!",
+    "125": "에레~ 브!",
+    "126": "마그~ 마!",
+    "127": "쁘사이~ 저!",
+    "128": "켄타로~ 스!",
+    "129": "잉어~ 킹!",
+    "130": "갸라도~ 스!",
+    "131": "라프라~ 스!",
+    "132": "메타~ 몽!",
+    "133": "이브- 이!",
+    "134": "샤미~ 드!",
+    "135": "쥬피썬~ 더!",
+    "136": "부스~ 터!",
+    "137": "폴리~ 곤!",
+    "138": "암나이~ 트!",
+    "139": "암스~ 타!",
+    "140": "투~ 구!",
+    "141": "투구푸~ 스!",
+    "142": "프테~ 라!",
+    "143": "잠만... 쿨... 💤",
+    "144": "프리~ 져!",
+    "145": "썬~ 더!",
+    "146": "파이~ 어!",
+    "147": "미~ 뇽!",
+    "148": "신~ 뇽!",
+    "149": "망나~ 뇽!",
+    "150": "...... (뮤츠)",
+    "151": "뮤- 우! ✨"
+  },
+  "natures": {
+    "고집": [
+      "오늘 하루도 화이팅!",
+      "목표까지 쉬지 않고 간다.",
+      "확실하게 해내자."
+    ],
+    "외로움": [
+      "함께 해줘서 든든해.",
+      "오늘도 같이 해보자.",
+      "혼자보단 둘이 낫지."
+    ],
+    "용감": [
+      "자신 있게 도전하자.",
+      "망설이지 말고 전진.",
+      "어떤 목표든 문제없어."
+    ],
+    "개구쟁이": [
+      "재미있게 해보자!",
+      "즐기면서 하면 금방이야.",
+      "오늘도 기분 좋게 출발!"
+    ],
+    "대담": [
+      "침착하게 페이스 유지하자.",
+      "흔들리지 않고 꾸준히.",
+      "당황하지 말고 계획대로."
+    ],
+    "장난꾸러기": [
+      "가벼운 마음으로 시작하자.",
+      "오늘도 유쾌하게!",
+      "한 걸음씩 전진해볼까?"
+    ],
+    "무사태평": [
+      "천천히 해도 괜찮아.",
+      "여유를 갖고 가자.",
+      "조급해할 필요 없어."
+    ],
+    "촐랑": [
+      "스피드 있게 끝내보자.",
+      "망설일 시간 없어, 출발!",
+      "경쾌하게 전진!"
+    ],
+    "조심": [
+      "차근차근 확인하면서 가자.",
+      "꼼꼼하게 챙기자.",
+      "계획대로 진행해볼까."
+    ],
+    "온순": [
+      "오늘 하루도 평온하게.",
+      "무리하지 말고 편안하게.",
+      "좋은 하루 보내자."
+    ],
+    "의젓": [
+      "흔들리지 않는 습관이 중요해.",
+      "늘 한결같이.",
+      "묵묵히 해내자."
+    ],
+    "덜렁": [
+      "놓치는 것 없나 체크!",
+      "집중해서 마무리하자.",
+      "끝까지 방심하지 말기."
+    ],
+    "차분": [
+      "마음을 가다듬고 시작하자.",
+      "차분하게 집중.",
+      "안정적인 흐름으로."
+    ],
+    "얌전": [
+      "조용히 집중할 시간이야.",
+      "깊이 있게 해내자.",
+      "편안한 하루 보내."
+    ],
+    "신중": [
+      "하나씩 확실하게 달성하자.",
+      "돌다리도 두들겨 보고.",
+      "기본부터 차근차근."
+    ],
+    "건방": [
+      "이 정도는 기본이지.",
+      "자신 있게 끝내자.",
+      "실력 발휘해볼까?"
+    ],
+    "겁쟁이": [
+      "차근차근 안전하게 가자.",
+      "작은 것부터 시작해봐.",
+      "천천히 적응하자."
+    ],
+    "성급": [
+      "빠르게 끝내고 쉬자!",
+      "속도감 있게 해결!",
+      "지금 바로 시작해!"
+    ],
+    "명랑": [
+      "오늘 하루도 활기차게!",
+      "좋은 컨디션으로 출발!",
+      "상쾌한 하루 보내자!"
+    ],
+    "천진난만": [
+      "오늘도 즐겁게 화이팅!",
+      "새로운 기분으로 시작!",
+      "매일이 새로워."
+    ],
+    "수줍음": [
+      "묵묵히 응원하고 있어.",
+      "오늘도 힘내보자.",
+      "꾸준히 가자."
+    ],
+    "노력": [
+      "노력은 배신하지 않아.",
+      "매일 매일 성장 중이야.",
+      "오늘도 한 걸음 더."
+    ],
+    "성실": [
+      "정해진 일과는 철저히.",
+      "오늘 할 일부터 깔끔하게.",
+      "성실함이 최고의 무기."
+    ],
+    "순진": [
+      "믿고 전진하자.",
+      "순수한 열정으로!",
+      "오늘도 좋은 하루."
+    ],
+    "변덕": [
+      "오늘은 어떤 것부터 해볼까?",
+      "기분 전환하면서 전진!",
+      "새로운 방식으로 도전!"
+    ]
+  },
+  "common": [
+    "오늘 하루도 화이팅!",
+    "작은 습관이 큰 결과를 만든다.",
+    "오늘 목표도 깔끔하게 달성하자.",
+    "꾸준함이 최고의 성장이야.",
+    "차근차근 해내면 돼."
+  ],
+  "egg": [
+    "토독... 토독...",
+    "흔들흔들...",
+    "둥~ 둥~",
+    "알 속에서 조용한 기척이 느껴집니다.",
+    "월요일 아침 8시 부화 대기 중"
+  ]
+};
+
+  </script>
+
+  <script>
+  // 🌐 Google Apps Script Headless 백엔드 REST API 연동
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxVbpj0MyIAMzd_c7PcWgx94yoNkFFlQ3kcjnk81BMv7TcRJH3KLNeHIB7lJBepOlAtjw/exec";
+
+  async function callBackend(action, payload = {}) {
+    try {
+      const response = await fetch(GAS_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: action, ...payload })
+      });
+      const result = await response.json();
+      if (!result.success) throw new Error(result.error || "API Error");
+      return result.data;
+    } catch (err) {
+      console.warn(`[REST API] ${action} 통신 알림:`, err.message);
+      return null;
+    }
+  }
+
+  // OneSignal Web SDK v16 초기화
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "5aaa7314-9ff3-4934-960e-11da2521b448",
+      allowLocalhostAsSecureOrigin: true,
+      notifyButton: {
+        enable: false
+      }
+    });
+
+    if (OneSignal.Notifications && OneSignal.Notifications.requestPermission) {
+      OneSignal.Notifications.requestPermission();
+    }
+
+    if (OneSignal.User && OneSignal.User.PushSubscription) {
+      OneSignal.User.PushSubscription.addEventListener("change", function(event) {
+        if (event.current && event.current.token) {
+          callBackend("savePushToken", {
+            token: event.current.token,
+            playerId: event.current.id,
+            platform: "GitHub_Pages_Web"
+          });
+        }
+      });
+    }
+  });
+
+  // OneSignal 테스트 푸시 트리거
+  async function triggerOneSignalTestPush() {
+    const btn = document.getElementById('btnTestPushDirect');
+    if (btn) btn.innerText = "⏳ 발송 중...";
+    try {
+      await callBackend("sendTestPush");
+      if (btn) btn.innerText = "⚡ OneSignal 테스트 푸시 즉시 발송";
+      alert("📲 스마트폰 상단바로 몬스터볼 푸시 알림이 발송되었습니다!");
+    } catch (e) {
+      if (btn) btn.innerText = "⚡ OneSignal 테스트 푸시 즉시 발송";
+      alert("발송 요청 완료 (OneSignal 결과 확인)");
+    }
+  }
+  </script>
+
+  <script>
+    const TYPE_ICONS_LOCAL = {
+      "노말": "./images/types/1.png", "격투": "./images/types/2.png", "비행": "./images/types/3.png",
+      "독": "./images/types/4.png", "땅": "./images/types/5.png", "바위": "./images/types/6.png",
+      "벌레": "./images/types/7.png", "고스트": "./images/types/8.png", "강철": "./images/types/9.png",
+      "불꽃": "./images/types/10.png", "물": "./images/types/11.png", "풀": "./images/types/12.png",
+      "전기": "./images/types/13.png", "에스퍼": "./images/types/15.png", "얼음": "./images/types/14.png",
+      "드래곤": "./images/types/16.png", "악": "./images/types/17.png", "페어리": "./images/types/18.png"
+    };
+
+    const BERRY_POOL = [
+      { name: "라즈열매", url: "./images/items/razz-berry.png", xp: 5 },
+      { name: "나나열매", url: "./images/items/nanab-berry.png", xp: 4 },
+      { name: "파인열매", url: "./images/items/pinap-berry.png", xp: 6 },
+      { name: "자몽열매", url: "./images/items/sitrus-berry.png", xp: 5 }
+    ];
+
+    let appState = null;
+    let pokedexData = [];
+    let selectedQuestForNotif = null;
+    let currentFilterOnlyRequired = false;
+    let isCurrentHabitatForest = false;
+    let pendingBerryXp = 0;
+
+    const NativeBridge = {
+      isAvailable() { return typeof window.AndroidBridge !== 'undefined'; },
+      vibrate(ms = 50) { if (this.isAvailable() && window.AndroidBridge.vibrate) window.AndroidBridge.vibrate(ms); },
+      toast(msg) { if (this.isAvailable() && window.AndroidBridge.showToast) window.AndroidBridge.showToast(msg); else alert(msg); },
+      sendTestNotification() { if (this.isAvailable() && window.AndroidBridge.sendTestNotification) window.AndroidBridge.sendTestNotification(); else alert("테스트 알림 발생!"); },
+      syncAlarms(quests) { if (this.isAvailable() && window.AndroidBridge.syncQuestAlarms) window.AndroidBridge.syncQuestAlarms(JSON.stringify(quests)); },
+      updateWidget(stats, pokemon, quests, isEgg) {
+        if (this.isAvailable() && window.AndroidBridge.updateWidgetData) {
+          window.AndroidBridge.updateWidgetData(JSON.stringify({
+            level: stats.level,
+            currentXp: stats.currentXp,
+            requiredXp: stats.requiredXp,
+            pokemonName: isEgg ? "포켓몬의 알 🥚" : pokemon.name,
+            pokemonId: isEgg ? 0 : pokemon.id,
+            totalReq: quests.filter(q => q.isRequired).length,
+            doneReq: quests.filter(q => q.isRequired && q.isCompletedToday).length
+          }));
+        }
+      }
+    };
+
+    window.onload = function() {
+      initTimePickers();
+      loadLocalData();
+      checkMidnightReset();
+      checkWeeklyEggAndHatchLoop();
+    };
+
+    function loadLocalData() {
+      try {
+        const savedState = localStorage.getItem('pokemon_quest_state');
+        if (savedState) {
+          appState = JSON.parse(savedState);
+        } else if (window.BUNDLED_INITIAL_STATE) {
+          appState = JSON.parse(JSON.stringify(window.BUNDLED_INITIAL_STATE));
+        }
+
+        if (!appState.unlockedPokemonIds) appState.unlockedPokemonIds = [1];
+        if (!appState.eggState) {
+          appState.eggState = { isEgg: false, eggName: "신비한 알 🥚", targetPokemonId: 1 };
+        }
+
+        if (window.BUNDLED_POKEMON_DB) {
+          pokedexData = window.BUNDLED_POKEMON_DB;
+        }
+
+        if (appState) {
+          initUI(appState);
+        }
+      } catch (err) {
+        console.error("데이터 로드 실패:", err);
+      }
+    }
+
+    function saveState() {
+      if (appState) {
+        localStorage.setItem('pokemon_quest_state', JSON.stringify(appState));
+        NativeBridge.syncAlarms(appState.quests);
+        NativeBridge.updateWidget(appState.userStats, appState.pokemon, appState.quests, appState.eggState?.isEgg);
+      }
+    }
+
+    // 🌙 자정 퀘스트 리셋 & Streak 관리 엔진
+    function checkMidnightReset() {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const lastLoginDate = localStorage.getItem('last_login_date') || "";
+
+      if (lastLoginDate && lastLoginDate !== todayStr) {
+        // 날짜가 바뀜 -> 어제 날짜 계산
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+        appState.quests.forEach(q => {
+          // 어제 완료하지 않았다면 연속일수 리셋
+          if (q.lastCompletedDate !== yesterdayStr && q.lastCompletedDate !== todayStr) {
+            q.consecutiveDays = 0;
+          }
+          // 오늘 완료 여부 초기화
+          if (q.lastCompletedDate !== todayStr) {
+            q.isCompletedToday = false;
+          }
+        });
+
+        saveState();
+      }
+      localStorage.setItem('last_login_date', todayStr);
+    }
+
+    // 🥚 주간 알 & 월요일 22시 도감박제 / 월요일 08시 부화 루프
+    function checkWeeklyEggAndHatchLoop() {
+      const now = new Date();
+      const dayOfWeek = now.getDay(); // 0: 일, 1: 월
+      const hours = now.getHours();
+
+      // 월요일 밤 10시(22:00) 이후: 기존 포켓몬 도감 박제 & 새 알 지급
+      const lastArchivedWeek = localStorage.getItem('last_archived_week') || "";
+      const currentWeekKey = `${now.getFullYear()}_W${getWeekNumber(now)}`;
+
+      if (dayOfWeek === 1 && hours >= 22 && !appState.eggState.isEgg && lastArchivedWeek !== currentWeekKey) {
+        localStorage.setItem('last_archived_week', currentWeekKey);
+        triggerWeeklyArchiveAndEggCutscene();
+        return;
+      }
+
+      // 월요일 아침 8시 이후 알 상태인 경우 -> 부화 준비 완료 안내 (강제 잠금 forceEggLock이 아닐 때만)
+      if (appState.eggState.isEgg && !appState.eggState.forceEggLock && (dayOfWeek > 1 || (dayOfWeek === 1 && hours >= 8))) {
+        document.getElementById('speechBubble').innerText = "알이 깨어나려 합니다! 터치해보세요! ✨";
+        document.getElementById('speechBubble').classList.add('active');
+      }
+    }
+
+    function getWeekNumber(d) {
+      d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+      var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+      var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+      return weekNo;
+    }
+
+    // 🏆 1. 월요일 밤 10시: 주간 포켓몬 도감 명예의 전당 박제 & 새 알 수여 컷씬
+    function triggerWeeklyArchiveAndEggCutscene() {
+      NativeBridge.vibrate(200);
+      const cutscene = document.getElementById('globalCutscene');
+      const img = document.getElementById('cutsceneMainImg');
+      const title = document.getElementById('cutsceneTitle');
+      const sub = document.getElementById('cutsceneSub');
+
+      const currentMon = appState.pokemon;
+      img.src = currentMon.idleGif;
+      title.innerText = `📖 [주간 결산] ${currentMon.name} 도감 박제!`;
+      sub.innerText = `한 주간 함께한 ${currentMon.name}이(가) 명예의 전당에 기록되었습니다!`;
+      cutscene.classList.add('show');
+
+      // 도감 해금 확인
+      if (!appState.unlockedPokemonIds.includes(currentMon.id)) {
+        appState.unlockedPokemonIds.push(currentMon.id);
+      }
+
+      // 1단계 포켓몬 풀 중 랜덤으로 다음 주 파트너 알 결정
+      const starterPool = [1, 4, 7, 25, 133]; // 이상해씨, 파이리, 꼬부기, 피카츄, 이브이
+      const nextStarterId = starterPool[Math.floor(Math.random() * starterPool.length)];
+      const nextStarterData = pokedexData.find(p => p.id === nextStarterId) || { name: "포켓몬", id: nextStarterId };
+
+      setTimeout(() => {
+        img.src = "./images/items/egg.png";
+        img.className = "egg-hop";
+        title.innerText = `🥚 새로운 신비한 알이 도착했습니다!`;
+        sub.innerText = `새로운 한 주를 함께할 알이 지급되었습니다. 월요일 08:00에 부화합니다!`;
+
+        appState.eggState.isEgg = true;
+        appState.eggState.targetPokemonId = nextStarterId;
+        appState.eggState.targetPokemonName = nextStarterData.name;
+        appState.userStats.level = 1;
+        appState.userStats.currentXp = 0;
+        appState.userStats.stageName = "알 상태";
+
+        saveState();
+
+        setTimeout(() => {
+          cutscene.classList.remove('show');
+          initUI(appState);
+          NativeBridge.toast("🥚 새 알이 지급되었습니다! 명예의 전당 박제 완료!");
+        }, 3000);
+      }, 3000);
+    }
+
+    // 🐣 2. 부화 컷씬 (랜덤 1단계 포켓몬)
+    function triggerEggHatchingCutscene(forceTargetId) {
+      NativeBridge.vibrate(200);
+      const cutscene = document.getElementById('globalCutscene');
+      const img = document.getElementById('cutsceneMainImg');
+      const title = document.getElementById('cutsceneTitle');
+      const sub = document.getElementById('cutsceneSub');
+
+      img.src = "./images/items/egg.png";
+      img.className = "egg-hop";
+      title.innerText = "어라...? 알의 상태가...! ✨";
+      sub.innerText = "알이 빛을 내며 깨어나고 있습니다!";
+      cutscene.classList.add('show');
+
+      // 1단계 포켓몬 풀
+      const stage1Pool = pokedexData.filter(p => p.stage === "1단계" || !p.stage);
+      let targetMon = null;
+
+      if (forceTargetId) {
+        targetMon = pokedexData.find(p => p.id === forceTargetId);
+      }
+      if (!targetMon) {
+        const pool = stage1Pool.length > 0 ? stage1Pool : pokedexData;
+        targetMon = pool[Math.floor(Math.random() * pool.length)];
+      }
+
+      setTimeout(() => {
+        img.src = targetMon.idleGif;
+        img.className = "";
+        title.innerText = `🎉 ${targetMon.name} 부화 완료!`;
+        sub.innerText = `축하합니다! 새 주간 파트너로 ${targetMon.name}이(가) 태어났습니다!`;
+
+        appState.eggState.isEgg = false;
+        appState.pokemon.id = targetMon.id;
+        appState.pokemon.name = targetMon.name;
+        appState.pokemon.type = targetMon.type;
+        appState.pokemon.idleGif = targetMon.idleGif;
+        appState.userStats.level = 1;
+        appState.userStats.currentXp = 0;
+        appState.userStats.stageName = targetMon.stage || "1단계";
+
+        if (!appState.unlockedPokemonIds.includes(targetMon.id)) {
+          appState.unlockedPokemonIds.push(targetMon.id);
+        }
+
+        saveState();
+
+        setTimeout(() => {
+          cutscene.classList.remove('show');
+          initUI(appState);
+          NativeBridge.toast(`🐣 ${targetMon.name}이(가) 부화했습니다! 도감에 등록되었습니다.`);
+        }, 2800);
+      }, 2200);
+    }
+
+    // ⚡ 3. 강제 다음 단계 진화(Evolution) 컷씬
+    function triggerEvolutionCutscene() {
+      if (appState.eggState?.isEgg) {
+        NativeBridge.toast("알 상태에서는 진화할 수 없습니다. 먼저 부화시켜주세요.");
+        return;
+      }
+
+      const currId = appState.pokemon.id;
+      const nextId = currId + 1;
+      const nextMon = pokedexData.find(p => p.id === nextId);
+
+      // 진화트리 체크 (다음 번호가 1단계이거나 없으면 최종진화체)
+      if (!nextMon || nextMon.stage === "1단계") {
+        NativeBridge.toast(`✨ [${appState.pokemon.name}]은(는) 이미 최종 진화 단계입니다!`);
+        return;
+      }
+
+      NativeBridge.vibrate(250);
+      const cutscene = document.getElementById('globalCutscene');
+      const img = document.getElementById('cutsceneMainImg');
+      const title = document.getElementById('cutsceneTitle');
+      const sub = document.getElementById('cutsceneSub');
+
+      img.src = appState.pokemon.idleGif;
+      title.innerText = `어라...? ${appState.pokemon.name}의 상태가...?! ✨`;
+      sub.innerText = "눈부신 빛을 내며 진화하고 있습니다!";
+      cutscene.classList.add('show');
+
+      setTimeout(() => {
+        img.src = nextMon.idleGif;
+        title.innerText = `🎉 축하합니다! ${nextMon.name}(으)로 진화했습니다!`;
+        sub.innerText = `새로운 힘을 얻었습니다! (도감 등록 완료)`;
+
+        appState.pokemon.id = nextMon.id;
+        appState.pokemon.name = nextMon.name;
+        appState.pokemon.type = nextMon.type;
+        appState.pokemon.idleGif = nextMon.idleGif;
+        appState.userStats.stageName = nextMon.stage;
+
+        if (!appState.unlockedPokemonIds.includes(nextMon.id)) {
+          appState.unlockedPokemonIds.push(nextMon.id);
+        }
+
+        saveState();
+
+        setTimeout(() => {
+          cutscene.classList.remove('show');
+          initUI(appState);
+          NativeBridge.toast(`✨ ${nextMon.name}(으)로 진화 성공!`);
+        }, 2800);
+      }, 2400);
+    }
+
+    // 🛠️ 치트 콘솔 토글 및 명령어 실행기
+    function toggleDevConsole() {
+      const bar = document.getElementById('devConsoleBar');
+      bar.classList.toggle('open');
+      if (bar.classList.contains('open')) {
+        document.getElementById('devCommandInput').focus();
+      }
+    }
+
+    function executeDevCommand() {
+      const input = document.getElementById('devCommandInput');
+      const cmd = input.value.trim().toLowerCase();
+      input.value = '';
+
+      if (!cmd) return;
+
+      const parts = cmd.split(' ');
+      const mainCmd = parts[0];
+      const arg = parts[1];
+
+      switch (mainCmd) {
+        case 'help':
+          alert(
+            "🛠️ [치트 콘솔 명령어 목록]\n\n" +
+            "1. archive (또는 monday10) : 월요일 22시 도감 박제 & 새 알 지급 연출 실행\n" +
+            "2. hatch [포켓몬ID] : 알 강제 부화 (ID 미입력시 1단계 랜덤 부화, 예: hatch 4)\n" +
+            "3. evolve : 현재 포켓몬을 다음 단계로 진화 (최종 단계면 불가)\n" +
+            "4. setmon <ID> : 원하는 포켓몬으로 즉시 변경 (예: setmon 6 -> 리자몽)\n" +
+            "5. setegg : 즉시 알 상태로 변경\n" +
+            "6. setlevel <숫자> : 레벨 강제 변경 (예: setlevel 36)\n" +
+            "7. addxp <숫자> : 경험치 추가 (예: addxp 50)\n" +
+            "8. unlockall : 151마리 도감 전부 해금\n" +
+            "9. reset : 모든 데이터 최초 상태로 완전 초기화"
+          );
+          break;
+
+        case 'archive':
+        case 'monday10':
+        case 'sunday10':
+          triggerWeeklyArchiveAndEggCutscene();
+          break;
+
+        case 'hatch':
+          const targetId = arg ? parseInt(arg) : null;
+          triggerEggHatchingCutscene(targetId);
+          break;
+
+        case 'evolve':
+          triggerEvolutionCutscene();
+          break;
+
+        case 'setmon':
+          const pId = parseInt(arg);
+          const mon = pokedexData.find(p => p.id === pId);
+          if (mon) {
+            appState.eggState.isEgg = false;
+            appState.pokemon.id = mon.id;
+            appState.pokemon.name = mon.name;
+            appState.pokemon.type = mon.type;
+            appState.pokemon.idleGif = mon.idleGif;
+            appState.userStats.stageName = mon.stage || "1단계";
+            if (!appState.unlockedPokemonIds.includes(mon.id)) appState.unlockedPokemonIds.push(mon.id);
+            saveState();
+            initUI(appState);
+            NativeBridge.toast(`포켓몬이 [${mon.name}]으로 변경되었습니다.`);
+          } else {
+            NativeBridge.toast("존재하지 않는 포켓몬 ID입니다. (1~151)");
+          }
+          break;
+
+        case 'setegg':
+          appState.eggState = {
+            isEgg: true,
+            eggName: "신비한 알 🥚",
+            targetPokemonId: 1,
+            forceEggLock: true // 테스트를 위해 강제로 부화 방지 및 알 상태 영구 유지
+          };
+          appState.userStats.level = 1;
+          appState.userStats.currentXp = 0;
+          appState.userStats.stageName = "알 상태";
+          saveState();
+          initUI(appState);
+          NativeBridge.toast("🥚 알 상태로 고정되었습니다. (부화 잠금 활성화)");
+          break;
+
+        case 'setlevel':
+          const lv = parseInt(arg) || 1;
+          appState.userStats.level = lv;
+          saveState();
+          initUI(appState);
+          NativeBridge.toast(`레벨이 Lv.${lv}(으)로 변경되었습니다.`);
+          break;
+
+        case 'addxp':
+          const xp = parseInt(arg) || 50;
+          onFeedAccumulatedBerriesCustom(xp);
+          break;
+
+        case 'unlockall':
+          appState.unlockedPokemonIds = Array.from({length: 151}, (_, i) => i + 1);
+          saveState();
+          renderPokedexGrid(pokedexData);
+          NativeBridge.toast("📖 151마리 도감이 모두 해금되었습니다!");
+          break;
+
+        case 'reset':
+          if (confirm("모든 데이터를 초기화하시겠습니까?")) {
+            localStorage.clear();
+            loadLocalData();
+            NativeBridge.toast("데이터가 초기화되었습니다.");
+          }
+          break;
+
+        default:
+          NativeBridge.toast(`알 수 없는 명령어: ${cmd}\n'help'를 입력하면 목록을 볼 수 있습니다.`);
+      }
+    }
+
+    function onFeedAccumulatedBerriesCustom(amount) {
+      pendingBerryXp += amount;
+      onFeedAccumulatedBerries();
+    }
+
+    function initTimePickers() {
+      const hourSel = document.getElementById('selectHour');
+      const minSel = document.getElementById('selectMinute');
+      hourSel.innerHTML = ''; minSel.innerHTML = '';
+      for (let h = 0; h < 24; h++) {
+        const val = String(h).padStart(2, '0');
+        hourSel.innerHTML += `<option value="${val}">${val}시</option>`;
+      }
+      for (let m = 0; m < 60; m += 5) {
+        const val = String(m).padStart(2, '0');
+        minSel.innerHTML += `<option value="${val}">${val}분</option>`;
+      }
+    }
+
+    function determineHabitatBgKey(pokemonType) {
+      const t = pokemonType || "";
+      if (t.includes("풀") || t.includes("벌레")) return "PogoGrasslandBg";
+      if (t.includes("비행") || t.includes("드래곤")) return "PogoSkyBg";
+      if (t.includes("물")) return Math.random() < 0.5 ? "PogoBeachBg" : "PogoOceanBg";
+      if (t.includes("에스퍼")) return "PogoCityBg";
+      if (t.includes("노말") || t.includes("전기") || t.includes("불꽃")) return "PogoGrasslandBg";
+      if (t.includes("땅") || t.includes("바위") || t.includes("격투")) return "PogoCaveBg";
+      if (t.includes("얼음")) return "PogoCaveBg";
+      if (t.includes("고스트")) return "PogoCityBg";
+      return "PogoGrasslandBg";
+    }
+
+    function renderTypeIconsInstant(typeStr) {
+      const row = document.getElementById('typeIconsRow');
+      row.innerHTML = '';
+      const types = (typeStr || "풀/독").split('/');
+      types.forEach(t => {
+        const iconUrl = TYPE_ICONS_LOCAL[t.trim()];
+        if (iconUrl) {
+          const img = document.createElement('img');
+          img.className = 'type-icon-img';
+          img.src = iconUrl;
+          row.appendChild(img);
+        }
+      });
+    }
+
+    function initUI(data) {
+      const isEgg = Boolean(data.eggState?.isEgg);
+
+      const bgKey = determineHabitatBgKey(isEgg ? "노말" : data.pokemon.type);
+      const bgUrl = data.backgroundMap[bgKey] || "./images/backgrounds/PogoGrasslandBg.png";
+      document.getElementById('appScreen').style.backgroundImage = `url('${bgUrl}')`;
+
+      isCurrentHabitatForest = (bgKey === "PogoGrasslandBg");
+      if (isCurrentHabitatForest) {
+        startBerryFarmingSystem();
+      }
+
+      const pokeImg = document.getElementById('pokemonImage');
+      const lvBadge = document.getElementById('lvBadge');
+      const pokeName = document.getElementById('pokeName');
+      const natureTag = document.getElementById('natureTag');
+      const xpValues = document.getElementById('xpValues');
+      const xpBarFill = document.getElementById('xpBarFill');
+      const speechBubble = document.getElementById('speechBubble');
+      const typeRow = document.getElementById('typeIconsRow');
+
+      if (isEgg) {
+        lvBadge.innerText = '알 상태';
+        pokeName.innerHTML = '신비한 알 <span class="gender-symbol" id="genderSymbol">?</span>';
+        natureTag.innerText = '월요일 8시 부화 🥚';
+        xpValues.innerText = `0 / ${data.userStats.requiredXp}`;
+        xpBarFill.style.width = '0%';
+        
+        pokeImg.src = "./images/items/egg.png";
+        pokeImg.className = "pokemon-sprite egg-wobble";
+        speechBubble.innerText = "토독... 토독...";
+        typeRow.innerHTML = '';
+      } else {
+        lvBadge.innerText = 'Lv.' + data.userStats.level;
+        pokeName.innerHTML = `${data.pokemon.name} <span class="gender-symbol ${data.pokemon.gender === '♂' ? 'male' : 'female'}" id="genderSymbol">${data.pokemon.gender}</span>`;
+        natureTag.innerText = `${data.pokemon.nature} (${data.pokemon.natureBuff})`;
+        
+        const xpPercent = Math.min(100, Math.floor((data.userStats.currentXp / data.userStats.requiredXp) * 100));
+        xpValues.innerText = `${data.userStats.currentXp} / ${data.userStats.requiredXp}`;
+        xpBarFill.style.width = xpPercent + '%';
+        
+        pokeImg.src = data.pokemon.idleGif;
+        pokeImg.className = "pokemon-sprite";
+        renderTypeIconsInstant(data.pokemon.type);
+      }
+
+      const reqTotal = data.quests.filter(q => q.isRequired).length;
+      const reqDone = data.quests.filter(q => q.isRequired && q.isCompletedToday).length;
+      document.getElementById('questText').innerText = `${reqDone}/${reqTotal}`;
+
+      renderPokedexGrid(pokedexData);
+      renderQuestList(data.quests, false);
+      renderNotifList(data.quests);
+      renderStreakList(data.quests);
+
+      saveState();
+    }
+
+    // 🌳 나무열매 1개씩 생성 -> 나뭇가지 흔들림 -> 5~8초 후 자연 낙하 소멸
+    function startBerryFarmingSystem() {
+      scheduleNextSingleBerrySpawn();
+    }
+
+    function scheduleNextSingleBerrySpawn() {
+      // 10초 ~ 30초마다 1개씩 단독 생성
+      const delayMs = Math.floor(Math.random() * 20000) + 10000;
+      setTimeout(() => {
+        if (!isCurrentHabitatForest) return;
+        spawnSingleNaturalBerry();
+        scheduleNextSingleBerrySpawn();
+      }, delayMs);
+    }
+
+    function spawnSingleNaturalBerry() {
+      const layer = document.getElementById('berryLayer');
+      const isBig = Math.random() < 0.15; // 15% 확률 거대 자몽열매
+      const berryData = isBig 
+        ? { name: "거대 자몽열매", url: "./images/items/sitrus-berry.png", xp: 30 }
+        : BERRY_POOL[Math.floor(Math.random() * BERRY_POOL.length)];
+
+      const isLeft = Math.random() < 0.5;
+      const topPos = Math.floor(Math.random() * 140) + 110;
+      const sidePos = Math.floor(Math.random() * 55) + 15;
+
+      const el = document.createElement('img');
+      el.className = `berry-item ${isBig ? 'big' : 'small'} hanging`;
+      el.src = berryData.url;
+      el.alt = berryData.name;
+      el.style.top = topPos + 'px';
+      if (isLeft) el.style.left = sidePos + 'px';
+      else el.style.right = sidePos + 'px';
+
+      el.onclick = (e) => harvestBerry(el, berryData.xp, e);
+      layer.appendChild(el);
+
+      // 5~8초간 나뭇가지에서 흔들리다가 아래로 떨어지며 자연 소멸
+      const lifeTimeMs = Math.floor(Math.random() * 3000) + 5000;
+      setTimeout(() => {
+        if (el.parentNode) {
+          el.classList.remove('hanging');
+          el.classList.add('falling');
+          setTimeout(() => {
+            if (el.parentNode) el.parentNode.removeChild(el);
+          }, 850);
+        }
+      }, lifeTimeMs);
+    }
+
+    function harvestBerry(el, xpAmount, event) {
+      if (!el.parentNode || el.classList.contains('falling')) return;
+      NativeBridge.vibrate(30);
+
+      const x = event.clientX;
+      const y = event.clientY;
+
+      const floatText = document.createElement('div');
+      floatText.className = 'harvest-float-text';
+      floatText.innerText = `+${xpAmount} XP 적립! ✨`;
+      floatText.style.left = (x - 30) + 'px';
+      floatText.style.top = (y - 30) + 'px';
+      document.body.appendChild(floatText);
+      setTimeout(() => { if (floatText.parentNode) floatText.parentNode.removeChild(floatText); }, 1200);
+
+      el.parentNode.removeChild(el);
+
+      if (appState.eggState?.isEgg) {
+        NativeBridge.toast("🥚 알 상태에서는 열매를 먹을 수 없어 경험치 바구니에 보관됩니다.");
+      }
+
+      pendingBerryXp += xpAmount;
+      document.getElementById('pendingBerryXpText').innerText = `+${pendingBerryXp} XP`;
+      document.getElementById('berryBasketWidget').classList.add('show');
+    }
+
+    function onFeedAccumulatedBerries() {
+      if (pendingBerryXp <= 0) return;
+
+      if (appState.eggState?.isEgg) {
+        NativeBridge.toast("🥚 아직 알 상태입니다! 월요일 아침 부화한 후 먹여주세요.");
+        return;
+      }
+
+      NativeBridge.vibrate(60);
+      const xpToFeed = pendingBerryXp;
+      pendingBerryXp = 0;
+      document.getElementById('berryBasketWidget').classList.remove('show');
+
+      let level = appState.userStats.level;
+      let currentXp = appState.userStats.currentXp + xpToFeed;
+      let requiredXp = appState.userStats.requiredXp;
+      let leveledUp = false;
+
+      while (currentXp >= requiredXp) {
+        currentXp -= requiredXp;
+        level += 1;
+        requiredXp = Math.floor(requiredXp * 1.5);
+        leveledUp = true;
+      }
+
+      appState.userStats.level = level;
+      appState.userStats.currentXp = currentXp;
+      appState.userStats.requiredXp = requiredXp;
+
+      document.getElementById('lvBadge').innerText = 'Lv.' + level;
+      document.getElementById('xpValues').innerText = `${currentXp} / ${requiredXp}`;
+      const xpPercent = Math.min(100, Math.floor((currentXp / requiredXp) * 100));
+      document.getElementById('xpBarFill').style.width = xpPercent + '%';
+
+      const img = document.getElementById('pokemonImage');
+      const bubble = document.getElementById('speechBubble');
+      img.classList.remove('hopping');
+      void img.offsetWidth;
+      img.classList.add('hopping');
+
+      bubble.innerText = `냠냠! +${xpToFeed} XP 꿀꺽! 😋`;
+      bubble.classList.add('active');
+      setTimeout(() => { 
+        img.classList.remove('hopping'); 
+        bubble.classList.remove('active'); 
+      }, 1800);
+
+      saveState();
+
+      if (leveledUp) {
+        NativeBridge.vibrate(200);
+        NativeBridge.toast(`🎉 열매를 배부르게 먹고 레벨업! Lv.${level}에 도달했습니다!`);
+      }
+    }
+
+    // 🔊 포켓몬 151마리 울음소리 & 25가지 성격별 대사 엔진 (깔끔하고 담백한 어조)
+    function getDynamicSpeechText() {
+      const vDb = window.BUNDLED_VOICES_DB;
+      if (!vDb) {
+        return "오늘 하루도 화이팅!";
+      }
+
+      if (appState.eggState?.isEgg) {
+        const eggPool = vDb.egg || ["토독... 토독...", "흔들흔들...", "둥~ 둥~"];
+        return eggPool[Math.floor(Math.random() * eggPool.length)];
+      }
+
+      const mon = appState.pokemon;
+      const roll = Math.random();
+
+      // 40% 확률: 해당 포켓몬의 고유 울음소리
+      if (roll < 0.4) {
+        const cry = vDb.cries ? vDb.cries[mon.id] : null;
+        if (cry) return cry;
+        return `${mon.name}~! ✨`;
+      }
+      
+      // 35% 확률: 25가지 성격 기반 담백한 대사
+      if (roll < 0.75 && mon.nature && vDb.natures && vDb.natures[mon.nature]) {
+        const pool = vDb.natures[mon.nature];
+        return pool[Math.floor(Math.random() * pool.length)];
+      }
+
+      // 25% 확률: 공용 깔끔한 격려 대사
+      const commonPool = vDb.common || ["오늘 하루도 화이팅!", "작은 습관이 큰 결과를 만든다."];
+      return commonPool[Math.floor(Math.random() * commonPool.length)];
+    }
+
+    function onCharacterClick() {
+      NativeBridge.vibrate(30);
+      const img = document.getElementById('pokemonImage');
+      const bubble = document.getElementById('speechBubble');
+
+      if (appState.eggState?.isEgg) {
+        img.classList.remove('egg-hop');
+        void img.offsetWidth;
+        img.classList.add('egg-hop');
+
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const hours = now.getHours();
+
+        // forceEggLock이 활성화되어 있지 않고 부화 시각이 지난 경우에만 터치 시 부화
+        if (!appState.eggState.forceEggLock && (dayOfWeek > 1 || (dayOfWeek === 1 && hours >= 8))) {
+          triggerEggHatchingCutscene();
+          return;
+        }
+
+        bubble.innerText = getDynamicSpeechText();
+        bubble.classList.add('active');
+        setTimeout(() => { img.classList.remove('egg-hop'); bubble.classList.remove('active'); }, 1800);
+      } else {
+        img.classList.remove('hopping');
+        void img.offsetWidth;
+        img.classList.add('hopping');
+
+        bubble.innerText = getDynamicSpeechText();
+        bubble.classList.add('active');
+        setTimeout(() => { img.classList.remove('hopping'); bubble.classList.remove('active'); }, 1800);
+      }
+    }
+
+    function triggerTackleMotion(text) {
+      const img = document.getElementById('pokemonImage');
+      const bubble = document.getElementById('speechBubble');
+      img.classList.remove('attacking');
+      void img.offsetWidth;
+      img.classList.add('attacking');
+      bubble.innerText = text;
+      bubble.classList.add('active');
+      setTimeout(() => { img.classList.remove('attacking'); bubble.classList.remove('active'); }, 1000);
+    }
+
+    // 📋 퀘스트 목록 렌더링
+    function renderQuestList(quests, onlyRequired) {
+      const container = document.getElementById('questListContainer');
+      container.innerHTML = '';
+
+      let targetList = quests || [];
+      if (onlyRequired) targetList = targetList.filter(q => q.isRequired);
+
+      if (targetList.length === 0) {
+        container.innerHTML = `<p style="color: #778; text-align: center; margin-top: 40px;">${onlyRequired ? '등록된 필수 퀘스트가 없습니다.' : '등록된 퀘스트가 없습니다.'}</p>`;
+        return;
+      }
+
+      const timeQuests = targetList.filter(q => q.notifyTime).sort((a,b) => a.notifyTime.localeCompare(b.notifyTime));
+      const noTimeQuests = targetList.filter(q => !q.notifyTime).sort((a,b) => a.name.localeCompare(b.name));
+      const sorted = [...timeQuests, ...noTimeQuests];
+
+      sorted.forEach(q => {
+        const card = document.createElement('div');
+        card.className = 'quest-card';
+
+        const timeBadge = q.notifyTime ? `⏰ ${q.notifyTime}` : `📌 상시 퀘스트`;
+        const reqBadge = q.isRequired ? `<span class="req-tag">필수</span>` : '';
+        
+        const btnHtml = q.isCompletedToday
+          ? `<button class="btn-quest-done disabled">완료됨 ✓</button>`
+          : `<button class="btn-quest-done" onclick="onConfirmCompleteQuest('${q.id}', '${q.name}')">+${q.rewardXp} XP 완료</button>`;
+
+        card.innerHTML = `
+          <div class="quest-info">
+            <div class="quest-title">${q.name} ${reqBadge}</div>
+            <div class="quest-meta">
+              <span>${timeBadge}</span>
+              <span>•</span>
+              <span>🔥 ${q.consecutiveDays || 0}일 연속</span>
+            </div>
+          </div>
+          <div class="quest-card-btns">
+            <button class="btn-quest-edit" onclick="openEditQuestModal('${q.id}')">✏️</button>
+            ${btnHtml}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // 📊 퀘스트 기록(Streak) 목록 렌더링
+    function renderStreakList(quests) {
+      const container = document.getElementById('streakListContainer');
+      container.innerHTML = '';
+
+      if (!quests || quests.length === 0) {
+        container.innerHTML = `<p style="color: #778; text-align: center; margin-top: 40px;">기록된 퀘스트가 없습니다.</p>`;
+        return;
+      }
+
+      const dayNames = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+
+      quests.forEach(q => {
+        let lastDayText = "아직 완료 기록 없음";
+        if (q.lastCompletedDate) {
+          const dateObj = new Date(q.lastCompletedDate);
+          const dayName = isNaN(dateObj.getDay()) ? "" : `(${dayNames[dateObj.getDay()]})`;
+          lastDayText = `${q.lastCompletedDate} ${dayName}`;
+        }
+
+        const card = document.createElement('div');
+        card.className = 'streak-card';
+        card.innerHTML = `
+          <div class="streak-card-top">
+            <span class="streak-title">${q.name}</span>
+            <span class="streak-badge">🔥 ${q.consecutiveDays || 0}일 연속 달성</span>
+          </div>
+          <div class="streak-meta">
+            <span>마지막 실천:</span>
+            <span style="color: #64b5f6; font-weight: 700;">${lastDayText}</span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function openStreakHistoryModal() {
+      NativeBridge.vibrate(20);
+      renderStreakList(appState.quests);
+      document.getElementById('streakModal').classList.add('open');
+    }
+    function closeStreakModal() { document.getElementById('streakModal').classList.remove('open'); }
+
+    function openQuestModal(onlyRequired) {
+      NativeBridge.vibrate(20);
+      currentFilterOnlyRequired = Boolean(onlyRequired);
+      document.getElementById('questModalTitle').innerText = onlyRequired ? "⭐ 필수 퀘스트 목록" : "📋 전체 퀘스트 목록";
+      renderQuestList(appState.quests, onlyRequired);
+      document.getElementById('questModal').classList.add('open');
+    }
+
+    function closeQuestModal() { document.getElementById('questModal').classList.remove('open'); }
+    function openAddQuestModal() { document.getElementById('addQuestModal').classList.add('open'); }
+    function closeAddQuestModal() { document.getElementById('addQuestModal').classList.remove('open'); }
+
+    function openEditQuestModal(questId) {
+      const q = appState.quests.find(item => item.id === questId);
+      if (!q) return;
+      document.getElementById('editQuestId').value = q.id;
+      document.getElementById('editQuestName').value = q.name;
+      document.getElementById('editQuestTime').value = q.notifyTime || '';
+      document.getElementById('editQuestXp').value = q.rewardXp || 20;
+      document.getElementById('editQuestIsRequired').checked = Boolean(q.isRequired);
+      document.getElementById('editQuestModal').classList.add('open');
+    }
+
+    function closeEditQuestModal() { document.getElementById('editQuestModal').classList.remove('open'); }
+
+    function onDeleteCurrentQuest() {
+      const id = document.getElementById('editQuestId').value;
+      if (confirm("정말로 이 퀘스트를 삭제하시겠습니까?")) {
+        appState.quests = appState.quests.filter(q => q.id !== id);
+        closeEditQuestModal();
+        saveState();
+        renderQuestList(appState.quests, currentFilterOnlyRequired);
+        renderNotifList(appState.quests);
+        renderStreakList(appState.quests);
+        NativeBridge.toast("퀘스트가 삭제되었습니다.");
+      }
+    }
+
+    function onSaveEditQuest() {
+      const id = document.getElementById('editQuestId').value;
+      const name = document.getElementById('editQuestName').value.trim();
+      const time = document.getElementById('editQuestTime').value;
+      const xp = Number(document.getElementById('editQuestXp').value) || 20;
+      const isRequired = document.getElementById('editQuestIsRequired').checked;
+
+      if (!name) { NativeBridge.toast("퀘스트 이름을 입력해주세요."); return; }
+
+      const target = appState.quests.find(q => q.id === id);
+      if (target) {
+        target.name = name;
+        target.notifyTime = time;
+        target.rewardXp = xp;
+        target.isRequired = isRequired;
+      }
+
+      closeEditQuestModal();
+      saveState();
+      renderQuestList(appState.quests, currentFilterOnlyRequired);
+      renderNotifList(appState.quests);
+      renderStreakList(appState.quests);
+      NativeBridge.toast("퀘스트가 수정되었습니다.");
+    }
+
+    function onSaveNewQuest() {
+      const name = document.getElementById('newQuestName').value.trim();
+      const time = document.getElementById('newQuestTime').value;
+      const xp = Number(document.getElementById('newQuestXp').value) || 20;
+      const isRequired = document.getElementById('newQuestIsRequired').checked;
+
+      if (!name) { NativeBridge.toast("퀘스트 이름을 입력해주세요."); return; }
+
+      const newQ = {
+        id: "H" + Date.now().toString().slice(-4),
+        name: name,
+        notifyTime: time,
+        rewardXp: xp,
+        isActive: true,
+        lastCompletedDate: "",
+        consecutiveDays: 0,
+        isRequired: isRequired,
+        isCompletedToday: false,
+        days: "매일"
+      };
+
+      appState.quests.push(newQ);
+      closeAddQuestModal();
+      document.getElementById('newQuestName').value = '';
+      document.getElementById('newQuestIsRequired').checked = false;
+
+      saveState();
+      renderQuestList(appState.quests, currentFilterOnlyRequired);
+      renderNotifList(appState.quests);
+      renderStreakList(appState.quests);
+      NativeBridge.toast("새 퀘스트가 추가되었습니다.");
+    }
+
+    function onConfirmCompleteQuest(questId, questName) {
+      if (confirm(`"${questName}" 퀘스트를 완료하셨습니까?`)) {
+        onExecuteQuest(questId);
+      }
+    }
+
+    function onExecuteQuest(questId) {
+      NativeBridge.vibrate(80);
+      triggerTackleMotion("몸통박치기! 💥");
+
+      const q = appState.quests.find(item => item.id === questId);
+      if (!q) return;
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      q.isCompletedToday = true;
+      q.consecutiveDays = (q.consecutiveDays || 0) + 1;
+      q.lastCompletedDate = todayStr;
+
+      if (!appState.eggState?.isEgg) {
+        let level = appState.userStats.level;
+        let currentXp = appState.userStats.currentXp + q.rewardXp;
+        let requiredXp = appState.userStats.requiredXp;
+        let leveledUp = false;
+
+        while (currentXp >= requiredXp) {
+          currentXp -= requiredXp;
+          level += 1;
+          requiredXp = Math.floor(requiredXp * 1.5);
+          leveledUp = true;
+        }
+
+        appState.userStats.level = level;
+        appState.userStats.currentXp = currentXp;
+        appState.userStats.requiredXp = requiredXp;
+
+        document.getElementById('lvBadge').innerText = 'Lv.' + level;
+        document.getElementById('xpValues').innerText = `${currentXp} / ${requiredXp}`;
+        const xpPercent = Math.min(100, Math.floor((currentXp / requiredXp) * 100));
+        document.getElementById('xpBarFill').style.width = xpPercent + '%';
+
+        if (leveledUp) {
+          NativeBridge.vibrate(200);
+          NativeBridge.toast(`🎉 레벨업! Lv.${level}에 도달했습니다!`);
+        }
+      }
+
+      const reqTotal = appState.quests.filter(item => item.isRequired).length;
+      const reqDone = appState.quests.filter(item => item.isRequired && item.isCompletedToday).length;
+      document.getElementById('questText').innerText = `${reqDone}/${reqTotal}`;
+
+      renderQuestList(appState.quests, currentFilterOnlyRequired);
+      renderStreakList(appState.quests);
+      saveState();
+    }
+
+    function onTestPushToPhone() {
+      NativeBridge.sendTestNotification();
+    }
+
+    function renderNotifList(quests) {
+      const onContainer = document.getElementById('notifOnListContainer');
+      const offContainer = document.getElementById('notifOffListContainer');
+      onContainer.innerHTML = ''; offContainer.innerHTML = '';
+
+      let onCount = 0, offCount = 0;
+
+      quests.forEach(q => {
+        const item = document.createElement('div');
+        item.className = 'notif-item';
+        item.onclick = () => openNotifDetailModal(q);
+
+        if (q.notifyTime) {
+          onCount++;
+          item.innerHTML = `
+            <div class="notif-item-title">${q.name}</div>
+            <div class="notif-item-time">⏰ ${q.notifyTime} (매일) ></div>
+          `;
+          onContainer.appendChild(item);
+        } else {
+          offCount++;
+          item.innerHTML = `
+            <div class="notif-item-title">${q.name}</div>
+            <div style="font-size: 12px; color: #788290;">알림 없음 ></div>
+          `;
+          offContainer.appendChild(item);
+        }
+      });
+
+      document.getElementById('tabOnBtn').innerText = `🔔 알림 ON (${onCount})`;
+      document.getElementById('tabOffBtn').innerText = `🔕 알림 OFF (${offCount})`;
+    }
+
+    function switchNotifTab(type) {
+      NativeBridge.vibrate(20);
+      if (type === 'ON') {
+        document.getElementById('tabOnBtn').classList.add('active');
+        document.getElementById('tabOffBtn').classList.remove('active');
+        document.getElementById('notifOnListContainer').style.display = 'block';
+        document.getElementById('notifOffListContainer').style.display = 'none';
+      } else {
+        document.getElementById('tabOffBtn').classList.add('active');
+        document.getElementById('tabOnBtn').classList.remove('active');
+        document.getElementById('notifOffListContainer').style.display = 'block';
+        document.getElementById('notifOnListContainer').style.display = 'none';
+      }
+    }
+
+    function openNotifModal() { NativeBridge.vibrate(20); document.getElementById('notifModal').classList.add('open'); }
+    function closeNotifModal() { document.getElementById('notifModal').classList.remove('open'); }
+
+    function openNotifDetailModal(quest) {
+      selectedQuestForNotif = quest;
+      document.getElementById('detailQuestTitle').innerText = `[${quest.name}] 알림 설정`;
+      
+      const toggle = document.getElementById('notifToggle');
+      toggle.checked = Boolean(quest.notifyTime);
+
+      if (quest.notifyTime) {
+        const parts = quest.notifyTime.split(':');
+        document.getElementById('selectHour').value = parts[0] || '08';
+        document.getElementById('selectMinute').value = parts[1] || '00';
+      }
+      document.getElementById('notifDetailModal').classList.add('open');
+    }
+
+    function closeNotifDetailModal() {
+      document.getElementById('notifDetailModal').classList.remove('open');
+      selectedQuestForNotif = null;
+    }
+
+    function onSaveNotifDetail() {
+      if (!selectedQuestForNotif) return;
+
+      const isTurnedOn = document.getElementById('notifToggle').checked;
+      const h = document.getElementById('selectHour').value;
+      const m = document.getElementById('selectMinute').value;
+      const timeStr = isTurnedOn ? `${h}:${m}` : "";
+
+      selectedQuestForNotif.notifyTime = timeStr;
+      closeNotifDetailModal();
+      saveState();
+
+      renderQuestList(appState.quests, currentFilterOnlyRequired);
+      renderNotifList(appState.quests);
+      NativeBridge.toast("알림 설정이 저장되었습니다.");
+    }
+
+    // 📖 도감 해금 동기화 렌더링 (unlockedPokemonIds 기반)
+    function renderPokedexGrid(pokedex) {
+      const grid = document.getElementById('pokedexGrid');
+      grid.innerHTML = '';
+
+      const unlockedSet = new Set(appState.unlockedPokemonIds || [1]);
+
+      pokedex.forEach(mon => {
+        const card = document.createElement('div');
+        card.className = 'dex-card';
+        const isUnlocked = unlockedSet.has(mon.id);
+        const imgClass = isUnlocked ? 'dex-sprite' : 'dex-sprite locked';
+        const nameText = isUnlocked ? mon.name : '???';
+        const numStr = 'No.' + String(mon.id).padStart(3, '0');
+        card.innerHTML = `
+          <img class="${imgClass}" src="${mon.sprite}" alt="${mon.name}" loading="lazy" />
+          <span class="dex-num">${numStr}</span>
+          <span class="dex-name">${nameText}</span>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function openPokedex() { NativeBridge.vibrate(20); renderPokedexGrid(pokedexData); document.getElementById('pokedexModal').classList.add('open'); }
+    function closePokedex() { document.getElementById('pokedexModal').classList.remove('open'); }
+    function openMiniGame() { NativeBridge.toast("🎮 경험치 획득 미니게임이 준비 중입니다!"); }
+  </script>
+</body>
+</html>
