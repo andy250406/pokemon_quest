@@ -600,6 +600,49 @@
       cursor: pointer;
       margin-top: 8px;
     }
+
+    /* 📟 실시간 진단 콘솔 로그 박스 */
+    .debug-console-card {
+      background: #0f141c;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 12px;
+      margin-top: 14px;
+      font-family: 'Consolas', 'Menlo', monospace;
+    }
+    .debug-console-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .debug-console-title {
+      font-size: 12px;
+      font-weight: 900;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .debug-console-body {
+      background: #05080c;
+      border-radius: 8px;
+      padding: 8px 10px;
+      max-height: 220px;
+      overflow-y: auto;
+      font-size: 11px;
+      line-height: 1.5;
+      color: #94a3b8;
+      word-break: break-all;
+    }
+    .log-line { margin-bottom: 4px; }
+    .log-time { color: #64748b; font-size: 10px; margin-right: 4px; }
+    .log-info { color: #e2e8f0; }
+    .log-success { color: #4ade80; font-weight: 800; }
+    .log-warn { color: #facc15; }
+    .log-error { color: #f87171; font-weight: 800; }
   </style>
 </head>
 <body>
@@ -669,7 +712,7 @@
           <div class="pokedex-grid-container" id="pokedexGrid"></div>
         </div>
 
-        <!-- 5. OneSignal 알림 설정 -->
+        <!-- 5. OneSignal 알림 설정 & 실시간 진단 콘솔 -->
         <div id="paneNotifView" style="display:none;">
           <div style="background:#1e293b; border-radius:14px; padding:16px; margin-bottom:14px; border:1.5px solid #38bdf8;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -684,14 +727,28 @@
             </button>
           </div>
 
-          <div style="background:#252b36; border-radius:14px; padding:14px; margin-bottom:16px; border:1px solid #2196F3;">
+          <div style="background:#252b36; border-radius:14px; padding:14px; margin-bottom:14px; border:1px solid #2196F3;">
             <div style="font-size:14px; font-weight:800; color:white; margin-bottom:6px;">📲 OneSignal 스마트폰 푸시 테스트</div>
             <p style="font-size:11px; color:#8892a0; margin-bottom:10px;">스마트폰 상단바로 몬스터볼 알림과 햅틱 진동이 즉시 울립니다.</p>
             <button id="btnTestPush" onclick="triggerTestPushNow()" style="width:100%; background:#4CAF50; color:white; border:none; padding:10px; border-radius:8px; font-size:13px; font-weight:800; cursor:pointer;">
               ⚡ OneSignal 테스트 푸시 즉시 발송
             </button>
           </div>
-          <div id="notifOnListContainer"></div>
+
+          <!-- 📟 실시간 OneSignal & Google Tasks 송수신 진단 로그 박스 -->
+          <div class="debug-console-card">
+            <div class="debug-console-header">
+              <div class="debug-console-title">📟 실시간 OneSignal 송수신 진단 로그</div>
+              <div style="display:flex; gap:6px;">
+                <button style="background:#334155; color:#cbd5e1; border:none; padding:3px 8px; border-radius:6px; font-size:10px; cursor:pointer;" onclick="runDiagnostics()">🔍 즉시 진단</button>
+                <button style="background:#334155; color:#cbd5e1; border:none; padding:3px 8px; border-radius:6px; font-size:10px; cursor:pointer;" onclick="clearDebugLogs()">🧹 지우기</button>
+              </div>
+            </div>
+            <div class="debug-console-body" id="debugLogContainer">
+              <div class="log-line"><span class="log-time">[00:00:00]</span><span class="log-info">진단 시스템 초기화 대기 중...</span></div>
+            </div>
+          </div>
+
         </div>
 
       </div>
@@ -848,11 +905,82 @@
     let pendingBerryXp = 0;
     let isCurrentHabitatForest = false;
 
-    // 🚀 페이지 로드 시 즉시 자동 실행
+    // ========================================================
+    // 📟 실시간 진단 콘솔 로거 함수
+    // ========================================================
+    function logDebug(msg, type = "info") {
+      const box = document.getElementById('debugLogContainer');
+      if (!box) return;
+      const now = new Date();
+      const timeStr = `[${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(now.getMilliseconds()).padStart(3, '0')}]`;
+
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      line.innerHTML = `<span class="log-time">${timeStr}</span><span class="log-${type}">${msg}</span>`;
+      box.appendChild(line);
+      box.scrollTop = box.scrollHeight;
+      console.log(`${timeStr} [${type.toUpperCase()}] ${msg}`);
+    }
+
+    function clearDebugLogs() {
+      const box = document.getElementById('debugLogContainer');
+      if (box) box.innerHTML = '';
+      logDebug("로그가 초기화되었습니다.", "info");
+    }
+
+    async function runDiagnostics() {
+      logDebug("--- [🔍 실시간 OneSignal 환경 진단 시작] ---", "warn");
+      logDebug(`URL: ${window.location.href}`, "info");
+      logDebug(`UserAgent: ${navigator.userAgent.slice(0, 70)}...`, "info");
+
+      // 1. Notification API
+      if ("Notification" in window) {
+        logDebug(`Notification.permission: ${Notification.permission}`, Notification.permission === "granted" ? "success" : "warn");
+      } else {
+        logDebug("브라우저가 Notification API를 지원하지 않습니다!", "error");
+      }
+
+      // 2. Service Worker
+      if ("serviceWorker" in navigator) {
+        try {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          logDebug(`등록된 ServiceWorker 개수: ${regs.length}`, regs.length > 0 ? "success" : "warn");
+          regs.forEach((r, idx) => {
+            logDebug(`  SW #${idx+1} Scope: ${r.scope}, Active: ${Boolean(r.active)}`, "info");
+          });
+        } catch (e) {
+          logDebug(`ServiceWorker 조회 실패: ${e.message}`, "error");
+        }
+      } else {
+        logDebug("브라우저가 ServiceWorker를 지원하지 않습니다!", "error");
+      }
+
+      // 3. OneSignal SDK 상태
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        try {
+          logDebug("OneSignal SDK 로드 완료", "success");
+          const subId = OneSignal.User?.PushSubscription?.id;
+          const token = OneSignal.User?.PushSubscription?.token;
+          const optedIn = OneSignal.User?.PushSubscription?.optedIn;
+
+          logDebug(`OneSignal.User.PushSubscription:`, "info");
+          logDebug(`  - Subscription ID: ${subId || '(없음 - 미등록)'}`, subId ? "success" : "warn");
+          logDebug(`  - Push Token: ${token ? token.slice(0, 20) + '...' : '(없음)'}`, token ? "success" : "warn");
+          logDebug(`  - OptedIn: ${optedIn}`, optedIn ? "success" : "warn");
+        } catch (err) {
+          logDebug(`OneSignal 진단 오류: ${err.message}`, "error");
+        }
+      });
+    }
+
+    // 🚀 페이지 로드 시 즉시 실행
     window.onload = function() {
+      logDebug("🌱 포켓Tasks 웹 앱 로드 시작", "info");
       initUI(appState);
-      syncWithGasBackend(); // 접속 즉시 Google Tasks 목록 동기화
-      initOneSignal();      // OneSignal 초기화
+      syncWithGasBackend(); // Google Tasks 실시간 동기화
+      initOneSignal();      // OneSignal Web SDK 초기화
+      setTimeout(runDiagnostics, 1500); // 1.5초 후 자동 환경 진단
     };
 
     // 속성별 8단계 자동 배경 판별 함수
@@ -913,6 +1041,7 @@
     async function syncWithGasBackend() {
       const btn = document.getElementById('btnRefreshQuests');
       if (btn) btn.innerText = "⏳ 동기화 중...";
+      logDebug("Google Tasks 백엔드 동기화 요청 전송...", "info");
       try {
         const res = await fetch(GAS_API_URL + "?action=getInitialData");
         const json = await res.json();
@@ -921,10 +1050,14 @@
           if (json.data.userStats) appState.userStats = json.data.userStats;
           if (json.data.pokemon) appState.pokemon = json.data.pokemon;
           initUI(appState);
+          logDebug(`Google Tasks 동기화 성공 (퀘스트 ${appState.quests.length}개 로드)`, "success");
+          if (btn) btn.innerText = "🔄 구글 태스크 동기화";
+        } else {
+          logDebug("Google Tasks 응답 비정상: " + JSON.stringify(json), "warn");
           if (btn) btn.innerText = "🔄 구글 태스크 동기화";
         }
       } catch (e) {
-        console.warn("GAS 백엔드 동기화 완료");
+        logDebug("Google Tasks 동기화 오류: " + e.message, "error");
         if (btn) btn.innerText = "🔄 구글 태스크 동기화";
       }
     }
@@ -955,6 +1088,7 @@
       const submitBtn = document.getElementById('btnSubmitQuest');
       submitBtn.innerText = "⏳ Google Tasks 등록 중...";
       submitBtn.disabled = true;
+      logDebug(`신규 퀘스트 등록 요청: "${name}" (${time || '상시'}, +${xp}XP)`, "info");
 
       try {
         const response = await fetch(GAS_API_URL, {
@@ -976,15 +1110,17 @@
           appState.quests = result.data.quests;
           initUI(appState);
           closeAddQuestModal();
+          logDebug(`Google Tasks 및 시트 등록 완료! 퀘스트 ID 생성됨`, "success");
           alert(`🎉 "${name}" 퀘스트가 Google Tasks와 앱에 등록되었습니다!`);
         } else {
-          alert("등록 완료: " + JSON.stringify(result));
+          logDebug("등록 응답: " + JSON.stringify(result), "warn");
           closeAddQuestModal();
           syncWithGasBackend();
         }
       } catch (err) {
         submitBtn.innerText = "Google Tasks & 앱에 등록";
         submitBtn.disabled = false;
+        logDebug("등록 통신 오류: " + err.message, "error");
         alert("등록 요청 완료! Google Tasks에 반영됩니다.");
         closeAddQuestModal();
         syncWithGasBackend();
@@ -1006,7 +1142,11 @@
       else if (tab === 'STREAK') { title.innerText = "📊 연속 실천 기록 (Streak)"; document.getElementById('paneStreakView').style.display = 'block'; }
       else if (tab === 'ARCADE') { title.innerText = "🎮 120Hz 미니게임 아케이드"; document.getElementById('paneArcadeView').style.display = 'block'; }
       else if (tab === 'DEX') { title.innerText = "📖 포켓몬 도감 (1세대 151)"; document.getElementById('panePokedexView').style.display = 'block'; }
-      else if (tab === 'NOTIF') { title.innerText = "🔔 알림 설정"; document.getElementById('paneNotifView').style.display = 'block'; }
+      else if (tab === 'NOTIF') {
+        title.innerText = "🔔 알림 설정";
+        document.getElementById('paneNotifView').style.display = 'block';
+        runDiagnostics(); // 알림 탭 진입 시 자동 진단 실행
+      }
     }
 
     function closeMobileWorkspace() {
@@ -1060,7 +1200,6 @@
         q.consecutiveDays = (q.consecutiveDays || 0) + 1;
         appState.userStats.currentXp += q.rewardXp;
         
-        // 포켓몬 홉 애니메이션
         const img = document.getElementById('pokemonImage');
         img.classList.remove('hopping');
         void img.offsetWidth;
@@ -1073,7 +1212,7 @@
         }
         initUI(appState);
 
-        // 백엔드 & Google Tasks 완료 연동
+        logDebug(`퀘스트 완료 처리: "${questName}" (+${q.rewardXp}XP)`, "info");
         try {
           fetch(GAS_API_URL, {
             method: "POST",
@@ -1196,21 +1335,23 @@
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
         try {
+          logDebug("OneSignal.init() 호출 시작 (AppId: 5aaa7314...)", "info");
           await OneSignal.init({
             appId: "5aaa7314-9ff3-4934-960e-11da2521b448",
             allowLocalhostAsSecureOrigin: true,
             notifyButton: { enable: false }
           });
 
-          console.log("[OneSignal] Init Success");
+          logDebug("OneSignal.init() 완료!", "success");
           updateOneSignalStatus();
 
           // Push Subscription 변경 감지 시 백엔드 자동 등록
           if (OneSignal.User && OneSignal.User.PushSubscription) {
             OneSignal.User.PushSubscription.addEventListener("change", function(event) {
-              console.log("[OneSignal] Subscription Changed:", event);
+              logDebug("PushSubscription 변경 이벤트 감지!", "info");
               updateOneSignalStatus();
               if (event.current && event.current.token) {
+                logDebug(`새 기기 토큰 획득: ${event.current.token.slice(0, 25)}...`, "success");
                 fetch(GAS_API_URL, {
                   method: "POST",
                   headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -1220,12 +1361,13 @@
                     playerId: event.current.id,
                     platform: "Web_Browser"
                   })
-                }).catch(e => console.warn("Token save notice:", e));
+                }).then(() => logDebug("백엔드 DB에 토큰 저장 완료", "success"))
+                  .catch(e => logDebug("토큰 백엔드 저장 실패: " + e.message, "warn"));
               }
             });
           }
         } catch (err) {
-          console.error("OneSignal Init Error:", err);
+          logDebug(`OneSignal.init() 예외 발생: ${err.message}`, "error");
         }
       });
     }
@@ -1274,45 +1416,71 @@
       });
     }
 
-    // 알림 권한 및 OneSignal optIn 강제 실행
+    // 알림 권한 및 OneSignal optIn 강제 실행 (실시간 로그 연동)
     async function requestPushPermissionDirect() {
       const btn = document.getElementById('btnSubscribePush');
       if (btn) btn.innerText = "⏳ OneSignal 서버 등록 중...";
+      logDebug("--- [🔔 푸시 구독 등록 프로세스 시작] ---", "warn");
 
+      // 1. 브라우저 네이티브 권한 요청
+      if ("Notification" in window) {
+        try {
+          logDebug("Step 1: Notification.requestPermission() 호출 중...", "info");
+          const perm = await Notification.requestPermission();
+          logDebug(`Step 1 결과: 권한 = ${perm}`, perm === "granted" ? "success" : "warn");
+          checkBrowserNotificationState();
+        } catch (permErr) {
+          logDebug(`Step 1 오류: ${permErr.message}`, "error");
+        }
+      }
+
+      // 2. OneSignal User optIn 실행
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
         try {
+          logDebug("Step 2: OneSignal.Notifications.requestPermission() 실행...", "info");
           if (OneSignal.Notifications && OneSignal.Notifications.requestPermission) {
             await OneSignal.Notifications.requestPermission();
           }
+
+          logDebug("Step 3: OneSignal.User.PushSubscription.optIn() 호출 중...", "info");
           if (OneSignal.User && OneSignal.User.PushSubscription) {
             await OneSignal.User.PushSubscription.optIn();
+            logDebug("Step 3: optIn() 호출 완료!", "success");
+          } else {
+            logDebug("Step 3 오류: OneSignal.User.PushSubscription 객체를 찾을 수 없습니다.", "error");
           }
 
+          // 3. Subscription ID 폴링 및 확인
           let checkCount = 0;
+          logDebug("Step 4: OneSignal 클라우드로부터 기기 ID 발급 대기 중...", "info");
+
           const pollInterval = setInterval(() => {
             checkCount++;
             const subId = OneSignal.User?.PushSubscription?.id;
             const token = OneSignal.User?.PushSubscription?.token;
 
-            if (subId || token || checkCount >= 6) {
+            if (subId || token) {
               clearInterval(pollInterval);
               if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
+              logDebug(`🎉 Step 4 성공! 기기 ID 생성됨: ${subId}`, "success");
+              if (token) logDebug(`토큰 생성됨: ${token.slice(0, 30)}...`, "success");
               updateOneSignalStatus();
-              if (subId) {
-                alert(`🎉 OneSignal 서버에 기기 등록이 성공했습니다!
-
-기기 ID: ${subId}
-
-이제 [OneSignal 테스트 푸시 즉시 발송] 버튼을 눌러보세요!`);
-              } else {
-                alert("브라우저 알림 권한이 허용되었습니다! 아래 [OneSignal 테스트 푸시 발송]을 눌러보세요!");
-              }
+              alert(`🎉 OneSignal 서버에 기기 등록이 성공했습니다!\n\n기기 ID: ${subId}\n\n이제 [OneSignal 테스트 푸시 즉시 발송] 버튼을 눌러보세요!`);
+            } else if (checkCount >= 8) {
+              clearInterval(pollInterval);
+              if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
+              logDebug("Step 4 알림: 기기 ID 즉시 발급 대기 중 (브라우저 권한은 켜짐). 테스트 푸시를 시도해 보세요.", "warn");
+              updateOneSignalStatus();
+              alert("브라우저 알림 권한이 허용되었습니다! 아래 [OneSignal 테스트 푸시 발송]을 눌러보세요!");
+            } else {
+              logDebug(`  ... ID 발급 대기 중 (${checkCount}/8)`, "info");
             }
-          }, 500);
+          }, 800);
 
         } catch (e) {
           if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
+          logDebug(`OneSignal 구독 등록 예외 발생: ${e.message}`, "error");
           alert("OneSignal 등록 오류: " + e.message);
         }
       });
@@ -1321,6 +1489,9 @@
     async function triggerTestPushNow() {
       const btn = document.getElementById('btnTestPush');
       btn.innerText = "⏳ 발송 중...";
+      logDebug("--- [⚡ OneSignal 테스트 푸시 발송 요청] ---", "warn");
+      logDebug(`GAS 백엔드로 POST action:sendTestPush 전송...`, "info");
+
       try {
         const res = await fetch(GAS_API_URL, {
           method: "POST",
@@ -1329,10 +1500,21 @@
         });
         const json = await res.json();
         btn.innerText = "⚡ OneSignal 테스트 푸시 즉시 발송";
-        alert("📲 OneSignal 서버로 발송 명령 완료! 결과: " + JSON.stringify(json.data || json));
+        logDebug(`GAS 응답 원본: ${JSON.stringify(json, null, 2)}`, json.success ? "success" : "error");
+
+        if (json.data && json.data.result) {
+          const r = json.data.result;
+          if (r.errors && r.errors.length > 0) {
+            logDebug(`OneSignal 서버 오류 메시지: ${r.errors.join(", ")}`, "error");
+          } else {
+            logDebug(`OneSignal 발송 성공! Notification ID: ${r.id}, 수신자 수: ${r.recipients || 1}`, "success");
+          }
+        }
+        alert("📲 OneSignal 발송 결과 확인 완료! 아래 진단 로그를 확인해 주세요.");
       } catch (err) {
         btn.innerText = "⚡ OneSignal 테스트 푸시 즉시 발송";
-        alert("발송 통신 성공 (OneSignal 결과 확인)");
+        logDebug(`발송 통신 오류: ${err.message}`, "error");
+        alert("발송 통신 오류: " + err.message);
       }
     }
   </script>
