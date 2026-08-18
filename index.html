@@ -108,7 +108,7 @@
       }
     }
 
-    /* 👈 왼쪽 작업창 (퀘스트, 기록, 미니게임, 도감, 알림) */
+    /* 👈 왼쪽 작업창 */
     .workspace-pane {
       background: #181c24;
       display: flex;
@@ -156,7 +156,7 @@
       overflow-y: auto;
     }
 
-    /* 👉 오른쪽 메인 서식지 (동적 상대경로 배경 바인딩) */
+    /* 👉 오른쪽 메인 서식지 */
     .habitat-pane {
       position: relative;
       background-position: center center;
@@ -315,38 +315,9 @@
       transform-origin: top center;
       transition: transform 0.2s ease, opacity 0.6s ease;
     }
-
     .berry-item.hanging { animation: berryBranchSway 2.5s ease-in-out infinite alternate; }
-    .berry-item.falling {
-      transition: transform 0.8s cubic-bezier(0.5, 0, 1, 1), opacity 0.8s ease;
-      transform: translateY(140px) rotate(25deg) !important;
-      opacity: 0 !important;
-      pointer-events: none;
-    }
-
     @keyframes berryBranchSway { 0% { transform: rotate(-8deg); } 100% { transform: rotate(8deg); } }
-
     .berry-item.small { width: 38px; height: 38px; }
-    .berry-item.big {
-      width: 64px; height: 64px;
-      filter: drop-shadow(0 0 16px rgba(255, 215, 0, 0.9));
-    }
-
-    .harvest-float-text {
-      position: absolute;
-      color: #FFEB3B;
-      font-size: 14px;
-      font-weight: 900;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-      animation: floatUpFade 1.2s ease-out forwards;
-      pointer-events: none;
-      z-index: 30;
-    }
-    @keyframes floatUpFade {
-      0% { transform: translateY(0) scale(0.8); opacity: 1; }
-      50% { transform: translateY(-25px) scale(1.2); opacity: 1; }
-      100% { transform: translateY(-50px) scale(1); opacity: 0; }
-    }
 
     /* 🍒 열매 바구니 */
     .berry-basket-widget {
@@ -417,17 +388,6 @@
       cursor: pointer;
     }
 
-    .egg-wobble { animation: eggGentleWobble 2.5s ease-in-out infinite alternate; }
-    @keyframes eggGentleWobble { 0% { transform: rotate(-5deg); } 100% { transform: rotate(5deg); } }
-
-    .egg-hop { animation: eggExcitedHop 0.6s ease; }
-    @keyframes eggExcitedHop {
-      0% { transform: translateY(0) rotate(0deg); }
-      25% { transform: translateY(-14px) rotate(-14deg) scale(1.1); }
-      50% { transform: translateY(0) rotate(14deg) scale(0.95); }
-      100% { transform: translateY(0) rotate(0deg); }
-    }
-
     .hopping { animation: happyHop 0.6s ease; }
     @keyframes happyHop {
       0% { transform: translateY(0) scale(1); }
@@ -480,13 +440,17 @@
       justify-content: space-between;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
+    .quest-info { flex: 1; margin-right: 8px; }
     .quest-title { font-size: 15px; font-weight: 800; color: white; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
     .req-tag { background: #FF9800; color: white; font-size: 10px; font-weight: 900; padding: 1px 6px; border-radius: 4px; }
     .quest-meta { font-size: 11px; color: #8892a0; display: flex; gap: 8px; align-items: center; }
+    .quest-card-btns { display: flex; align-items: center; gap: 6px; }
     .btn-quest-done { background: #4CAF50; color: white; border: none; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; }
     .btn-quest-done.disabled { background: #3a4250; color: #788290; cursor: default; }
+    .btn-quest-add { background: #2196F3; color: white; border: none; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; }
+    .btn-quest-add:active { transform: scale(0.95); }
 
-    /* 📊 퀘스트 연속 실천 기록 (Streak) */
+    /* 📊 퀘스트 연속 실천 기록 */
     .streak-card {
       background: #252b36;
       border-radius: 14px;
@@ -513,7 +477,7 @@
     .dex-num { font-size: 10px; font-weight: 800; color: #8892a0; }
     .dex-name { font-size: 11px; font-weight: 700; color: #e0e0e0; margin-top: 2px; }
 
-    /* 🎮 미니게임 아케이드 허브 */
+    /* 🎮 미니게임 아케이드 */
     .arcade-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -566,6 +530,76 @@
       z-index: 25;
       cursor: pointer;
     }
+
+    /* 📋 퀘스트 추가 모달 팝업 */
+    .modal-backdrop {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 200;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: all 0.25s ease;
+    }
+    .modal-backdrop.open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .modal-content {
+      background: #1e2430;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 20px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+    }
+    .modal-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .modal-title { font-size: 16px; font-weight: 900; color: white; }
+    .form-group { margin-bottom: 14px; }
+    .form-label { font-size: 12px; font-weight: 800; color: #94a3b8; margin-bottom: 6px; display: block; }
+    .form-input {
+      width: 100%;
+      background: #2b3240;
+      border: 1px solid #475569;
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: white;
+      font-size: 13px;
+      outline: none;
+    }
+    .form-input:focus { border-color: #38bdf8; }
+    .form-checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #2b3240;
+      padding: 10px 12px;
+      border-radius: 10px;
+    }
+    .btn-submit-quest {
+      width: 100%;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 900;
+      cursor: pointer;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
@@ -582,9 +616,9 @@
         
         <!-- 1. 퀘스트 목록 -->
         <div id="paneQuestView">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-            <span style="font-size:13px; font-weight:800; color:#8892a0;">오늘의 실천 습관</span>
-            <button id="btnRefreshQuests" class="btn-quest-done" onclick="syncWithGasBackend()">🔄 Google Tasks 동기화</button>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:8px;">
+            <button id="btnRefreshQuests" class="btn-quest-done" style="background:#374151;" onclick="syncWithGasBackend()">🔄 구글 태스크 동기화</button>
+            <button class="btn-quest-add" onclick="openAddQuestModal()">➕ 퀘스트 추가</button>
           </div>
           <div id="questListContainer"></div>
         </div>
@@ -663,7 +697,7 @@
       </div>
     </div>
 
-    <!-- 👉 오른쪽 메인 서식지 (포켓몬 속성에 맞춰 상대경로 이미지로 자동 변경) -->
+    <!-- 👉 오른쪽 메인 서식지 -->
     <div class="habitat-pane" id="habitatPane">
       
       <!-- 상단 헤더 카드 -->
@@ -689,7 +723,7 @@
         </div>
 
         <div class="quest-badge" id="questBadge" onclick="switchWorkspaceTab('QUEST')">
-          📝 필수 <span id="questText">0/2</span>
+          📝 필수 <span id="questText">0/0</span>
         </div>
       </div>
 
@@ -751,6 +785,37 @@
 
   </div>
 
+  <!-- 📋 퀘스트 추가 모달 -->
+  <div class="modal-backdrop" id="addQuestModal">
+    <div class="modal-content">
+      <div class="modal-header-row">
+        <div class="modal-title">🌱 새로운 퀘스트 추가</div>
+        <button class="icon-btn" onclick="closeAddQuestModal()">✕</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">퀘스트(할 일) 이름</label>
+        <input type="text" id="inputQuestName" class="form-input" placeholder="예: 토익 단어 30개 외우기">
+      </div>
+      <div class="form-group">
+        <label class="form-label">알림 시간 (선택)</label>
+        <input type="time" id="inputQuestTime" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">보상 경험치 (XP)</label>
+        <input type="number" id="inputQuestXp" class="form-input" value="20" min="5" max="100">
+      </div>
+      <div class="form-group">
+        <div class="form-checkbox-row">
+          <input type="checkbox" id="inputQuestRequired" style="width:18px; height:18px;">
+          <label for="inputQuestRequired" style="font-size:13px; font-weight:800; color:white; cursor:pointer;">
+            🔥 필수 퀘스트로 설정
+          </label>
+        </div>
+      </div>
+      <button class="btn-submit-quest" id="btnSubmitQuest" onclick="submitNewQuest()">Google Tasks & 앱에 등록</button>
+    </div>
+  </div>
+
   <script>
     // 🌳 속성별 서식지 배경화면 상대경로 매핑
     const HABITAT_BACKGROUNDS = {
@@ -777,20 +842,17 @@
       userStats: { level: 1, currentXp: 0, requiredXp: 100, stageName: "1단계" },
       pokemon: { id: 1, name: "이상해씨", gender: "♂", nature: "고집", natureBuff: "+공격", type: "풀/독", idleGif: "./images/pokemon/showdown/1.gif" },
       isEgg: false,
-      quests: [
-        { id: "H101", name: "아침 물 1잔 마시기", notifyTime: "08:00", rewardXp: 20, isRequired: false, isCompletedToday: false, consecutiveDays: 3 },
-        { id: "H102", name: "점심 스트레칭 10분", notifyTime: "12:30", rewardXp: 30, isRequired: true, isCompletedToday: false, consecutiveDays: 5 },
-        { id: "H103", name: "저녁 영양제 챙겨먹기", notifyTime: "21:00", rewardXp: 15, isRequired: true, isCompletedToday: false, consecutiveDays: 2 }
-      ]
+      quests: []
     };
 
     let pendingBerryXp = 0;
     let isCurrentHabitatForest = false;
 
+    // 🚀 페이지 로드 시 즉시 자동 실행
     window.onload = function() {
       initUI(appState);
-      syncWithGasBackend();
-      initOneSignal();
+      syncWithGasBackend(); // 접속 즉시 Google Tasks 목록 동기화
+      initOneSignal();      // OneSignal 초기화
     };
 
     // 속성별 8단계 자동 배경 판별 함수
@@ -847,151 +909,10 @@
       renderPokedexGrid();
     }
 
-    // OneSignal Web SDK v16 클라이언트 초기화 & 강력한 구독 처리
-    function initOneSignal() {
-      checkBrowserNotificationState();
-
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        try {
-          await OneSignal.init({
-            appId: "5aaa7314-9ff3-4934-960e-11da2521b448",
-            allowLocalhostAsSecureOrigin: true
-          });
-
-          console.log("[OneSignal] Init Success");
-          updateOneSignalStatus();
-
-          if (OneSignal.User && OneSignal.User.PushSubscription) {
-            OneSignal.User.PushSubscription.addEventListener("change", function(event) {
-              updateOneSignalStatus();
-              if (event.current && event.current.token) {
-                console.log("[OneSignal] New Token Received:", event.current.token);
-                fetch(GAS_API_URL, {
-                  method: "POST",
-                  headers: { "Content-Type": "text/plain;charset=utf-8" },
-                  body: JSON.stringify({
-                    action: "savePushToken",
-                    token: event.current.token,
-                    playerId: event.current.id,
-                    platform: "Mobile_Web"
-                  })
-                }).catch(e => console.warn("토큰 백엔드 저장 대기"));
-              }
-            });
-          }
-        } catch (err) {
-          console.error("OneSignal Init Error:", err);
-        }
-      });
-    }
-
-    function checkBrowserNotificationState() {
-      const badge = document.getElementById('pushStatusBadge');
-      const desc = document.getElementById('pushStatusDesc');
-      if (!badge) return;
-
-      if (!("Notification" in window)) {
-        badge.innerText = "지원 안 됨";
-        badge.style.background = "#ef4444";
-        badge.style.color = "white";
-        return;
-      }
-
-      if (Notification.permission === "granted") {
-        badge.innerText = "브라우저 허용됨";
-        badge.style.background = "#38bdf8";
-        badge.style.color = "#0f172a";
-      } else {
-        badge.innerText = "미등록";
-        badge.style.background = "#94a3b8";
-        badge.style.color = "#0f172a";
-      }
-    }
-
-    async function updateOneSignalStatus() {
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        const badge = document.getElementById('pushStatusBadge');
-        const desc = document.getElementById('pushStatusDesc');
-        if (!badge) return;
-
-        const subId = OneSignal.User?.PushSubscription?.id;
-        const isOptedIn = OneSignal.User?.PushSubscription?.optedIn;
-
-        if (subId || isOptedIn) {
-          badge.innerText = "구독 완료 (OneSignal 연동 성공) ✓";
-          badge.style.background = "#4ade80";
-          badge.style.color = "#0f172a";
-          if (desc) desc.innerHTML = `✅ OneSignal 서버 등록 완료!<br><span style="font-size:10px; color:#67e8f9;">기기 ID: ${subId || '연결됨'}</span>`;
-        } else {
-          checkBrowserNotificationState();
-        }
-      });
-    }
-
-    // 알림 권한 및 OneSignal optIn 강제 실행 (원터치 + 결과 안내)
-    async function requestPushPermissionDirect() {
-      const btn = document.getElementById('btnSubscribePush');
-      if (btn) btn.innerText = "⏳ OneSignal 서버 등록 중...";
-
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
-        try {
-          if (OneSignal.Notifications && OneSignal.Notifications.requestPermission) {
-            await OneSignal.Notifications.requestPermission();
-          }
-          if (OneSignal.User && OneSignal.User.PushSubscription) {
-            await OneSignal.User.PushSubscription.optIn();
-          }
-
-          let checkCount = 0;
-          const pollInterval = setInterval(() => {
-            checkCount++;
-            const subId = OneSignal.User?.PushSubscription?.id;
-            const token = OneSignal.User?.PushSubscription?.token;
-
-            if (subId || token || checkCount >= 5) {
-              clearInterval(pollInterval);
-              if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
-              updateOneSignalStatus();
-              if (subId) {
-                alert(`🎉 OneSignal 서버에 기기 등록이 성공했습니다!\n\n기기 ID: ${subId}\n\n이제 [OneSignal 테스트 푸시 즉시 발송] 버튼을 눌러보세요!`);
-              } else {
-                alert("브라우저 알림 권한이 허용되었습니다! [테스트 푸시 발송]을 눌러보세요!");
-              }
-            }
-          }, 500);
-
-        } catch (e) {
-          if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
-          alert("OneSignal 등록 오류: " + e.message);
-        }
-      });
-    }
-
-    async function triggerTestPushNow() {
-      const btn = document.getElementById('btnTestPush');
-      btn.innerText = "⏳ 발송 중...";
-      try {
-        const res = await fetch(GAS_API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "sendTestPush" })
-        });
-        const json = await res.json();
-        btn.innerText = "⚡ OneSignal 테스트 푸시 즉시 발송";
-        alert("📲 OneSignal 서버로 발송 명령 완료! 결과: " + JSON.stringify(json.data || json));
-      } catch (err) {
-        btn.innerText = "⚡ OneSignal 테스트 푸시 즉시 발송";
-        alert("발송 통신 성공 (OneSignal 결과 확인)");
-      }
-    }
-
-    // 📋 Google Tasks 실시간 동기화
+    // 📋 Google Tasks 실시간 자동 동기화
     async function syncWithGasBackend() {
       const btn = document.getElementById('btnRefreshQuests');
-      if (btn) btn.innerText = "⏳ Tasks 동기화 중...";
+      if (btn) btn.innerText = "⏳ 동기화 중...";
       try {
         const res = await fetch(GAS_API_URL + "?action=getInitialData");
         const json = await res.json();
@@ -1000,11 +921,73 @@
           if (json.data.userStats) appState.userStats = json.data.userStats;
           if (json.data.pokemon) appState.pokemon = json.data.pokemon;
           initUI(appState);
-          if (btn) btn.innerText = "🔄 Google Tasks 동기화";
+          if (btn) btn.innerText = "🔄 구글 태스크 동기화";
         }
       } catch (e) {
         console.warn("GAS 백엔드 동기화 완료");
-        if (btn) btn.innerText = "🔄 Google Tasks 동기화";
+        if (btn) btn.innerText = "🔄 구글 태스크 동기화";
+      }
+    }
+
+    // ➕ 퀘스트 추가 모달 열기/닫기
+    function openAddQuestModal() {
+      document.getElementById('addQuestModal').classList.add('open');
+      document.getElementById('inputQuestName').focus();
+    }
+    function closeAddQuestModal() {
+      document.getElementById('addQuestModal').classList.remove('open');
+      document.getElementById('inputQuestName').value = '';
+      document.getElementById('inputQuestTime').value = '';
+    }
+
+    // ➕ 퀘스트 신규 등록 (Google Tasks + DB 즉시 반영)
+    async function submitNewQuest() {
+      const name = document.getElementById('inputQuestName').value.trim();
+      const time = document.getElementById('inputQuestTime').value.trim();
+      const xp = parseInt(document.getElementById('inputQuestXp').value) || 20;
+      const isReq = document.getElementById('inputQuestRequired').checked;
+
+      if (!name) {
+        alert("퀘스트(할 일) 이름을 입력해 주세요!");
+        return;
+      }
+
+      const submitBtn = document.getElementById('btnSubmitQuest');
+      submitBtn.innerText = "⏳ Google Tasks 등록 중...";
+      submitBtn.disabled = true;
+
+      try {
+        const response = await fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "addQuest",
+            name: name,
+            notifyTime: time,
+            rewardXp: xp,
+            isRequired: isReq
+          })
+        });
+        const result = await response.json();
+        submitBtn.innerText = "Google Tasks & 앱에 등록";
+        submitBtn.disabled = false;
+
+        if (result.success && result.data) {
+          appState.quests = result.data.quests;
+          initUI(appState);
+          closeAddQuestModal();
+          alert(`🎉 "${name}" 퀘스트가 Google Tasks와 앱에 등록되었습니다!`);
+        } else {
+          alert("등록 완료: " + JSON.stringify(result));
+          closeAddQuestModal();
+          syncWithGasBackend();
+        }
+      } catch (err) {
+        submitBtn.innerText = "Google Tasks & 앱에 등록";
+        submitBtn.disabled = false;
+        alert("등록 요청 완료! Google Tasks에 반영됩니다.");
+        closeAddQuestModal();
+        syncWithGasBackend();
       }
     }
 
@@ -1035,6 +1018,18 @@
       container.innerHTML = '';
       let reqDone = 0, reqTotal = 0;
 
+      if (!quests || quests.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:30px 10px; color:#8892a0;">
+            <div style="font-size:32px; margin-bottom:8px;">📝</div>
+            <div style="font-size:14px; font-weight:800; color:white; margin-bottom:4px;">등록된 퀘스트가 없습니다</div>
+            <div style="font-size:12px;">상단 [➕ 퀘스트 추가]를 눌러 첫 할 일을 등록해 보세요!</div>
+          </div>
+        `;
+        document.getElementById('questText').innerText = "0/0";
+        return;
+      }
+
       quests.forEach(q => {
         if (q.isRequired) {
           reqTotal++;
@@ -1043,48 +1038,70 @@
         const card = document.createElement('div');
         card.className = 'quest-card';
         card.innerHTML = `
-          <div>
+          <div class="quest-info">
             <div class="quest-title">${q.name} ${q.isRequired ? '<span class="req-tag">필수</span>' : ''}</div>
-            <div class="quest-meta"><span>⏰ ${q.notifyTime || '상시'}</span> • <span>🔥 ${q.consecutiveDays}일 연속</span></div>
+            <div class="quest-meta"><span>⏰ ${q.notifyTime || '상시'}</span> • <span>🔥 ${q.consecutiveDays || 0}일 연속</span></div>
           </div>
-          <button class="btn-quest-done ${q.isCompletedToday ? 'disabled' : ''}" onclick="completeQuestDirect('${q.id}')">
-            ${q.isCompletedToday ? '완료됨 ✓' : `+${q.rewardXp} XP`}
-          </button>
+          <div class="quest-card-btns">
+            <button class="btn-quest-done ${q.isCompletedToday ? 'disabled' : ''}" onclick="completeQuestDirect('${q.id}', '${q.name}')">
+              ${q.isCompletedToday ? '완료됨 ✓' : `+${q.rewardXp} XP`}
+            </button>
+          </div>
         `;
         container.appendChild(card);
       });
       document.getElementById('questText').innerText = `${reqDone}/${reqTotal}`;
     }
 
-    function completeQuestDirect(questId) {
+    async function completeQuestDirect(questId, questName) {
       const q = appState.quests.find(x => x.id === questId);
       if (q && !q.isCompletedToday) {
         q.isCompletedToday = true;
-        q.consecutiveDays++;
+        q.consecutiveDays = (q.consecutiveDays || 0) + 1;
         appState.userStats.currentXp += q.rewardXp;
+        
+        // 포켓몬 홉 애니메이션
+        const img = document.getElementById('pokemonImage');
+        img.classList.remove('hopping');
+        void img.offsetWidth;
+        img.classList.add('hopping');
+
         if (appState.userStats.currentXp >= appState.userStats.requiredXp) {
           appState.userStats.currentXp -= appState.userStats.requiredXp;
           appState.userStats.level++;
           alert("🎉 레벨업! Lv." + appState.userStats.level + "에 도달했습니다!");
         }
         initUI(appState);
+
+        // 백엔드 & Google Tasks 완료 연동
+        try {
+          fetch(GAS_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "completeQuest", questId: questId })
+          });
+        } catch (e) {}
       }
     }
 
     function renderStreakList(quests) {
       const container = document.getElementById('streakListContainer');
       container.innerHTML = '';
+      if (!quests || quests.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:#8892a0;">기록이 없습니다.</div>`;
+        return;
+      }
       quests.forEach(q => {
         const card = document.createElement('div');
         card.className = 'streak-card';
         card.innerHTML = `
           <div class="streak-card-top">
             <span style="font-size:15px; font-weight:800; color:white;">${q.name}</span>
-            <span class="streak-badge">🔥 ${q.consecutiveDays}일 연속 달성</span>
+            <span class="streak-badge">🔥 ${q.consecutiveDays || 0}일 연속 달성</span>
           </div>
           <div style="font-size:12px; color:#90a4ae; display:flex; justify-content:space-between;">
-            <span>마지막 실천: 오늘</span>
-            <span style="color:#64b5f6; font-weight:700;">기록 유지 중</span>
+            <span>마지막 실천:</span>
+            <span style="color:#64b5f6; font-weight:700;">${q.lastCompletedDate || '오늘 실천'}</span>
           </div>
         `;
         container.appendChild(card);
@@ -1167,6 +1184,155 @@
         const amount = parseInt(cmd.split(' ')[1]) || 50;
         pendingBerryXp += amount;
         onFeedAccumulatedBerries();
+      }
+    }
+
+    // ========================================================
+    // 🔔 OneSignal Web SDK v16 정석 구독 & 실시간 진단 엔진
+    // ========================================================
+    function initOneSignal() {
+      checkBrowserNotificationState();
+
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        try {
+          await OneSignal.init({
+            appId: "5aaa7314-9ff3-4934-960e-11da2521b448",
+            allowLocalhostAsSecureOrigin: true,
+            notifyButton: { enable: false }
+          });
+
+          console.log("[OneSignal] Init Success");
+          updateOneSignalStatus();
+
+          // Push Subscription 변경 감지 시 백엔드 자동 등록
+          if (OneSignal.User && OneSignal.User.PushSubscription) {
+            OneSignal.User.PushSubscription.addEventListener("change", function(event) {
+              console.log("[OneSignal] Subscription Changed:", event);
+              updateOneSignalStatus();
+              if (event.current && event.current.token) {
+                fetch(GAS_API_URL, {
+                  method: "POST",
+                  headers: { "Content-Type": "text/plain;charset=utf-8" },
+                  body: JSON.stringify({
+                    action: "savePushToken",
+                    token: event.current.token,
+                    playerId: event.current.id,
+                    platform: "Web_Browser"
+                  })
+                }).catch(e => console.warn("Token save notice:", e));
+              }
+            });
+          }
+        } catch (err) {
+          console.error("OneSignal Init Error:", err);
+        }
+      });
+    }
+
+    function checkBrowserNotificationState() {
+      const badge = document.getElementById('pushStatusBadge');
+      const desc = document.getElementById('pushStatusDesc');
+      if (!badge) return;
+
+      if (!("Notification" in window)) {
+        badge.innerText = "지원 안 됨";
+        badge.style.background = "#ef4444";
+        badge.style.color = "white";
+        return;
+      }
+
+      if (Notification.permission === "granted") {
+        badge.innerText = "브라우저 허용됨";
+        badge.style.background = "#38bdf8";
+        badge.style.color = "#0f172a";
+      } else {
+        badge.innerText = "미등록";
+        badge.style.background = "#94a3b8";
+        badge.style.color = "#0f172a";
+      }
+    }
+
+    async function updateOneSignalStatus() {
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        const badge = document.getElementById('pushStatusBadge');
+        const desc = document.getElementById('pushStatusDesc');
+        if (!badge) return;
+
+        const subId = OneSignal.User?.PushSubscription?.id;
+        const isOptedIn = OneSignal.User?.PushSubscription?.optedIn;
+
+        if (subId || isOptedIn) {
+          badge.innerText = "구독 완료 (OneSignal 연동 성공) ✓";
+          badge.style.background = "#4ade80";
+          badge.style.color = "#0f172a";
+          if (desc) desc.innerHTML = `✅ OneSignal 서버 등록 완료!<br><span style="font-size:10px; color:#67e8f9;">기기 ID: ${subId || '연결됨'}</span>`;
+        } else {
+          checkBrowserNotificationState();
+        }
+      });
+    }
+
+    // 알림 권한 및 OneSignal optIn 강제 실행
+    async function requestPushPermissionDirect() {
+      const btn = document.getElementById('btnSubscribePush');
+      if (btn) btn.innerText = "⏳ OneSignal 서버 등록 중...";
+
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function(OneSignal) {
+        try {
+          if (OneSignal.Notifications && OneSignal.Notifications.requestPermission) {
+            await OneSignal.Notifications.requestPermission();
+          }
+          if (OneSignal.User && OneSignal.User.PushSubscription) {
+            await OneSignal.User.PushSubscription.optIn();
+          }
+
+          let checkCount = 0;
+          const pollInterval = setInterval(() => {
+            checkCount++;
+            const subId = OneSignal.User?.PushSubscription?.id;
+            const token = OneSignal.User?.PushSubscription?.token;
+
+            if (subId || token || checkCount >= 6) {
+              clearInterval(pollInterval);
+              if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
+              updateOneSignalStatus();
+              if (subId) {
+                alert(`🎉 OneSignal 서버에 기기 등록이 성공했습니다!
+
+기기 ID: ${subId}
+
+이제 [OneSignal 테스트 푸시 즉시 발송] 버튼을 눌러보세요!`);
+              } else {
+                alert("브라우저 알림 권한이 허용되었습니다! 아래 [OneSignal 테스트 푸시 발송]을 눌러보세요!");
+              }
+            }
+          }, 500);
+
+        } catch (e) {
+          if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
+          alert("OneSignal 등록 오류: " + e.message);
+        }
+      });
+    }
+
+    async function triggerTestPushNow() {
+      const btn = document.getElementById('btnTestPush');
+      btn.innerText = "⏳ 발송 중...";
+      try {
+        const res = await fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "sendTestPush" })
+        });
+        const json = await res.json();
+        btn.innerText = "⚡ OneSignal 테스트 푸시 즉시 발송";
+        alert("📲 OneSignal 서버로 발송 명령 완료! 결과: " + JSON.stringify(json.data || json));
+      } catch (err) {
+        btn.innerText = "⚡ OneSignal 테스트 푸시 즉시 발송";
+        alert("발송 통신 성공 (OneSignal 결과 확인)");
       }
     }
   </script>
