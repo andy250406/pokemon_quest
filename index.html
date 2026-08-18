@@ -584,7 +584,7 @@
         <div id="paneQuestView">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <span style="font-size:13px; font-weight:800; color:#8892a0;">오늘의 실천 습관</span>
-            <button class="btn-quest-done" onclick="alert('새로운 퀘스트 등록 완료!')">+ 신규 등록</button>
+            <button id="btnRefreshQuests" class="btn-quest-done" onclick="syncWithGasBackend()">🔄 Google Tasks 동기화</button>
           </div>
           <div id="questListContainer"></div>
         </div>
@@ -645,7 +645,7 @@
             <p id="pushStatusDesc" style="font-size:11px; color:#94a3b8; line-height:1.4; margin-bottom:12px;">
               브라우저 알림 권한을 켜고 기기를 구독자로 등록해야 백엔드에서 몬스터볼 알림을 보낼 수 있습니다.
             </p>
-            <button onclick="requestPushPermissionDirect()" style="width:100%; background:linear-gradient(135deg, #2563eb, #1d4ed8); color:white; border:none; padding:10px; border-radius:10px; font-size:13px; font-weight:800; cursor:pointer;">
+            <button id="btnSubscribePush" onclick="requestPushPermissionDirect()" style="width:100%; background:linear-gradient(135deg, #2563eb, #1d4ed8); color:white; border:none; padding:10px; border-radius:10px; font-size:13px; font-weight:800; cursor:pointer;">
               🔔 푸시 알림 수신 구독 (1초 완료)
             </button>
           </div>
@@ -934,16 +934,15 @@
 
     // 알림 권한 및 OneSignal optIn 강제 실행 (원터치 + 결과 안내)
     async function requestPushPermissionDirect() {
-      const btn = event.target;
-      const originalText = btn.innerText;
-      btn.innerText = "⏳ OneSignal 서버 등록 중...";
+      const btn = document.getElementById('btnSubscribePush');
+      if (btn) btn.innerText = "⏳ OneSignal 서버 등록 중...";
 
-      // 1. 서비스 워커 사전 등록 보장
+      // 1. 서비스 워커 등록
       if ('serviceWorker' in navigator) {
         try {
-          await navigator.serviceWorker.register('/pokemon_quest/OneSignalSDKWorker.js', { scope: '/pokemon_quest/' });
+          await navigator.serviceWorker.register('OneSignalSDKWorker.js', { scope: './' });
         } catch (swErr) {
-          console.warn("SW register fallback:", swErr);
+          console.warn("SW register notice:", swErr);
         }
       }
 
@@ -959,21 +958,21 @@
           }
 
           setTimeout(async () => {
-            btn.innerText = originalText;
+            if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
             const subId = OneSignal.User?.PushSubscription?.id;
             const token = OneSignal.User?.PushSubscription?.token;
 
             if (subId || token) {
               updateOneSignalStatus();
-              alert(`🎉 OneSignal 서버에 기기 등록이 성공했습니다!\n\n기기 ID: ${subId || '생성 완료'}\n\n이제 [OneSignal 테스트 푸시 즉시 발송] 버튼을 눌러보세요!`);
+              alert(`🎉 OneSignal 서버에 기기 등록이 성공했습니다!\n\n기기 ID: ${subId || '연결 완료'}\n\n이제 [OneSignal 테스트 푸시 즉시 발송] 버튼을 눌러보세요!`);
             } else {
-              alert("브라우저 알림 권한이 허용되었습니다. 잠시 후 [테스트 푸시 발송]을 눌러보세요!");
+              alert("브라우저 알림이 허용되었습니다. OneSignal 서버 반영 후 [테스트 푸시 발송]을 눌러보세요!");
               updateOneSignalStatus();
             }
           }, 1200);
 
         } catch (e) {
-          btn.innerText = originalText;
+          if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
           alert("OneSignal 등록 오류: " + e.message);
         }
       });
@@ -990,25 +989,30 @@
         });
         const json = await res.json();
         btn.innerText = "⚡ OneSignal 테스트 푸시 즉시 발송";
-        alert("📲 OneSignal 서버로 발송 명령 완료!");
+        alert("📲 OneSignal 서버로 발송 명령 완료! 결과: " + JSON.stringify(json.data || json));
       } catch (err) {
         btn.innerText = "⚡ OneSignal 테스트 푸시 즉시 발송";
         alert("발송 통신 성공 (OneSignal 결과 확인)");
       }
     }
 
+    // 📋 Google Tasks 실시간 동기화
     async function syncWithGasBackend() {
+      const btn = document.getElementById('btnRefreshQuests');
+      if (btn) btn.innerText = "⏳ Tasks 동기화 중...";
       try {
         const res = await fetch(GAS_API_URL + "?action=getInitialData");
         const json = await res.json();
         if (json.success && json.data) {
-          if (json.data.quests && json.data.quests.length > 0) appState.quests = json.data.quests;
+          appState.quests = json.data.quests || [];
           if (json.data.userStats) appState.userStats = json.data.userStats;
           if (json.data.pokemon) appState.pokemon = json.data.pokemon;
           initUI(appState);
+          if (btn) btn.innerText = "🔄 Google Tasks 동기화";
         }
       } catch (e) {
         console.warn("GAS 백엔드 동기화 완료");
+        if (btn) btn.innerText = "🔄 Google Tasks 동기화";
       }
     }
 
