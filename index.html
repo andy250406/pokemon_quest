@@ -847,9 +847,8 @@
       renderPokedexGrid();
     }
 
-    // OneSignal Web SDK v16 클라이언트 초기화
+    // OneSignal Web SDK v16 클라이언트 초기화 & 강력한 구독 처리
     function initOneSignal() {
-      // 1. 브라우저 네이티브 알림 상태 즉시 동기화 (CDN 대기 없이 0초 즉각 렌더)
       checkBrowserNotificationState();
 
       window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -862,14 +861,14 @@
             serviceWorkerPath: "OneSignalSDKWorker.js"
           });
 
-          // 상태 업데이트
+          console.log("[OneSignal] Init Success");
           updateOneSignalStatus();
 
-          // 구독 변경 이벤트 감지
           if (OneSignal.User && OneSignal.User.PushSubscription) {
             OneSignal.User.PushSubscription.addEventListener("change", function(event) {
               updateOneSignalStatus();
               if (event.current && event.current.token) {
+                console.log("[OneSignal] New Token Received:", event.current.token);
                 fetch(GAS_API_URL, {
                   method: "POST",
                   headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -885,7 +884,6 @@
           }
         } catch (err) {
           console.error("OneSignal Init Error:", err);
-          checkBrowserNotificationState();
         }
       });
     }
@@ -899,59 +897,57 @@
         badge.innerText = "지원 안 됨";
         badge.style.background = "#ef4444";
         badge.style.color = "white";
-        if (desc) desc.innerText = "이 브라우저는 웹 푸시 알림을 지원하지 않습니다.";
         return;
       }
 
       if (Notification.permission === "granted") {
-        badge.innerText = "알림 허용됨 ✓";
-        badge.style.background = "#4ade80";
+        badge.innerText = "브라우저 허용됨";
+        badge.style.background = "#38bdf8";
         badge.style.color = "#0f172a";
-        if (desc) desc.innerText = "✅ 브라우저 알림이 켜져 있습니다! 아래 [OneSignal 테스트 발송]을 눌러보세요.";
-      } else if (Notification.permission === "denied") {
-        badge.innerText = "차단됨 (설정 필요)";
-        badge.style.background = "#f87171";
-        badge.style.color = "#0f172a";
-        if (desc) desc.innerText = "브라우저 설정에서 이 사이트의 알림 권한을 [허용]으로 변경해 주세요.";
       } else {
         badge.innerText = "미등록";
         badge.style.background = "#94a3b8";
         badge.style.color = "#0f172a";
-        if (desc) desc.innerText = "아래 [푸시 알림 수신 구독] 버튼을 눌러 알림을 허용해 주세요.";
       }
     }
 
     async function updateOneSignalStatus() {
-      checkBrowserNotificationState();
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
         const badge = document.getElementById('pushStatusBadge');
         const desc = document.getElementById('pushStatusDesc');
         if (!badge) return;
 
-        const isSubscribed = OneSignal.User?.PushSubscription?.optedIn;
-        if (isSubscribed) {
-          badge.innerText = "구독 완료 (수신 가능) ✓";
+        const subId = OneSignal.User?.PushSubscription?.id;
+        const isOptedIn = OneSignal.User?.PushSubscription?.optedIn;
+
+        if (subId || isOptedIn) {
+          badge.innerText = "구독 완료 (OneSignal 연동 성공) ✓";
           badge.style.background = "#4ade80";
           badge.style.color = "#0f172a";
-          if (desc) desc.innerText = "✅ OneSignal 푸시 서버에 정상 등록되었습니다! 알림을 받을 준비가 끝났습니다.";
+          if (desc) desc.innerHTML = `✅ OneSignal 서버 등록 완료!<br><span style="font-size:10px; color:#67e8f9;">기기 ID: ${subId || '연결됨'}</span>`;
+        } else {
+          checkBrowserNotificationState();
         }
       });
     }
 
-    // 알림 권한 및 OneSignal optIn 강제 실행 (원터치)
+    // 알림 권한 및 OneSignal optIn 강제 실행 (원터치 + 결과 안내)
     async function requestPushPermissionDirect() {
-      // 1. 브라우저 네이티브 권한 요청 (안드로이드 100% 대응)
-      if ("Notification" in window) {
+      const btn = event.target;
+      const originalText = btn.innerText;
+      btn.innerText = "⏳ OneSignal 서버 등록 중...";
+
+      // 1. 서비스 워커 사전 등록 보장
+      if ('serviceWorker' in navigator) {
         try {
-          const perm = await Notification.requestPermission();
-          checkBrowserNotificationState();
-        } catch (e) {
-          console.warn("Native permission error:", e);
+          await navigator.serviceWorker.register('/pokemon_quest/OneSignalSDKWorker.js', { scope: '/pokemon_quest/' });
+        } catch (swErr) {
+          console.warn("SW register fallback:", swErr);
         }
       }
 
-      // 2. OneSignal 서버 구독 활성화
+      // 2. OneSignal 권한 요청 및 서버 optIn
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
         try {
@@ -961,10 +957,24 @@
           if (OneSignal.User && OneSignal.User.PushSubscription) {
             await OneSignal.User.PushSubscription.optIn();
           }
-          updateOneSignalStatus();
-          alert("알림 설정이 완료되었습니다! 아래 [테스트 푸시 발송] 버튼을 눌러보세요!");
+
+          setTimeout(async () => {
+            btn.innerText = originalText;
+            const subId = OneSignal.User?.PushSubscription?.id;
+            const token = OneSignal.User?.PushSubscription?.token;
+
+            if (subId || token) {
+              updateOneSignalStatus();
+              alert(`🎉 OneSignal 서버에 기기 등록이 성공했습니다!\n\n기기 ID: ${subId || '생성 완료'}\n\n이제 [OneSignal 테스트 푸시 즉시 발송] 버튼을 눌러보세요!`);
+            } else {
+              alert("브라우저 알림 권한이 허용되었습니다. 잠시 후 [테스트 푸시 발송]을 눌러보세요!");
+              updateOneSignalStatus();
+            }
+          }, 1200);
+
         } catch (e) {
-          console.error("OneSignal optIn Error:", e);
+          btn.innerText = originalText;
+          alert("OneSignal 등록 오류: " + e.message);
         }
       });
     }
