@@ -962,7 +962,6 @@
         await navigator.clipboard.writeText(allText);
         alert("📋 모든 실시간 진단 로그가 클립보드에 복사되었습니다!\n채팅창에 바로 붙여넣기(Ctrl+V) 해주세요!");
       } catch (err) {
-        // Fallback for older browsers
         const textarea = document.createElement("textarea");
         textarea.value = allText;
         document.body.appendChild(textarea);
@@ -1374,7 +1373,7 @@
     }
 
     // ========================================================
-    // 🔔 OneSignal Web SDK v16 완벽 구독 엔진 (Non-blocking & Fallback)
+    // 🔔 OneSignal Web SDK v16 GitHub Pages 하위 경로 완벽 초기화
     // ========================================================
     function initOneSignal() {
       checkBrowserNotificationState();
@@ -1382,14 +1381,17 @@
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
         try {
-          logDebug("OneSignal.init() 호출 시작", "info");
+          logDebug("OneSignal.init() 호출 (serviceWorkerParam 지정)", "info");
           await OneSignal.init({
             appId: "5aaa7314-9ff3-4934-960e-11da2521b448",
             allowLocalhostAsSecureOrigin: true,
+            serviceWorkerParam: { scope: "/pokemon_quest/" },
+            serviceWorkerPath: "OneSignalSDKWorker.js",
+            serviceWorkerUpdaterPath: "OneSignalSDKWorker.js",
             notifyButton: { enable: false }
           });
 
-          logDebug("OneSignal.init() 완료!", "success");
+          logDebug("OneSignal.init() 초기화 완료!", "success");
           updateOneSignalStatus();
 
           // Push Subscription 변경 이벤트 감지
@@ -1463,13 +1465,24 @@
       });
     }
 
-    // 알림 권한 및 OneSignal optIn 강제 실행 (타임아웃 보호 및 네이티브 Fallback 장착)
+    // 알림 권한 및 OneSignal optIn 강제 실행 (Service Worker 사전 등록 + 타임아웃 레이스)
     async function requestPushPermissionDirect() {
       const btn = document.getElementById('btnSubscribePush');
       if (btn) btn.innerText = "⏳ OneSignal 서버 등록 중...";
       logDebug("--- [🔔 푸시 구독 등록 프로세스 시작] ---", "warn");
 
-      // 1. 브라우저 네이티브 권한 확인
+      // 1. 서비스 워커 명시적 등록 확인
+      if ("serviceWorker" in navigator) {
+        try {
+          logDebug("Step 0: 서비스 워커(/pokemon_quest/OneSignalSDKWorker.js) 등록 시도...", "info");
+          const reg = await navigator.serviceWorker.register('/pokemon_quest/OneSignalSDKWorker.js', { scope: '/pokemon_quest/' });
+          logDebug(`Step 0 결과: 서비스 워커 등록 성공 (Scope: ${reg.scope})`, "success");
+        } catch (swErr) {
+          logDebug(`Step 0 주의: 서비스 워커 직접 등록 건너뜀 (${swErr.message})`, "warn");
+        }
+      }
+
+      // 2. 브라우저 네이티브 권한 확인
       if ("Notification" in window) {
         if (Notification.permission !== "granted") {
           logDebug("Step 1: 브라우저 Notification 권한 요청...", "info");
@@ -1480,33 +1493,30 @@
             logDebug(`Step 1 예외: ${e.message}`, "error");
           }
         } else {
-          logDebug("Step 1: 브라우저 권한 이미 granted (요청 생략)", "success");
+          logDebug("Step 1: 브라우저 권한 이미 granted", "success");
         }
         checkBrowserNotificationState();
       }
 
-      // 2. OneSignal User optIn 실행 (타임아웃 3초 보호 적용)
+      // 3. OneSignal User optIn 실행 (타임아웃 3초 보호)
       window.OneSignalDeferred = window.OneSignalDeferred || [];
       OneSignalDeferred.push(async function(OneSignal) {
         try {
           logDebug("Step 2: OneSignal.User.PushSubscription.optIn() 호출...", "info");
           
           if (OneSignal.User && OneSignal.User.PushSubscription) {
-            // 타임아웃 3초를 두어 optIn 프로미스가 멈추더라도 다음 단계로 무조건 진행
             const optInPromise = OneSignal.User.PushSubscription.optIn();
             const timeoutPromise = new Promise(resolve => setTimeout(() => resolve("TIMEOUT_REACHED"), 3000));
             
             const optInResult = await Promise.race([optInPromise, timeoutPromise]);
             if (optInResult === "TIMEOUT_REACHED") {
-              logDebug("Step 2 알림: optIn() 응답 3초 경과 -> 토큰 조회 단계로 자동 직행", "warn");
+              logDebug("Step 2 알림: optIn() 3초 타임아웃 경과 -> 토큰 조회로 직행", "warn");
             } else {
-              logDebug("Step 2: optIn() 성공적으로 반환됨!", "success");
+              logDebug("Step 2: optIn() 성공 반환!", "success");
             }
-          } else {
-            logDebug("Step 2 오류: PushSubscription 객체 없음", "error");
           }
 
-          // 3. Subscription ID 및 Push Token 실시간 폴링 (최대 10회 = 8초)
+          // 4. Subscription ID 및 Push Token 실시간 폴링 (최대 10회 = 8초)
           let checkCount = 0;
           logDebug("Step 3: OneSignal 기기 ID 및 Push Token 상태 확인 시작...", "info");
 
@@ -1528,7 +1538,7 @@
             } else if (checkCount >= 10) {
               clearInterval(pollInterval);
               if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
-              logDebug("Step 3 안내: OneSignal 클라우드 토큰 생성 완료 대기 중입니다. 아래 [테스트 푸시 발송]을 눌러보세요.", "warn");
+              logDebug("Step 3 안내: OneSignal 서버 등록 대기 완료. [OneSignal 테스트 푸시 발송]을 눌러보세요.", "warn");
               updateOneSignalStatus();
               alert("브라우저 알림 설정이 완료되었습니다! 아래 [OneSignal 테스트 푸시 즉시 발송]을 눌러보세요!");
             }
