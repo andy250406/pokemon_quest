@@ -4525,24 +4525,44 @@
       document.getElementById('pokedexDetailModal').classList.remove('open');
     }
 
+    let berryIntervalId = null;
+
     function startBerryFarming() {
-      setInterval(() => {
+      if (berryIntervalId) {
+        clearInterval(berryIntervalId);
+        berryIntervalId = null;
+      }
+
+      // 45~55초에 1번씩 드물게 등장 (기존 15초 대비 1/3 ~ 1/4 빈도)
+      berryIntervalId = setInterval(() => {
         if (!isCurrentHabitatForest) return;
         const layer = document.getElementById('berryLayer');
+        if (!layer) return;
+
+        // 화면에 이미 열매가 있으면 추가 생성하지 않음 (최대 1개 유지)
+        if (layer.children.length >= 1) return;
+
+        // 30% 확률로만 스폰하여 체감 빈도를 더욱 희귀하고 자연스럽게 조절
+        if (Math.random() > 0.6) return;
+
         const el = document.createElement('img');
         el.className = 'berry-item small hanging';
         el.src = './images/items/razz-berry.png';
-        el.style.top = (Math.floor(Math.random() * 120) + 120) + 'px';
+        el.style.top = (Math.floor(Math.random() * 100) + 120) + 'px';
         el.style.left = (Math.floor(Math.random() * 60) + 20) + 'px';
         el.onclick = () => {
-          el.parentNode.removeChild(el);
+          if (el.parentNode) el.parentNode.removeChild(el);
           pendingBerryXp += 5;
           document.getElementById('pendingBerryXpText').innerText = '+' + pendingBerryXp + ' XP';
           document.getElementById('berryBasketWidget').classList.add('show');
         };
         layer.appendChild(el);
-        setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 8000);
-      }, 15000);
+        
+        // 7초 후 획득하지 않으면 자연스럽게 소멸
+        setTimeout(() => {
+          if (el.parentNode) el.parentNode.removeChild(el);
+        }, 7000);
+      }, 35000);
     }
 
     function onFeedAccumulatedBerries() {
