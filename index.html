@@ -645,6 +645,8 @@
       background: #232c3d; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px;
       border-left: 3px solid #4CAF50;
     }
+    .history-card-item.evolved { border-left-color: #38bdf8; }
+    .history-card-item.graduated { border-left-color: #eab308; }
     .history-card-title { font-size: 13px; font-weight: 800; color: white; display: flex; justify-content: space-between; margin-bottom: 4px; }
     .history-card-meta { font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; }
 
@@ -1061,7 +1063,7 @@
         <button class="cheat-btn" onclick="executeCheatCustom(4)"><span class="cheat-btn-icon">👑</span><span class="cheat-btn-label">4. 즉시레벨업</span></button>
         <button class="cheat-btn" onclick="executeCheatCustom(5)"><span class="cheat-btn-icon">✨</span><span class="cheat-btn-label">5. 즉시진화</span></button>
 
-        <!-- 2행: 6 (일요일 22시 정산) ~ 10 -->
+        <!-- 2행: 6 (주간정산) ~ 10 -->
         <button class="cheat-btn highlight" onclick="executeCheatCustom(6)"><span class="cheat-btn-icon">🏆</span><span class="cheat-btn-label">6. 주간정산</span></button>
         <button class="cheat-btn empty"><span class="cheat-btn-label">7</span></button>
         <button class="cheat-btn empty"><span class="cheat-btn-label">8</span></button>
@@ -1271,19 +1273,12 @@
     // 🎲 1세대 포켓몬 그룹 분류 & 5단계 등급별 알 부화 가중치 확률 엔진
     // =========================================================================
     const POKEMON_GROUPS = {
-      STARTERS: [1, 4, 7, 25, 133], // 이상해씨, 파이리, 꼬부기, 피카츄, 이브이
-      LEGENDARY: [144, 145, 146, 150, 151], // 프리져, 썬더, 파이어, 뮤츠, 뮤
-      RARE: [108, 113, 115, 123, 124, 125, 126, 127, 128, 131, 137, 138, 140, 142, 143, 147], // 미뇽, 잠만보, 라프라스 등
+      STARTERS: [1, 4, 7, 25, 133],
+      LEGENDARY: [144, 145, 146, 150, 151],
+      RARE: [108, 113, 115, 123, 124, 125, 126, 127, 128, 131, 137, 138, 140, 142, 143, 147],
       COMMON: [10, 13, 16, 19, 21, 23, 27, 29, 32, 35, 37, 39, 41, 43, 46, 48, 50, 52, 54, 56, 58, 60, 63, 66, 69, 72, 74, 77, 79, 81, 83, 84, 86, 88, 90, 92, 95, 96, 98, 100, 102, 104, 106, 107, 109, 111, 114, 116, 118, 120, 122, 129, 132]
     };
 
-    // 5단계 등급 확률표
-    // Tier 1: ~1499 XP (Lv.30 미만)
-    // Tier 2: 1500 ~ 4999 XP (Lv.30 기준: 일반 55%, 스타팅 25%, 레어 15%, 전설 5%)
-    // Tier 3: 5000 ~ 7999 XP (Lv.50 기준: 일반 35%, 스타팅 30%, 레어 23%, 전설 12%)
-    // Tier 4: 8000 ~ 15999 XP (Lv.60 기준: 일반 15%, 스타팅 25%, 레어 35%, 전설 25%)
-    // Tier 5: 16000 ~ 21999 XP (Lv.80 기준: 일반 0%, 스타팅 15%, 레어 35%, 전설 50%)
-    // Tier 6: 22000+ XP (Lv.90+ 기준: 전설 100% 확정)
     const TIER_PROBABILITIES = {
       1: { common: 70, starter: 20, rare: 9, legendary: 1, name: "🌱 일반 알 (Lv.1~29)" },
       2: { common: 55, starter: 25, rare: 15, legendary: 5, name: "🥉 브론즈 알 (Lv.30~49)" },
@@ -1293,7 +1288,6 @@
       6: { common: 0, starter: 0, rare: 0, legendary: 100, name: "👑 전설 확정 알 (Lv.90+)" }
     };
 
-    // 등급별 알 부화 포켓몬 추첨 함수
     function drawPokemonFromEggTier(tierNum = 2) {
       const tier = TIER_PROBABILITIES[tierNum] || TIER_PROBABILITIES[2];
       const roll = Math.random() * 100;
@@ -1314,7 +1308,6 @@
       return { id: chosenId, category: chosenCategory, tierName: tier.name };
     }
 
-    // 성장 유형별 레벨업 필요 경험치 계산 공식
     function calculateRequiredXpForLevel(level, growthRate = "MEDIUM_SLOW") {
       const L = Math.max(1, parseInt(level) || 1);
       switch (growthRate) {
@@ -1332,9 +1325,9 @@
       userStats: { level: 1, currentXp: 0, requiredXp: 70, stageName: "1단계" },
       pokemon: { id: 1, name: "이상해씨", gender: "♂", nature: "고집", natureBuff: "+공격", type: "풀/독", growth: "MEDIUM_SLOW", idleGif: "./images/pokemon/showdown/1.gif" },
       isEgg: false,
-      eggTier: 2, // 기본 브론즈 알 (Tier 2)
+      eggTier: 2,
       quests: [],
-      pokemonHistory: [] // 역대 육성 히스토리 목록
+      pokemonHistory: []
     };
 
     let pendingBerryXp = 0;
@@ -1348,7 +1341,6 @@
       return POKEDEX_DATA_151[id - 1] || null;
     }
 
-    // 로컬 스토리지에 캐시된 포켓몬 상태 복원
     function restoreLocalPokemonCache() {
       try {
         const saved = localStorage.getItem('poketasks_mon_state');
@@ -1375,17 +1367,13 @@
       } catch (e) {}
     }
 
-    // 육성 기록에 현재 포켓몬 추가/동기화
+    // 육성 기록에 아카이빙 (ACTIVE, EVOLVED, GRADUATED, HATCHED 등)
     function recordCurrentPokemonToHistory(status = "ACTIVE") {
       if (appState.isEgg || !appState.pokemon || !appState.pokemon.id) return;
       const monId = appState.pokemon.id;
-      const exist = appState.pokemonHistory.find(h => h.pokemonId === monId && h.gender === appState.pokemon.gender);
-      if (exist) {
-        exist.finalLevel = Math.max(exist.finalLevel || 1, appState.userStats.level);
-        exist.finalXp = appState.userStats.currentXp;
-        exist.status = status;
-        exist.dateStr = new Date().toISOString().replace('T', ' ').slice(0, 16);
-      } else {
+      
+      if (status === "EVOLVED" || status === "GRADUATED") {
+        // 완료된 최종 상태는 새 행으로 추가
         appState.pokemonHistory.push({
           id: "HIST_" + Date.now(),
           status: status,
@@ -1398,6 +1386,27 @@
           finalXp: appState.userStats.currentXp,
           dateStr: new Date().toISOString().replace('T', ' ').slice(0, 16)
         });
+      } else {
+        // ACTIVE인 경우 기존 레코드 업데이트 또는 추가
+        const exist = appState.pokemonHistory.find(h => h.pokemonId === monId && h.gender === appState.pokemon.gender && h.status === "ACTIVE");
+        if (exist) {
+          exist.finalLevel = Math.max(exist.finalLevel || 1, appState.userStats.level);
+          exist.finalXp = appState.userStats.currentXp;
+          exist.dateStr = new Date().toISOString().replace('T', ' ').slice(0, 16);
+        } else {
+          appState.pokemonHistory.push({
+            id: "HIST_" + Date.now(),
+            status: "ACTIVE",
+            pokemonId: monId,
+            name: appState.pokemon.name,
+            stage: 1,
+            gender: appState.pokemon.gender || "♂",
+            nature: appState.pokemon.nature || "고집",
+            finalLevel: appState.userStats.level,
+            finalXp: appState.userStats.currentXp,
+            dateStr: new Date().toISOString().replace('T', ' ').slice(0, 16)
+          });
+        }
       }
       saveLocalPokemonCache();
     }
@@ -1432,7 +1441,6 @@
       });
     }
 
-    // 🚀 페이지 로드 시 즉시 실행
     window.onload = function() {
       logDebug("🌱 포켓Tasks 웹 앱 로드 시작", "info");
       
@@ -1448,8 +1456,8 @@
       recordCurrentPokemonToHistory("ACTIVE");
 
       initUI(appState);
-      syncWithGasBackend(); // Google Tasks & 스프레드시트 실시간 동기화
-      initOneSignal();      // OneSignal Web SDK 초기화
+      syncWithGasBackend();
+      initOneSignal();
       setTimeout(runDiagnostics, 1200);
     };
 
@@ -1513,7 +1521,6 @@
       renderPokedexGrid();
     }
 
-    // 📋 Google Tasks 실시간 자동 동기화
     async function syncWithGasBackend() {
       const btn = document.getElementById('btnRefreshQuests');
       if (btn) btn.innerText = "⏳ 동기화...";
@@ -1563,7 +1570,6 @@
       }
     }
 
-    // ➕ 퀘스트 모달 관련 함수
     function onRecurrenceChange() {
       const rec = document.getElementById('selectQuestRecurrence').value;
       const dayGroup = document.getElementById('daySelectGroup');
@@ -1643,7 +1649,6 @@
       document.getElementById('addQuestModal').classList.remove('open');
     }
 
-    // ➕ / ✏️ 퀘스트 등록 및 수정 통합 제출
     async function submitQuestForm() {
       const editingId = document.getElementById('editingQuestId').value;
       const isEditing = Boolean(editingId);
@@ -1714,7 +1719,6 @@
       }
     }
 
-    // 🗑️ 퀘스트 단일 삭제 처리
     async function submitDeleteQuest() {
       const editingId = document.getElementById('editingQuestId').value;
       if (!editingId) return;
@@ -1754,9 +1758,6 @@
       }
     }
 
-    // ========================================================
-    // 🗑️ 퀘스트 일괄 선택 삭제 모드 관리
-    // ========================================================
     function toggleBatchDeleteMode() {
       isBatchDeleteMode = true;
       document.getElementById('btnRefreshQuests').style.display = 'none';
@@ -1932,7 +1933,7 @@
     }
 
     // ========================================================
-    // 🌟 경험치 획득 및 실제 레벨업 / 자동 진화 판별 엔진
+    // 🌟 경험치 획득 및 실제 레벨업 / 자동 진화 판별 & 아카이빙 엔진
     // ========================================================
     function processXpGainAndEvolve(earnedXp) {
       if (appState.isEgg) {
@@ -1963,6 +1964,7 @@
       syncCheatToGasBackend(appState.pokemon.id, appState.isEgg, appState.userStats.level, appState.userStats.currentXp, false, appState.pokemon.gender, appState.pokemon.nature);
     }
 
+    // 진화 시 이전 단계 포켓몬 기록 영구 아카이빙
     function checkAutoEvolution(pokemonId, currentLevel) {
       const pInfo = getPokemonData(pokemonId);
       if (!pInfo || !pInfo.evolveLevel || !pInfo.evolvesTo) return;
@@ -1970,8 +1972,34 @@
       if (currentLevel >= pInfo.evolveLevel) {
         const nextMon = getPokemonData(pInfo.evolvesTo);
         if (nextMon) {
+          const prevId = appState.pokemon.id;
+          const prevName = appState.pokemon.name;
+          const finalLv = appState.userStats.level;
+          const finalXp = appState.userStats.currentXp;
+          const gender = appState.pokemon.gender;
+          const nature = appState.pokemon.nature;
+
+          // 1) 로컬에 EVOLVED 상태로 영구 기록
           recordCurrentPokemonToHistory("EVOLVED");
 
+          // 2) 스프레드시트 PokemonHistory에 EVOLVED 행 실시간 저장!
+          fetch(GAS_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "recordEvolution",
+              prevPokemonId: prevId,
+              prevName: prevName,
+              finalLevel: finalLv,
+              finalXp: finalXp,
+              gender: gender,
+              nature: nature,
+              nextPokemonId: nextMon.id,
+              nextName: nextMon.name
+            })
+          }).catch(() => {});
+
+          // 3) 새로운 진화형으로 전환
           appState.pokemon.id = nextMon.id;
           appState.pokemon.name = nextMon.name;
           appState.pokemon.type = nextMon.type;
@@ -2080,7 +2108,7 @@
       }
 
       if (!map[1]) {
-        map[1] = { male: true, female: false, genderless: false, records: [{ finalLevel: 1, finalXp: 0, gender: "♂", nature: "고집", dateStr: "기본 스타팅" }] };
+        map[1] = { male: true, female: false, genderless: false, records: [{ finalLevel: 1, finalXp: 0, gender: "♂", nature: "고집", status: "ACTIVE", dateStr: "기본 스타팅" }] };
       }
 
       return map;
@@ -2231,6 +2259,7 @@
       document.getElementById('dexTabContent2').style.display = tabNum === 2 ? 'block' : 'none';
     }
 
+    // 육성 기록 2번 탭 렌더링 (진화 완료, 명예의 전당 졸업, 현재 육성 중 상태별 표시)
     function renderDexHistoryTab(pokeId, monRecord) {
       const container = document.getElementById('dexHistoryListContainer');
       container.innerHTML = '';
@@ -2240,7 +2269,7 @@
           <div style="text-align:center; padding:35px 15px; color:#8892a0;">
             <div style="font-size:32px; margin-bottom:8px;">📜</div>
             <div style="font-size:14px; font-weight:800; color:white; margin-bottom:4px;">육성 기록이 없습니다</div>
-            <div style="font-size:12px;">이 포켓몬을 육성하면 달성한 레벨과 경험치 기록이 이곳에 영구 보존됩니다!</div>
+            <div style="font-size:12px;">이 포켓몬을 육성하거나 진화시키면 달성한 레벨과 경험치 기록이 이곳에 영구 보존됩니다!</div>
           </div>
         `;
         return;
@@ -2248,16 +2277,31 @@
 
       monRecord.records.forEach((rec, idx) => {
         const item = document.createElement('div');
-        item.className = 'history-card-item';
+        const statusType = rec.status || "ACTIVE";
+        
+        let statusBadge = "🌱 현재 육성 중";
+        let cardClass = "history-card-item";
+        
+        if (statusType === "EVOLVED") {
+          statusBadge = "✨ 진화 완료 (최종 스탯)";
+          cardClass += " evolved";
+        } else if (statusType === "GRADUATED") {
+          statusBadge = "🏆 명예의 전당 졸업";
+          cardClass += " graduated";
+        } else if (statusType === "HATCHED") {
+          statusBadge = "🐣 알 부화 탄생";
+        }
+
+        item.className = cardClass;
         const genderClass = rec.gender === '♀' ? 'female' : (rec.gender === '♂' ? 'male' : 'none');
         item.innerHTML = `
           <div class="history-card-title">
-            <span>🏆 [${idx + 1}회차] Lv.${rec.finalLevel || 1} 달성</span>
-            <span class="gender-symbol ${genderClass}">${rec.gender || '♂'} ${rec.nature || '고집'}</span>
+            <span>[${idx + 1}회차] Lv.${rec.finalLevel || 1} 달성</span>
+            <span style="font-size:11px; font-weight:900; color:${statusType === 'EVOLVED' ? '#38bdf8' : (statusType === 'GRADUATED' ? '#facc15' : '#4ade80')};">${statusBadge}</span>
           </div>
           <div class="history-card-meta">
-            <span>누적 경험치: ${rec.finalXp || 0} XP</span>
-            <span style="color:#60a5fa; font-weight:700;">${rec.dateStr || '기록일시 확인'}</span>
+            <span><span class="gender-symbol ${genderClass}">${rec.gender || '♂'}</span> ${rec.nature || '고집'} • ${rec.finalXp || 0} XP</span>
+            <span style="color:#94a3b8; font-weight:700;">${rec.dateStr || '기록 확인'}</span>
           </div>
         `;
         container.appendChild(item);
@@ -2333,7 +2377,7 @@
         case 1: // 1. 강제로 알 받기
           recordCurrentPokemonToHistory("GRADUATED");
           appState.isEgg = true;
-          appState.eggTier = 2; // 기본 브론즈 알
+          appState.eggTier = 2;
           appState.pokemon = {
             id: 0,
             name: "포켓몬 알 (Tier 2)",
@@ -2424,7 +2468,7 @@
           alert("👑 즉시 레벨업! 현재 Lv." + appState.userStats.level + " (다음 필요 XP: " + appState.userStats.requiredXp + ")");
           break;
 
-        case 5: // 5. 즉시 진화
+        case 5: // 5. 즉시 진화 (진화 직전 기록 아카이빙)
           if (appState.isEgg) {
             executeCheatCustom(2);
             return;
@@ -2435,7 +2479,32 @@
             return;
           }
           const nextMon = getPokemonData(pInfo.evolvesTo);
+          const prevId = appState.pokemon.id;
+          const prevName = appState.pokemon.name;
+          const finalLv = appState.userStats.level;
+          const finalXp = appState.userStats.currentXp;
+          const gender = appState.pokemon.gender;
+          const nature = appState.pokemon.nature;
+
+          // 1) 로컬에 EVOLVED 상태로 영구 기록
           recordCurrentPokemonToHistory("EVOLVED");
+
+          // 2) 스프레드시트 PokemonHistory에 EVOLVED 행 실시간 영구 추가!
+          fetch(GAS_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "recordEvolution",
+              prevPokemonId: prevId,
+              prevName: prevName,
+              finalLevel: finalLv,
+              finalXp: finalXp,
+              gender: gender,
+              nature: nature,
+              nextPokemonId: nextMon.id,
+              nextName: nextMon.name
+            })
+          }).catch(() => {});
 
           appState.pokemon.id = nextMon.id;
           appState.pokemon.name = nextMon.name;
@@ -2446,7 +2515,6 @@
           
           recordCurrentPokemonToHistory("ACTIVE");
           initUI(appState);
-          syncCheatToGasBackend(nextMon.id, false, appState.userStats.level, appState.userStats.currentXp, false, appState.pokemon.gender, appState.pokemon.nature);
           triggerEvolutionOverlay(pInfo.name, nextMon.name, nextMon.id, pInfo.evolveLevel || appState.userStats.level, "EVOLVE");
           break;
 
