@@ -429,6 +429,24 @@
     .nav-btn .icon { font-size: 18px; }
     .nav-btn.active { color: #2196F3; }
 
+    /* 📋 퀘스트 상단 툴바 */
+    .quest-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .quest-toolbar-left {
+      display: flex;
+      gap: 6px;
+    }
+    .quest-toolbar-right {
+      display: flex;
+      gap: 6px;
+    }
+
     /* 📋 퀘스트 카드 */
     .quest-card {
       background: #252b36;
@@ -439,15 +457,29 @@
       align-items: center;
       justify-content: space-between;
       box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transition: all 0.2s ease;
     }
-    .quest-info { flex: 1; margin-right: 8px; }
+    .quest-card-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+    .quest-batch-cb {
+      width: 20px;
+      height: 20px;
+      accent-color: #ef4444;
+      cursor: pointer;
+      display: none;
+    }
+    .quest-info { flex: 1; }
     .quest-title { font-size: 15px; font-weight: 800; color: white; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
     .req-tag { background: #FF9800; color: white; font-size: 10px; font-weight: 900; padding: 1px 6px; border-radius: 4px; }
     .rec-tag { background: #3b82f6; color: white; font-size: 10px; font-weight: 900; padding: 1px 6px; border-radius: 4px; }
     .quest-meta { font-size: 11px; color: #8892a0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 2px; }
     .quest-desc { font-size: 11px; color: #94a3b8; line-height: 1.3; margin-top: 3px; }
     
-    /* 카드 버튼 그룹 (수정 버튼 + 완료 버튼) */
+    /* 카드 버튼 그룹 */
     .quest-card-btns { display: flex; align-items: center; gap: 6px; }
     .btn-quest-edit {
       background: #374151;
@@ -476,6 +508,10 @@
     .btn-quest-done.disabled { background: #3a4250; color: #788290; cursor: default; }
     .btn-quest-add { background: #2196F3; color: white; border: none; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; }
     .btn-quest-add:active { transform: scale(0.95); }
+    .btn-quest-batch-del { background: #4b5563; color: #fca5a5; border: 1px solid #6b7280; padding: 8px 10px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; }
+    .btn-quest-batch-del:active { transform: scale(0.95); }
+    .btn-quest-batch-exec { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 900; cursor: pointer; display: none; }
+    .btn-quest-batch-cancel { background: #374151; color: white; border: none; padding: 8px 10px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; display: none; }
 
     /* 📊 퀘스트 연속 실천 기록 */
     .streak-card {
@@ -526,23 +562,7 @@
     .game-title { font-size: 14px; font-weight: 900; color: white; margin-bottom: 4px; }
     .game-reward { font-size: 11px; font-weight: 800; color: #FFEB3B; }
 
-    /* 🛠️ 치트 콘솔 */
-    .dev-console-bar {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      background: #151a24;
-      padding: 10px 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      z-index: 500;
-      border-bottom: 2px solid #FF9800;
-      transform: translateY(-100%);
-      transition: transform 0.25s ease;
-    }
-    .dev-console-bar.open { transform: translateY(0); }
-    .dev-input { flex: 1; background: #232a38; border: 1.5px solid #FF9800; border-radius: 8px; padding: 8px 12px; color: #FFEB3B; font-family: monospace; outline: none; }
-    .dev-btn { background: #FF9800; color: black; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 900; cursor: pointer; }
+    /* 🛠️ 치트 콘솔 트리거 버튼 */
     .dev-toggle-trigger {
       position: absolute;
       bottom: clamp(75px, 11vh, 90px);
@@ -558,7 +578,49 @@
       cursor: pointer;
     }
 
-    /* 📋 퀘스트 추가 & 수정 모달 팝업 */
+    /* 🕹️ 5x5 치트 콘솔 팝업 모달 */
+    .cheat-modal-content {
+      background: #181f2a;
+      border: 2px solid #3b82f6;
+      border-radius: 20px;
+      padding: 16px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 16px 45px rgba(0,0,0,0.8);
+    }
+    .cheat-grid-5x5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .cheat-btn {
+      background: #232c3d;
+      border: 1px solid #3b485d;
+      color: #e2e8f0;
+      border-radius: 10px;
+      padding: 10px 2px;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+    .cheat-btn:active {
+      transform: scale(0.92);
+      background: #2563eb;
+      color: white;
+      border-color: #60a5fa;
+    }
+    .cheat-btn-icon { font-size: 16px; line-height: 1; }
+    .cheat-btn-label { font-size: 10px; line-height: 1.1; word-break: keep-all; }
+
+    /* 📋 퀘스트 추가 & 수정 모달 */
     .modal-backdrop {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -762,9 +824,16 @@
         
         <!-- 1. 퀘스트 목록 -->
         <div id="paneQuestView">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; gap:8px;">
-            <button id="btnRefreshQuests" class="btn-quest-done" style="background:#374151;" onclick="syncWithGasBackend()">🔄 구글 태스크 동기화</button>
-            <button class="btn-quest-add" onclick="openAddQuestModal()">➕ 퀘스트 추가</button>
+          <div class="quest-toolbar">
+            <div class="quest-toolbar-left">
+              <button id="btnRefreshQuests" class="btn-quest-done" style="background:#374151;" onclick="syncWithGasBackend()">🔄 구글 동기화</button>
+              <button class="btn-quest-add" id="btnAddQuest" onclick="openAddQuestModal()">➕ 추가</button>
+            </div>
+            <div class="quest-toolbar-right">
+              <button class="btn-quest-batch-del" id="btnToggleBatchDelete" onclick="toggleBatchDeleteMode()">🗑️ 선택 삭제</button>
+              <button class="btn-quest-batch-exec" id="btnExecBatchDelete" onclick="executeBatchDelete()">❌ 삭제 실행 (0)</button>
+              <button class="btn-quest-batch-cancel" id="btnCancelBatchDelete" onclick="cancelBatchDeleteMode()">취소</button>
+            </div>
           </div>
           <div id="questListContainer"></div>
         </div>
@@ -911,12 +980,7 @@
       </div>
 
       <!-- 🛠️ 좌측 하단 치트 콘솔 트리거 -->
-      <button class="dev-toggle-trigger" onclick="toggleDevConsole()">⚙️ 치트 콘솔</button>
-      <div class="dev-console-bar" id="devConsoleBar">
-        <input type="text" id="devCommandInput" class="dev-input" placeholder="명령어 (setmon 6, setmon 7, evolve, addxp 50)" onkeydown="if(event.key==='Enter') executeDevCommand()">
-        <button class="dev-btn" onclick="executeDevCommand()">실행</button>
-        <button class="dev-btn" style="background:#455a64; color:white;" onclick="toggleDevConsole()">✕</button>
-      </div>
+      <button class="dev-toggle-trigger" onclick="openCheatModal()">🕹️ 치트 콘솔</button>
 
       <!-- 하단 네비게이션 메뉴 바 -->
       <div class="bottom-nav">
@@ -946,7 +1010,55 @@
 
   </div>
 
-  <!-- 📋 퀘스트 추가 & 수정 모달 (Google Tasks 세부항목 완벽 일치) -->
+  <!-- 🕹️ 5x5 치트 콘솔 팝업 모달 -->
+  <div class="modal-backdrop" id="cheatModal">
+    <div class="cheat-modal-content">
+      <div class="modal-header-row">
+        <div class="modal-title" style="color:#60a5fa;">🕹️ 포켓Tasks 치트 콘솔 (5x5)</div>
+        <button class="icon-btn" onclick="closeCheatModal()">✕</button>
+      </div>
+      <p style="font-size:11px; color:#94a3b8; margin-bottom:6px;">원하는 치트를 누르면 즉시 실행되고 팝업이 닫힙니다.</p>
+      
+      <div class="cheat-grid-5x5">
+        <!-- 1행: 스타팅 포켓몬 -->
+        <button class="cheat-btn" onclick="executeCheat('setmon 1')"><span class="cheat-btn-icon">🍃</span><span class="cheat-btn-label">이상해씨</span></button>
+        <button class="cheat-btn" onclick="executeCheat('setmon 2')"><span class="cheat-btn-icon">🌿</span><span class="cheat-btn-label">이상해풀</span></button>
+        <button class="cheat-btn" onclick="executeCheat('setmon 3')"><span class="cheat-btn-icon">🌺</span><span class="cheat-btn-label">이상해꽃</span></button>
+        <button class="cheat-btn" onclick="executeCheat('setmon 4')"><span class="cheat-btn-icon">🔥</span><span class="cheat-btn-label">파이리</span></button>
+        <button class="cheat-btn" onclick="executeCheat('setmon 5')"><span class="cheat-btn-icon">🦎</span><span class="cheat-btn-label">리자드</span></button>
+
+        <!-- 2행: 스타팅 & 전기 -->
+        <button class="cheat-btn" onclick="executeCheat('setmon 6')"><span class="cheat-btn-icon">🐉</span><span class="cheat-btn-label">리자몽</span></button>
+        <button class="cheat-btn" onclick="executeCheat('setmon 7')"><span class="cheat-btn-icon">💧</span><span class="cheat-btn-label">꼬부기</span></button>
+        <button class="cheat-btn" onclick="executeCheat('setmon 8')"><span class="cheat-btn-icon">🐢</span><span class="cheat-btn-label">어니부기</span></button>
+        <button class="cheat-btn" onclick="executeCheat('setmon 9')"><span class="cheat-btn-icon">🚀</span><span class="cheat-btn-label">거북왕</span></button>
+        <button class="cheat-btn" onclick="executeCheat('setmon 25')"><span class="cheat-btn-icon">⚡</span><span class="cheat-btn-label">피카츄</span></button>
+
+        <!-- 3행: 인기 & 전설 포켓몬 -->
+        <button class="cheat-btn" onclick="executeCheat('setmon 26')"><span class="cheat-btn-icon">⚡</span><span class="cheat-btn-label">라이츄</span></button>
+        <button class="cheat-btn" onclick="executeCheat('setmon 94')"><span class="cheat-btn-icon">👻</span><span class="cheat-btn-label">팬텀</span></button>
+        <button class="cheat-btn" onclick="executeCheat('setmon 150')"><span class="cheat-btn-icon">🔮</span><span class="cheat-btn-label">뮤츠</span></button>
+        <button class="cheat-btn" onclick="executeCheat('setmon 151')"><span class="cheat-btn-icon">🦄</span><span class="cheat-btn-label">뮤</span></button>
+        <button class="cheat-btn" onclick="executeCheat('evolve')"><span class="cheat-btn-icon">✨</span><span class="cheat-btn-label">즉시진화</span></button>
+
+        <!-- 4행: 경험치 & 육성 -->
+        <button class="cheat-btn" onclick="executeCheat('addxp 50')"><span class="cheat-btn-icon">🍒</span><span class="cheat-btn-label">+50 XP</span></button>
+        <button class="cheat-btn" onclick="executeCheat('addxp 100')"><span class="cheat-btn-icon">⭐</span><span class="cheat-btn-label">+100 XP</span></button>
+        <button class="cheat-btn" onclick="executeCheat('addxp 500')"><span class="cheat-btn-icon">🌟</span><span class="cheat-btn-label">+500 XP</span></button>
+        <button class="cheat-btn" onclick="executeCheat('lvup')"><span class="cheat-btn-icon">👑</span><span class="cheat-btn-label">즉시레벨업</span></button>
+        <button class="cheat-btn" onclick="executeCheat('egg')"><span class="cheat-btn-icon">🥚</span><span class="cheat-btn-label">알전환</span></button>
+
+        <!-- 5행: 서식지 배경 강제 전환 -->
+        <button class="cheat-btn" onclick="executeCheat('bg Grassland')"><span class="cheat-btn-icon">🌲</span><span class="cheat-btn-label">숲 서식지</span></button>
+        <button class="cheat-btn" onclick="executeCheat('bg Beach')"><span class="cheat-btn-icon">🏖️</span><span class="cheat-btn-label">해변 서식지</span></button>
+        <button class="cheat-btn" onclick="executeCheat('bg Sky')"><span class="cheat-btn-icon">🌌</span><span class="cheat-btn-label">하늘 서식지</span></button>
+        <button class="cheat-btn" onclick="executeCheat('bg City')"><span class="cheat-btn-icon">🏙️</span><span class="cheat-btn-label">도시 서식지</span></button>
+        <button class="cheat-btn" onclick="executeCheat('bg Cave')"><span class="cheat-btn-icon">⛰️</span><span class="cheat-btn-label">동굴 서식지</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📋 퀘스트 추가 & 수정 모달 -->
   <div class="modal-backdrop" id="addQuestModal">
     <div class="modal-content">
       <div class="modal-header-row">
@@ -954,7 +1066,6 @@
         <button class="icon-btn" onclick="closeAddQuestModal()">✕</button>
       </div>
 
-      <!-- 숨겨진 수정용 Quest ID -->
       <input type="hidden" id="editingQuestId" value="">
 
       <div class="form-group">
@@ -989,7 +1100,6 @@
         </select>
       </div>
 
-      <!-- 요일별 다중 선택 바 (WEEKLY 선택 시 표시) -->
       <div class="form-group" id="daySelectGroup" style="display:none;">
         <label class="form-label">반복 요일 선택</label>
         <div class="day-selector-bar">
@@ -1129,6 +1239,7 @@
 
     let pendingBerryXp = 0;
     let isCurrentHabitatForest = false;
+    let isBatchDeleteMode = false;
 
     async function runDiagnostics() {
       logDebug("--- [🔍 실시간 OneSignal & 브라우저 환경 진단] ---", "warn");
@@ -1142,16 +1253,6 @@
         try {
           const regs = await navigator.serviceWorker.getRegistrations();
           logDebug(`등록된 ServiceWorker 개수: ${regs.length}`, regs.length > 0 ? "success" : "warn");
-          for (let i = 0; i < regs.length; i++) {
-            const r = regs[i];
-            logDebug(`  SW #${i+1} Scope: ${r.scope}, Active: ${Boolean(r.active)}`, "info");
-            if (r.pushManager) {
-              const sub = await r.pushManager.getSubscription();
-              if (sub) {
-                logDebug(`  -> PushManager 구독 존재!`, "success");
-              }
-            }
-          }
         } catch (e) {}
       }
 
@@ -1240,7 +1341,7 @@
     // 📋 Google Tasks 실시간 자동 동기화
     async function syncWithGasBackend() {
       const btn = document.getElementById('btnRefreshQuests');
-      if (btn) btn.innerText = "⏳ 동기화 중...";
+      if (btn) btn.innerText = "⏳ 동기화...";
       logDebug("Google Tasks 백엔드 동기화 요청 전송...", "info");
       try {
         const res = await fetch(GAS_API_URL + "?action=getInitialData");
@@ -1251,14 +1352,14 @@
           if (json.data.pokemon) appState.pokemon = json.data.pokemon;
           initUI(appState);
           logDebug(`Google Tasks 동기화 성공 (퀘스트 ${appState.quests.length}개)`, "success");
-          if (btn) btn.innerText = "🔄 구글 태스크 동기화";
+          if (btn) btn.innerText = "🔄 구글 동기화";
         } else {
           logDebug("Google Tasks 응답 비정상: " + JSON.stringify(json), "warn");
-          if (btn) btn.innerText = "🔄 구글 태스크 동기화";
+          if (btn) btn.innerText = "🔄 구글 동기화";
         }
       } catch (e) {
         logDebug("Google Tasks 동기화 오류: " + e.message, "error");
-        if (btn) btn.innerText = "🔄 구글 태스크 동기화";
+        if (btn) btn.innerText = "🔄 구글 동기화";
       }
     }
 
@@ -1277,7 +1378,6 @@
       el.classList.toggle('active');
     }
 
-    // ➕ 퀘스트 신규 등록 모달 열기
     function openAddQuestModal() {
       document.getElementById('editingQuestId').value = '';
       document.getElementById('modalTitleText').innerText = '🌱 새로운 퀘스트 추가';
@@ -1299,7 +1399,6 @@
       document.getElementById('inputQuestName').focus();
     }
 
-    // ✏️ 퀘스트 수정 모달 열기
     function openEditQuestModal(questId) {
       const q = appState.quests.find(x => x.id === questId);
       if (!q) return;
@@ -1316,7 +1415,6 @@
       document.getElementById('inputQuestXp').value = q.rewardXp || 20;
       document.getElementById('inputQuestRequired').checked = Boolean(q.isRequired);
 
-      // 반복 주기 복원
       const rec = q.recurrence || 'DAILY';
       document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
 
@@ -1364,7 +1462,7 @@
         if (selectedDays.length > 0) {
           recType = "WEEKLY:" + selectedDays.join(',');
         } else {
-          recType = "WEEKLY:MON,TUE,WED,THU,FRI"; // 기본 평일
+          recType = "WEEKLY:MON,TUE,WED,THU,FRI";
         }
       }
 
@@ -1376,7 +1474,6 @@
       const submitBtn = document.getElementById('btnSubmitQuest');
       submitBtn.innerText = isEditing ? "⏳ 수정 중..." : "⏳ Google Tasks 등록 중...";
       submitBtn.disabled = true;
-      logDebug(`퀘스트 ${isEditing ? '수정' : '등록'} 요청: "${name}" (${recType})`, "info");
 
       try {
         const payload = {
@@ -1404,7 +1501,6 @@
           appState.quests = result.data.quests;
           initUI(appState);
           closeAddQuestModal();
-          logDebug(`Google Tasks 및 시트 ${isEditing ? '수정' : '등록'} 대성공!`, "success");
           alert("🎉 " + name + " 퀘스트가 " + (isEditing ? "수정" : "등록") + "되었습니다!");
         } else {
           closeAddQuestModal();
@@ -1418,7 +1514,7 @@
       }
     }
 
-    // 🗑️ 퀘스트 삭제 처리
+    // 🗑️ 퀘스트 단일 삭제 처리
     async function submitDeleteQuest() {
       const editingId = document.getElementById('editingQuestId').value;
       if (!editingId) return;
@@ -1430,7 +1526,6 @@
       const delBtn = document.getElementById('btnDeleteQuest');
       delBtn.innerText = "⏳ 삭제 중...";
       delBtn.disabled = true;
-      logDebug(`퀘스트 삭제 요청 ID: ${editingId}`, "warn");
 
       try {
         const response = await fetch(GAS_API_URL, {
@@ -1446,7 +1541,6 @@
           appState.quests = result.data.quests;
           initUI(appState);
           closeAddQuestModal();
-          logDebug("퀘스트 삭제 성공!", "success");
           alert("🗑️ 퀘스트가 삭제되었습니다.");
         } else {
           closeAddQuestModal();
@@ -1456,6 +1550,94 @@
         delBtn.innerText = "🗑️ 삭제";
         delBtn.disabled = false;
         closeAddQuestModal();
+        syncWithGasBackend();
+      }
+    }
+
+    // ========================================================
+    // 🗑️ 퀘스트 일괄 선택 삭제 모드 관리
+    // ========================================================
+    function toggleBatchDeleteMode() {
+      isBatchDeleteMode = true;
+      document.getElementById('btnRefreshQuests').style.display = 'none';
+      document.getElementById('btnAddQuest').style.display = 'none';
+      document.getElementById('btnToggleBatchDelete').style.display = 'none';
+      
+      document.getElementById('btnExecBatchDelete').style.display = 'inline-block';
+      document.getElementById('btnCancelBatchDelete').style.display = 'inline-block';
+      document.getElementById('btnExecBatchDelete').innerText = '❌ 삭제 실행 (0)';
+
+      document.querySelectorAll('.quest-batch-cb').forEach(cb => {
+        cb.style.display = 'inline-block';
+        cb.checked = false;
+      });
+      document.querySelectorAll('.quest-card-btns').forEach(b => b.style.display = 'none');
+    }
+
+    function cancelBatchDeleteMode() {
+      isBatchDeleteMode = false;
+      document.getElementById('btnRefreshQuests').style.display = 'inline-block';
+      document.getElementById('btnAddQuest').style.display = 'inline-block';
+      document.getElementById('btnToggleBatchDelete').style.display = 'inline-block';
+      
+      document.getElementById('btnExecBatchDelete').style.display = 'none';
+      document.getElementById('btnCancelBatchDelete').style.display = 'none';
+
+      document.querySelectorAll('.quest-batch-cb').forEach(cb => {
+        cb.style.display = 'none';
+        cb.checked = false;
+      });
+      document.querySelectorAll('.quest-card-btns').forEach(b => b.style.display = 'flex');
+    }
+
+    function onQuestCheckboxChange() {
+      const checkedCount = document.querySelectorAll('.quest-batch-cb:checked').length;
+      document.getElementById('btnExecBatchDelete').innerText = `❌ 삭제 실행 (${checkedCount})`;
+    }
+
+    async function executeBatchDelete() {
+      const checkedBoxes = document.querySelectorAll('.quest-batch-cb:checked');
+      if (checkedBoxes.length === 0) {
+        alert("삭제할 퀘스트를 1개 이상 선택해 주세요!");
+        return;
+      }
+
+      const count = checkedBoxes.length;
+      if (!confirm(`선택한 ${count}개의 퀘스트를 모두 삭제하시겠습니까?\nGoogle Tasks 목록에서도 함께 일괄 삭제됩니다.`)) {
+        return;
+      }
+
+      const questIds = [];
+      checkedBoxes.forEach(cb => questIds.push(cb.getAttribute('data-id')));
+
+      const execBtn = document.getElementById('btnExecBatchDelete');
+      execBtn.innerText = "⏳ 일괄 삭제 중...";
+      execBtn.disabled = true;
+      logDebug(`일괄 삭제 요청: ${questIds.join(', ')}`, "warn");
+
+      try {
+        const response = await fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "batchDeleteQuests", questIds: questIds })
+        });
+        const result = await response.json();
+        execBtn.innerText = "❌ 삭제 실행";
+        execBtn.disabled = false;
+
+        cancelBatchDeleteMode();
+
+        if (result.success && result.data) {
+          appState.quests = result.data.quests;
+          initUI(appState);
+          alert(`🗑️ 선택한 ${count}개의 퀘스트가 Google Tasks와 앱에서 모두 삭제되었습니다!`);
+        } else {
+          syncWithGasBackend();
+        }
+      } catch (err) {
+        execBtn.innerText = "❌ 삭제 실행";
+        execBtn.disabled = false;
+        cancelBatchDeleteMode();
         syncWithGasBackend();
       }
     }
@@ -1496,7 +1678,7 @@
           <div style="text-align:center; padding:30px 10px; color:#8892a0;">
             <div style="font-size:32px; margin-bottom:8px;">📝</div>
             <div style="font-size:14px; font-weight:800; color:white; margin-bottom:4px;">등록된 퀘스트가 없습니다</div>
-            <div style="font-size:12px;">상단 [➕ 퀘스트 추가]를 눌러 첫 할 일을 등록해 보세요!</div>
+            <div style="font-size:12px;">상단 [➕ 추가]를 눌러 첫 할 일을 등록해 보세요!</div>
           </div>
         `;
         document.getElementById('questText').innerText = "0/0";
@@ -1516,20 +1698,23 @@
         const timeMeta = q.notifyTime ? `⏰ ${q.notifyTime}` : '';
 
         card.innerHTML = `
-          <div class="quest-info">
-            <div class="quest-title">
-              ${q.name}
-              ${q.isRequired ? '<span class="req-tag">필수</span>' : ''}
-              <span class="rec-tag">${q.days || '매일'}</span>
+          <div class="quest-card-left">
+            <input type="checkbox" class="quest-batch-cb" data-id="${q.id}" onchange="onQuestCheckboxChange()" style="${isBatchDeleteMode ? 'display:inline-block;' : 'display:none;'}">
+            <div class="quest-info">
+              <div class="quest-title">
+                ${q.name}
+                ${q.isRequired ? '<span class="req-tag">필수</span>' : ''}
+                <span class="rec-tag">${q.days || '매일'}</span>
+              </div>
+              <div class="quest-meta">
+                ${dueMeta ? `<span>${dueMeta}</span> • ` : ''}
+                <span>${timeMeta || '상시'}</span> • 
+                <span>🔥 ${q.consecutiveDays || 0}일 연속</span>
+              </div>
+              ${descHtml}
             </div>
-            <div class="quest-meta">
-              ${dueMeta ? `<span>${dueMeta}</span> • ` : ''}
-              <span>${timeMeta || '상시'}</span> • 
-              <span>🔥 ${q.consecutiveDays || 0}일 연속</span>
-            </div>
-            ${descHtml}
           </div>
-          <div class="quest-card-btns">
+          <div class="quest-card-btns" style="${isBatchDeleteMode ? 'display:none;' : 'display:flex;'}">
             <button class="btn-quest-edit" onclick="openEditQuestModal('${q.id}')">
               ✏️ 수정
             </button>
@@ -1646,33 +1831,69 @@
       initUI(appState);
     }
 
-    function toggleDevConsole() {
-      document.getElementById('devConsoleBar').classList.toggle('open');
+    // ========================================================
+    // 🕹️ 5x5 치트 콘솔 팝업 모달 관리
+    // ========================================================
+    function openCheatModal() {
+      document.getElementById('cheatModal').classList.add('open');
     }
 
-    function executeDevCommand() {
-      const cmd = document.getElementById('devCommandInput').value.trim();
-      document.getElementById('devCommandInput').value = '';
+    function closeCheatModal() {
+      document.getElementById('cheatModal').classList.remove('open');
+    }
+
+    function executeCheat(cmd) {
+      closeCheatModal(); // 기능 하나 누르면 팝업 즉시 자동 닫힘!
+
       if (cmd.startsWith('setmon')) {
         const id = parseInt(cmd.split(' ')[1]) || 1;
-        if (id === 4 || id === 5 || id === 6) {
-          appState.pokemon = { id: id, name: id===6?"리자몽":"파이리", gender: "♂", nature: "조심", natureBuff: "+특공", type: id===6?"불꽃/비행":"불꽃", idleGif: `./images/pokemon/showdown/${id}.gif` };
-        } else if (id === 7 || id === 8 || id === 9) {
-          appState.pokemon = { id: id, name: id===9?"거북왕":"꼬부기", gender: "♂", nature: "대담", natureBuff: "+방어", type: "물", idleGif: `./images/pokemon/showdown/${id}.gif` };
-        } else {
-          appState.pokemon = { id: id, name: "피카츄", gender: "♂", nature: "명랑", natureBuff: "+스피드", type: "전기", idleGif: `./images/pokemon/showdown/${id}.gif` };
-        }
+        const names = {
+          1:"이상해씨", 2:"이상해풀", 3:"이상해꽃", 4:"파이리", 5:"리자드", 6:"리자몽",
+          7:"꼬부기", 8:"어니부기", 9:"거북왕", 25:"피카츄", 26:"라이츄", 94:"팬텀", 150:"뮤츠", 151:"뮤"
+        };
+        const types = {
+          1:"풀/독", 2:"풀/독", 3:"풀/독", 4:"불꽃", 5:"불꽃", 6:"불꽃/비행",
+          7:"물", 8:"물", 9:"물", 25:"전기", 26:"전기", 94:"고스트/독", 150:"에스퍼", 151:"에스퍼"
+        };
+        appState.pokemon = {
+          id: id,
+          name: names[id] || ("포켓몬 No." + id),
+          gender: "♂",
+          nature: "고집",
+          natureBuff: "+공격",
+          type: types[id] || "노말",
+          idleGif: `./images/pokemon/showdown/${id}.gif`
+        };
+        appState.isEgg = false;
         initUI(appState);
-        alert(`포켓몬이 ${appState.pokemon.name}으로 변경되었습니다. 서식지 배경이 속성에 맞춰 동적으로 전환됩니다!`);
       } else if (cmd === 'evolve') {
-        appState.pokemon.name = "이상해풀";
-        appState.pokemon.idleGif = "./images/pokemon/showdown/2.gif";
-        initUI(appState);
-        alert("✨ 이상해풀로 진화했습니다!");
+        if (appState.pokemon.id === 1) executeCheat('setmon 2');
+        else if (appState.pokemon.id === 2) executeCheat('setmon 3');
+        else if (appState.pokemon.id === 4) executeCheat('setmon 5');
+        else if (appState.pokemon.id === 5) executeCheat('setmon 6');
+        else if (appState.pokemon.id === 7) executeCheat('setmon 8');
+        else if (appState.pokemon.id === 8) executeCheat('setmon 9');
+        else if (appState.pokemon.id === 25) executeCheat('setmon 26');
+        else alert("✨ 현재 포켓몬은 최종 진화형입니다!");
       } else if (cmd.startsWith('addxp')) {
         const amount = parseInt(cmd.split(' ')[1]) || 50;
         pendingBerryXp += amount;
         onFeedAccumulatedBerries();
+      } else if (cmd === 'lvup') {
+        appState.userStats.level++;
+        initUI(appState);
+        alert("👑 즉시 레벨업! 현재 Lv." + appState.userStats.level);
+      } else if (cmd === 'egg') {
+        appState.isEgg = true;
+        appState.pokemon.name = "포켓몬 알";
+        appState.pokemon.type = "노말";
+        appState.pokemon.idleGif = "./images/items/poke-ball.png";
+        initUI(appState);
+      } else if (cmd.startsWith('bg')) {
+        const bgKey = "Pogo" + cmd.split(' ')[1] + "Bg";
+        const bgUrl = HABITAT_BACKGROUNDS[bgKey] || "./images/backgrounds/PogoGrasslandBg.png";
+        document.getElementById('habitatPane').style.backgroundImage = `url('${bgUrl}')`;
+        isCurrentHabitatForest = (bgKey === "PogoGrasslandBg");
       }
     }
 
@@ -1772,8 +1993,7 @@
 
       if ("serviceWorker" in navigator) {
         try {
-          const reg = await navigator.serviceWorker.register('OneSignalSDKWorker.js');
-          logDebug(`Step 1 성공: SW 등록됨`, "success");
+          await navigator.serviceWorker.register('OneSignalSDKWorker.js');
         } catch (swErr) {}
       }
 
