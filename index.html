@@ -309,12 +309,13 @@
     }
     .quest-badge:active { transform: scale(0.95); }
 
-    /* 🌳 나무열매 파밍 레이어 */
+    /* 🌾 배경별 인터랙티브 파밍 레이어 */
     .berry-harvest-layer {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
       pointer-events: none;
       z-index: 15;
+      overflow: hidden;
     }
 
     .berry-item {
@@ -322,62 +323,106 @@
       pointer-events: auto;
       cursor: pointer;
       filter: drop-shadow(0 6px 8px rgba(0,0,0,0.35));
-      transform-origin: top center;
-      transition: transform 0.2s ease, opacity 0.6s ease;
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+      transition: transform 0.2s ease;
     }
-    .berry-item.hanging { animation: berryBranchSway 2.2s ease-in-out infinite alternate; }
-    @keyframes berryBranchSway { 0% { transform: rotate(-8deg); } 100% { transform: rotate(8deg); } }
-    .berry-item.small { width: 38px; height: 38px; }
+    .berry-item:active { transform: scale(1.15) !important; }
 
-    /* 🍒 열매 자연스러운 낙하 & 반투명 페이드아웃 */
+    /* 1) 🌳 숲/초원: 가지에 매달림 & 낙하 */
+    .berry-item.hanging {
+      transform-origin: top center;
+      animation: berryBranchSway 2.2s ease-in-out infinite alternate;
+    }
+    @keyframes berryBranchSway { 0% { transform: rotate(-8deg); } 100% { transform: rotate(8deg); } }
+
     .berry-item.dropping {
       animation: berryNaturalFall 1.1s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards !important;
       pointer-events: none !important;
     }
     @keyframes berryNaturalFall {
-      0% {
-        transform: translateY(0) rotate(0deg) scale(1);
-        opacity: 1;
-      }
-      40% {
-        opacity: 0.9;
-        transform: translateY(45px) rotate(15deg) scale(0.95);
-      }
-      100% {
-        transform: translateY(115px) rotate(35deg) scale(0.7);
-        opacity: 0;
-      }
+      0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+      40% { opacity: 0.9; transform: translateY(45px) rotate(15deg) scale(0.95); }
+      100% { transform: translateY(115px) rotate(35deg) scale(0.7); opacity: 0; }
     }
 
-    /* 🍒 열매 바구니 */
+    /* 2) 🪨 동굴 & 🏖️ 해변: 바닥 구르기 애니메이션 */
+    .berry-item.rolling-left-to-right {
+      animation: rollLeftToRight 4.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+    @keyframes rollLeftToRight {
+      0% { transform: translateX(-40px) rotate(0deg); opacity: 0; }
+      15% { opacity: 1; }
+      75% { opacity: 1; }
+      100% { transform: translateX(340px) rotate(720deg); opacity: 0; }
+    }
+
+    .berry-item.rolling-right-to-left {
+      animation: rollRightToLeft 4.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+    @keyframes rollRightToLeft {
+      0% { transform: translateX(40px) rotate(0deg); opacity: 0; }
+      15% { opacity: 1; }
+      75% { opacity: 1; }
+      100% { transform: translateX(-340px) rotate(-720deg); opacity: 0; }
+    }
+
+    /* 3) 🕊️ 하늘: 깃털 살랑살랑 고공 낙하 */
+    .berry-item.feather-falling {
+      animation: featherFloatFall 5.5s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+    }
+    @keyframes featherFloatFall {
+      0% { transform: translateY(-40px) translateX(0px) rotate(0deg); opacity: 0; }
+      12% { opacity: 1; }
+      25% { transform: translateY(120px) translateX(25px) rotate(20deg); }
+      50% { transform: translateY(270px) translateX(-20px) rotate(-15deg); }
+      75% { transform: translateY(420px) translateX(20px) rotate(18deg); opacity: 0.9; }
+      100% { transform: translateY(580px) translateX(-10px) rotate(-10deg); opacity: 0; }
+    }
+
+    /* 4) 🌊 바다: 심해 수중 살랑살랑 가라앉기 */
+    .berry-item.ocean-sinking {
+      animation: oceanFloatSink 5.8s ease-in-out forwards;
+    }
+    @keyframes oceanFloatSink {
+      0% { transform: translateY(-30px) translateX(0px) rotate(0deg) scale(0.85); opacity: 0; }
+      15% { opacity: 1; }
+      30% { transform: translateY(110px) translateX(-18px) rotate(-12deg) scale(1); }
+      60% { transform: translateY(260px) translateX(20px) rotate(14deg) scale(1.05); }
+      85% { transform: translateY(420px) translateX(-12px) rotate(-8deg) scale(0.95); opacity: 0.85; }
+      100% { transform: translateY(550px) translateX(8px) rotate(6deg) scale(0.8); opacity: 0; }
+    }
+
+    /* 🍒 우측 하단 아이템 수확 위젯 (치트 콘솔과 동일한 슬림 사이즈) */
     .berry-basket-widget {
       position: absolute;
       bottom: clamp(75px, 11vh, 90px);
       right: 14px;
       background: rgba(31, 36, 46, 0.95);
       backdrop-filter: blur(10px);
-      border: 2px solid #FF9800;
+      border: 1.5px solid rgba(255,255,255,0.4);
       border-radius: 20px;
-      padding: 6px 12px;
+      padding: 4px 8px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-      z-index: 20;
+      gap: 6px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      z-index: 25;
       transform: scale(0);
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     .berry-basket-widget.show { transform: scale(1); }
-    .basket-xp { font-size: 13px; font-weight: 900; color: #FFEB3B; }
+    .basket-xp { font-size: 11px; font-weight: 900; color: #FFEB3B; }
 
     .btn-eat-berries {
       background: linear-gradient(135deg, #FF9800, #F57C00);
       color: white;
       border: none;
-      padding: 6px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 900;
+      padding: 5px 11px;
+      border-radius: 14px;
+      font-size: 11px;
+      font-weight: 800;
       cursor: pointer;
     }
     .btn-eat-berries:active { transform: scale(0.95); }
@@ -424,7 +469,7 @@
     }
     .speech-bubble.active { opacity: 1; transform: translateY(0); }
 
-    /* 🌟 점프 애니메이션 래퍼 (스케일과 완벽 분리) */
+    /* 🌟 점프 애니메이션 래퍼 */
     .sprite-hop-wrapper {
       display: inline-flex;
       align-items: center;
@@ -1018,14 +1063,14 @@
         </div>
       </div>
 
-      <!-- 🌳 숲 배경 전용 나무열매 파밍 레이어 -->
+      <!-- 🌾 배경별 인터랙티브 파밍 레이어 (열매/진화돌/깃털) -->
       <div class="berry-harvest-layer" id="berryLayer"></div>
 
-      <!-- 🍒 우측 하단 열매 바구니 -->
+      <!-- 🍒 우측 하단 아이템 수확 위젯 -->
       <div class="berry-basket-widget" id="berryBasketWidget">
-        <span style="font-size:18px;">🍒</span>
+        <span style="font-size:14px;" id="basketIcon">🍒</span>
         <span class="basket-xp" id="pendingBerryXpText">+0 XP</span>
-        <button class="btn-eat-berries" onclick="onFeedAccumulatedBerries()">먹어치우기 😋</button>
+        <button class="btn-eat-berries" onclick="onFeedAccumulatedBerries()">섭취</button>
       </div>
 
       <!-- 🌟 중앙 서식지 & 캐릭터 위치 영역 (DB altitude 하/중/상 동적 결정) -->
@@ -3542,7 +3587,7 @@
     };
 
     let pendingBerryXp = 0;
-    let isCurrentHabitatForest = false;
+    let currentHabitatBgKey = "PogoGrasslandBg";
     let isBatchDeleteMode = false;
     let currentViewingDexMon = null;
     let isDexCardFlipped = false;
@@ -3716,15 +3761,12 @@
 
     function initUI(data) {
       const bgKey = determineHabitatBgKey(data.isEgg ? "노말" : data.pokemon.type);
+      currentHabitatBgKey = bgKey;
       const bgUrl = HABITAT_BACKGROUNDS[bgKey] || "./images/backgrounds/PogoGrasslandBg.png";
       document.getElementById('habitatPane').style.backgroundImage = `url('${bgUrl}')`;
 
-      isCurrentHabitatForest = (bgKey === "PogoGrasslandBg");
-      if (isCurrentHabitatForest) {
-        startBerryFarming();
-      } else {
-        clearAllBerryTimers();
-      }
+      // 🌾 모든 서식지별 인터랙티브 파밍 시스템 활성화
+      startHabitatFarming(bgKey);
 
       document.getElementById('lvBadge').innerText = 'Lv.' + data.userStats.level;
       
@@ -4548,57 +4590,140 @@
     }
 
     // ========================================================
-    // 🍒 3개 슬롯 독립 비동기 나무열매 시스템
-    // - 슬롯 1 (메인 가지): 10초 ~ 15초에 1회
-    // - 슬롯 2 (아래 가지): 20초 ~ 30초에 1회
-    // - 슬롯 3 (오른쪽 가지): 20초 ~ 30초에 1회
+    // 🌾 5대 서식지 배경별 인터랙티브 파밍 시스템 (동일 3-슬롯 공식)
+    // - 초원/숲 (PogoGrasslandBg): 열매 가지 맺힘 & 낙하
+    // - 동굴 (PogoCaveBg): 진화의 돌 바닥 구르기
+    // - 하늘 (PogoSkyBg): 깃털 종류 고공 살랑살랑 낙하
+    // - 해변 (PogoBeachBg): 열매 모래사장 바닥 구르기
+    // - 바다 (PogoOceanBg): 열매/진주 심해 침강 낙하
     // ========================================================
+    const HABITAT_ITEM_POOLS = {
+      "PogoGrasslandBg": [
+        "./images/items/razz-berry.png", "./images/items/nanab-berry.png", "./images/items/pinap-berry.png", "./images/items/cheri-berry.png"
+      ],
+      "PogoCaveBg": [
+        "./images/items/fire-stone.png", "./images/items/water-stone.png", "./images/items/thunder-stone.png", "./images/items/leaf-stone.png", "./images/items/moon-stone.png", "./images/items/sun-stone.png", "./images/items/ice-stone.png", "./images/items/dusk-stone.png", "./images/items/dawn-stone.png"
+      ],
+      "PogoSkyBg": [
+        "./images/items/health-wing.png", "./images/items/muscle-wing.png", "./images/items/genius-wing.png", "./images/items/clever-wing.png", "./images/items/swift-wing.png", "./images/items/pretty-wing.png"
+      ],
+      "PogoBeachBg": [
+        "./images/items/razz-berry.png", "./images/items/pinap-berry.png", "./images/items/nanab-berry.png", "./images/items/oran-berry.png", "./images/items/sitrus-berry.png"
+      ],
+      "PogoOceanBg": [
+        "./images/items/razz-berry.png", "./images/items/pinap-berry.png", "./images/items/oran-berry.png", "./images/items/big-pearl.png"
+      ],
+      "PogoCityBg": [
+        "./images/items/razz-berry.png", "./images/items/amulet-coin.png", "./images/items/pinap-berry.png"
+      ]
+    };
+
     let berrySlotTimers = [];
-
-    function startBerryFarming() {
-      clearAllBerryTimers();
-
-      // 슬롯 1: 10초 ~ 15초 (메인 가지)
-      scheduleBerrySlot(0, 10000, 15000, { minTop: 125, maxTop: 145, minLeft: 20, maxLeft: 45 });
-
-      // 슬롯 2: 20초 ~ 30초 (아래 가지)
-      scheduleBerrySlot(1, 20000, 30000, { minTop: 165, maxTop: 190, minLeft: 45, maxLeft: 70 });
-
-      // 슬롯 3: 20초 ~ 30초 (오른쪽 가지)
-      scheduleBerrySlot(2, 20000, 30000, { minTop: 110, maxTop: 130, minLeft: 60, maxLeft: 88 });
-    }
 
     function clearAllBerryTimers() {
       berrySlotTimers.forEach(t => clearTimeout(t));
       berrySlotTimers = [];
+      const layer = document.getElementById('berryLayer');
+      if (layer) layer.innerHTML = '';
     }
 
-    function scheduleBerrySlot(slotIdx, minDelay, maxDelay, bounds) {
-      if (!isCurrentHabitatForest) return;
+    function startHabitatFarming(bgKey) {
+      clearAllBerryTimers();
 
+      // 슬롯 1 (메인): 10초 ~ 15초
+      scheduleHabitatSlot(0, 10000, 15000, bgKey);
+
+      // 슬롯 2 (보조 A): 20초 ~ 30초
+      scheduleHabitatSlot(1, 20000, 30000, bgKey);
+
+      // 슬롯 3 (보조 B): 20초 ~ 30초
+      scheduleHabitatSlot(2, 20000, 30000, bgKey);
+    }
+
+    function scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey) {
       const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay)) + minDelay;
       const timerId = setTimeout(() => {
-        if (!isCurrentHabitatForest) return;
-        spawnBerryInSlot(slotIdx, minDelay, maxDelay, bounds);
+        if (currentHabitatBgKey !== bgKey) return;
+        spawnHabitatItemInSlot(slotIdx, minDelay, maxDelay, bgKey);
       }, randomDelay);
 
       berrySlotTimers.push(timerId);
     }
 
-    function spawnBerryInSlot(slotIdx, minDelay, maxDelay, bounds) {
+    function spawnHabitatItemInSlot(slotIdx, minDelay, maxDelay, bgKey) {
       const layer = document.getElementById('berryLayer');
-      if (!layer || !isCurrentHabitatForest) return;
+      if (!layer || currentHabitatBgKey !== bgKey) return;
+
+      const pool = HABITAT_ITEM_POOLS[bgKey] || HABITAT_ITEM_POOLS["PogoGrasslandBg"];
+      const chosenItemImg = pool[Math.floor(Math.random() * pool.length)];
 
       const el = document.createElement('img');
-      el.className = 'berry-item small hanging';
-      el.src = './images/items/razz-berry.png';
-
-      const topOffset = Math.floor(Math.random() * (bounds.maxTop - bounds.minTop)) + bounds.minTop;
-      const leftOffset = Math.floor(Math.random() * (bounds.maxLeft - bounds.minLeft)) + bounds.minLeft;
-      el.style.top = topOffset + 'px';
-      el.style.left = leftOffset + 'px';
+      el.className = 'berry-item';
+      el.src = chosenItemImg;
 
       let isCollected = false;
+      let lifeDuration = 4800;
+
+      // 1) 🌳 숲/초원: 나뭇가지 매달림
+      if (bgKey === "PogoGrasslandBg") {
+        el.classList.add('hanging');
+        const topOffsets = [135, 175, 120];
+        const leftOffsets = [30, 55, 75];
+        el.style.top = (topOffsets[slotIdx] + Math.floor(Math.random() * 15)) + 'px';
+        el.style.left = (leftOffsets[slotIdx] + Math.floor(Math.random() * 15)) + 'px';
+
+        lifeDuration = 4500;
+        setTimeout(() => {
+          if (isCollected || !el.parentNode) return;
+          el.classList.remove('hanging');
+          el.classList.add('dropping');
+          setTimeout(() => {
+            if (el.parentNode) el.parentNode.removeChild(el);
+            if (!isCollected) scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
+          }, 1100);
+        }, lifeDuration);
+      }
+      // 2) 🪨 동굴 & 🏖️ 해변: 바닥 좌우 구르기
+      else if (bgKey === "PogoCaveBg" || bgKey === "PogoBeachBg" || bgKey === "PogoCityBg") {
+        const isFromLeft = Math.random() < 0.5;
+        el.classList.add(isFromLeft ? 'rolling-left-to-right' : 'rolling-right-to-left');
+        const bottomOffsets = [17, 21, 25]; // 바닥 높이
+        el.style.bottom = (bottomOffsets[slotIdx] + Math.floor(Math.random() * 4)) + '%';
+        el.style.left = isFromLeft ? '10px' : 'auto';
+        el.style.right = isFromLeft ? 'auto' : '10px';
+
+        lifeDuration = 4800;
+        setTimeout(() => {
+          if (el.parentNode) el.parentNode.removeChild(el);
+          if (!isCollected) scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
+        }, lifeDuration);
+      }
+      // 3) 🕊️ 하늘: 깃털 고공 살랑살랑 낙하
+      else if (bgKey === "PogoSkyBg") {
+        el.classList.add('feather-falling');
+        const xPositions = [20, 50, 75]; // % 단위 x좌표
+        el.style.top = '-30px';
+        el.style.left = (xPositions[slotIdx] + Math.floor(Math.random() * 10) - 5) + '%';
+
+        lifeDuration = 5500;
+        setTimeout(() => {
+          if (el.parentNode) el.parentNode.removeChild(el);
+          if (!isCollected) scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
+        }, lifeDuration);
+      }
+      // 4) 🌊 바다: 심해 수중 침강 낙하
+      else if (bgKey === "PogoOceanBg") {
+        el.classList.add('ocean-sinking');
+        const xPositions = [25, 55, 80];
+        el.style.top = '-20px';
+        el.style.left = (xPositions[slotIdx] + Math.floor(Math.random() * 12) - 6) + '%';
+
+        lifeDuration = 5800;
+        setTimeout(() => {
+          if (el.parentNode) el.parentNode.removeChild(el);
+          if (!isCollected) scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
+        }, lifeDuration);
+      }
 
       el.onclick = (e) => {
         e.stopPropagation();
@@ -4608,29 +4733,21 @@
         if (el.parentNode) el.parentNode.removeChild(el);
         pendingBerryXp += 5;
         document.getElementById('pendingBerryXpText').innerText = '+' + pendingBerryXp + ' XP';
+        
+        // 아이콘 동적 변경 (동굴: 💎, 하늘: 🪶, 바다/해변/숲: 🍒)
+        const iconEl = document.getElementById('basketIcon');
+        if (bgKey === "PogoCaveBg") iconEl.innerText = "💎";
+        else if (bgKey === "PogoSkyBg") iconEl.innerText = "🪶";
+        else if (bgKey === "PogoOceanBg") iconEl.innerText = "🌊";
+        else iconEl.innerText = "🍒";
+
         document.getElementById('berryBasketWidget').classList.add('show');
 
         // 수확 후 다음 스폰 스케줄 등록
-        scheduleBerrySlot(slotIdx, minDelay, maxDelay, bounds);
+        scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
       };
 
       layer.appendChild(el);
-
-      // 4~5.5초 후 바닥으로 톡 떨어지며 자연스럽게 반투명 페이드아웃
-      const hangDuration = Math.floor(Math.random() * 1500) + 4000;
-      setTimeout(() => {
-        if (isCollected || !el.parentNode) return;
-        el.classList.remove('hanging');
-        el.classList.add('dropping');
-
-        // 낙하(1.1초) 완료 후 DOM 제거 및 다음 열매 스케줄링
-        setTimeout(() => {
-          if (el.parentNode) el.parentNode.removeChild(el);
-          if (!isCollected) {
-            scheduleBerrySlot(slotIdx, minDelay, maxDelay, bounds);
-          }
-        }, 1100);
-      }, hangDuration);
     }
 
     function onFeedAccumulatedBerries() {
