@@ -1405,7 +1405,7 @@
           initUI(appState);
           closeAddQuestModal();
           logDebug(`Google Tasks 및 시트 ${isEditing ? '수정' : '등록'} 대성공!`, "success");
-          alert(`🎉 "${name}" 퀘스트가 ${isEditing ? '수정' : '등록'}되었습니다!`);
+          alert("🎉 " + name + " 퀘스트가 " + (isEditing ? "수정" : "등록") + "되었습니다!");
         } else {
           closeAddQuestModal();
           syncWithGasBackend();
@@ -1423,8 +1423,7 @@
       const editingId = document.getElementById('editingQuestId').value;
       if (!editingId) return;
 
-      if (!confirm("정말 이 퀘스트를 삭제하시겠습니까?
-Google Tasks 목록에서도 함께 삭제됩니다.")) {
+      if (!confirm("정말 이 퀘스트를 삭제하시겠습니까?\nGoogle Tasks 목록에서도 함께 삭제됩니다.")) {
         return;
       }
 
