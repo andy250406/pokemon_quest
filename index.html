@@ -1576,13 +1576,22 @@
       const btn = document.getElementById('btnTestPush');
       btn.innerText = "⏳ 발송 중...";
       logDebug("--- [⚡ OneSignal 테스트 푸시 발송 요청] ---", "warn");
+
+      let currentSubId = null;
+      try {
+        if (window.OneSignal && OneSignal.User && OneSignal.User.PushSubscription) {
+          currentSubId = OneSignal.User.PushSubscription.id;
+        }
+      } catch(e) {}
+
+      logDebug(`발송 대상 기기 ID: ${currentSubId || '전체 활성 구독자'}`, "info");
       logDebug(`GAS 백엔드로 POST action:sendTestPush 전송...`, "info");
 
       try {
         const res = await fetch(GAS_API_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "sendTestPush" })
+          body: JSON.stringify({ action: "sendTestPush", targetId: currentSubId })
         });
         const json = await res.json();
         btn.innerText = "⚡ OneSignal 테스트 푸시 즉시 발송";
@@ -1593,7 +1602,9 @@
           if (r.errors && r.errors.length > 0) {
             logDebug(`OneSignal 서버 에러: ${r.errors.join(", ")}`, "error");
           } else {
-            logDebug(`OneSignal 발송 성공! Notification ID: ${r.id}, 수신자: ${r.recipients || 1}명`, "success");
+            logDebug(`🎉 OneSignal 발송 성공! Notification ID: ${r.id}, 수신자: ${r.recipients || 1}명`, "success");
+            alert("🎉 스마트폰 상단바를 확인해 보세요! 몬스터볼 알림이 도착했습니다! ✨");
+            return;
           }
         }
         alert("📲 OneSignal 발송 결과 확인 완료! 아래 진단 로그를 확인해 주세요.");
