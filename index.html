@@ -362,16 +362,26 @@
     }
     .btn-eat-berries:active { transform: scale(0.95); }
 
-    /* 🌟 중앙 서식지 & 단정하고 깔끔한 캐릭터 스프라이트 영역 */
+    /* 🌟 중앙 서식지 & 캐릭터 위치 영역 (지상 vs 공중 동적 전환) */
     .stage-area {
       position: absolute;
       left: 0; right: 0;
-      bottom: clamp(23%, 27vh, 30%);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       z-index: 5;
+      transition: bottom 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    /* 지상 포켓몬 위치 */
+    .stage-area.ground-mode {
+      bottom: clamp(22%, 26vh, 29%);
+    }
+
+    /* 공중 / 비행 포켓몬 위치 */
+    .stage-area.flying-mode {
+      bottom: clamp(40%, 48vh, 55%);
     }
 
     .speech-bubble {
@@ -389,7 +399,49 @@
     }
     .speech-bubble.active { opacity: 1; transform: translateY(0); }
 
-    /* 🌟 썬더/샤미드 기준 단정하고 일관된 스프라이트 컨테이너 (105px) */
+    /* 🌟 점프 애니메이션 래퍼 (스케일과 완벽 분리) */
+    .sprite-hop-wrapper {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transform-origin: bottom center;
+    }
+    .sprite-hop-wrapper.hopping {
+      animation: smoothHopAction 0.55s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    @keyframes smoothHopAction {
+      0% { transform: translateY(0); }
+      30% { transform: translateY(-24px); }
+      55% { transform: translateY(2px); }
+      75% { transform: translateY(-6px); }
+      100% { transform: translateY(0); }
+    }
+
+    /* 🌟 상하좌우 10px 천천히 랜덤 유휴 애니메이션 */
+    .idle-wander-ground {
+      animation: groundGentleWander 5.5s ease-in-out infinite alternate;
+    }
+    @keyframes groundGentleWander {
+      0% { transform: translate(0px, 0px); }
+      25% { transform: translate(7px, -5px); }
+      50% { transform: translate(-6px, 4px); }
+      75% { transform: translate(-5px, -8px); }
+      100% { transform: translate(6px, 6px); }
+    }
+
+    .idle-wander-flying {
+      animation: flyingGentleWander 4.2s ease-in-out infinite alternate;
+    }
+    @keyframes flyingGentleWander {
+      0% { transform: translate(0px, 0px) rotate(0deg); }
+      20% { transform: translate(-9px, -9px) rotate(-2deg); }
+      45% { transform: translate(8px, 6px) rotate(2deg); }
+      70% { transform: translate(-7px, 9px) rotate(-1.5deg); }
+      100% { transform: translate(9px, -6px) rotate(1.5deg); }
+    }
+
+    /* 🌟 단정하고 일관된 스프라이트 컨테이너 (105px) */
     .pokemon-sprite-container {
       width: 105px;
       height: 105px;
@@ -407,17 +459,8 @@
       object-fit: contain;
       image-rendering: pixelated;
       filter: drop-shadow(0 10px 10px rgba(0,0,0,0.38));
-      cursor: pointer;
       transform-origin: bottom center;
       transition: transform 0.2s ease;
-    }
-
-    .hopping { animation: happyHop 0.6s ease; }
-    @keyframes happyHop {
-      0% { transform: translateY(0) scale(1); }
-      30% { transform: translateY(-16px) scale(1.12); }
-      60% { transform: translateY(0) scale(0.96); }
-      100% { transform: translateY(0) scale(1); }
     }
 
     /* ✨ 진화 축하 연출 팝업 */
@@ -947,17 +990,23 @@
         <button class="btn-eat-berries" onclick="onFeedAccumulatedBerries()">먹어치우기 😋</button>
       </div>
 
-      <!-- 🌟 중앙 서식지 & 단정하고 일관된 캐릭터 스프라이트 영역 -->
-      <div class="stage-area">
+      <!-- 🌟 중앙 서식지 & 캐릭터 위치 영역 (지상 vs 공중 동적 전환) -->
+      <div class="stage-area ground-mode" id="stageArea">
         <div class="speech-bubble" id="speechBubble">씨-익! 🍃</div>
-        <div class="pokemon-sprite-container">
-          <img 
-            id="pokemonImage" 
-            class="pokemon-sprite" 
-            src="./images/pokemon/showdown/1.gif" 
-            alt="포켓몬"
-            onclick="triggerSpriteHopAnimation()"
-          />
+        
+        <!-- 🌟 점프 애니메이션 래퍼 (스케일과 독립) -->
+        <div class="sprite-hop-wrapper" id="spriteHopWrapper" onclick="triggerSpriteHopAnimation()">
+          <!-- 🌟 상하좌우 10px 천천히 랜덤 유휴 애니메이션 래퍼 -->
+          <div class="idle-wander-ground" id="idleWanderWrapper">
+            <div class="pokemon-sprite-container">
+              <img 
+                id="pokemonImage" 
+                class="pokemon-sprite" 
+                src="./images/pokemon/showdown/1.gif" 
+                alt="포켓몬"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1288,6 +1337,16 @@
       COMMON: [10, 13, 16, 19, 21, 23, 27, 29, 32, 35, 37, 39, 41, 43, 46, 48, 50, 52, 54, 56, 58, 60, 63, 66, 69, 72, 74, 77, 79, 81, 83, 84, 86, 88, 90, 92, 95, 96, 98, 100, 102, 104, 106, 107, 109, 111, 114, 116, 118, 120, 122, 129, 132]
     };
 
+    // 🕊️ 하늘을 나는 비행/부유 포켓몬 판별 목록
+    const FLYING_POKEMON_IDS = [12, 15, 16, 17, 18, 21, 22, 41, 42, 49, 92, 93, 94, 109, 110, 142, 144, 145, 146, 149, 150, 151];
+
+    function isFlyingPokemon(pokeId, typeStr) {
+      if (!pokeId || pokeId === 0) return false;
+      const t = typeStr || "";
+      if (t.includes("비행")) return true;
+      return FLYING_POKEMON_IDS.includes(Number(pokeId));
+    }
+
     const TIER_PROBABILITIES = {
       1: { common: 70, starter: 20, rare: 9, legendary: 1, name: "🌱 일반 알 (Lv.1~29)" },
       2: { common: 55, starter: 25, rare: 15, legendary: 5, name: "🥉 브론즈 알 (Lv.30~49)" },
@@ -1352,17 +1411,16 @@
 
     // 🌟 썬더 / 샤미드 기준 모든 포켓몬 크기 정밀 밸런스 조정
     function getPokemonScaleFactor(pokeId, isEgg) {
-      if (isEgg || pokeId === 0) return 0.85; // 알 크기 단정하게
+      if (isEgg || pokeId === 0) return 0.85;
       
       const pId = Number(pokeId);
 
-      // 1) 캔버스 여백이 없어 유난히 거대하게 꽉 차 보였던 포켓몬들 ➔ 차분하게 축소 (0.75 ~ 0.85)
+      // 캔버스 여백이 없어 유난히 거대하게 꽉 차 보였던 포켓몬들 ➔ 차분하게 축소 (0.8)
       const OVERSIZED_MONS = [1, 7, 50, 51, 19, 20, 27, 28, 41, 42, 43, 44, 46, 47, 88, 89, 90, 100, 101, 109, 110];
       if (OVERSIZED_MONS.includes(pId)) {
         return 0.8;
       }
 
-      // 2) 썬더, 샤미드, 부스터, 쥬피썬더, 피카츄, 이브이, 팬텀, 잠만보, 갸라도스 등 ➔ 기준 스케일 (0.95 ~ 1.0)
       return 0.95;
     }
 
@@ -1511,11 +1569,13 @@
       });
     }
 
+    // 🌟 찰진 점프 애니메이션 트리거 (스케일과 독립된 부모 래퍼에서 실행)
     function triggerSpriteHopAnimation() {
-      const img = document.getElementById('pokemonImage');
-      img.classList.remove('hopping');
-      void img.offsetWidth;
-      img.classList.add('hopping');
+      const wrapper = document.getElementById('spriteHopWrapper');
+      if (!wrapper) return;
+      wrapper.classList.remove('hopping');
+      void wrapper.offsetWidth;
+      wrapper.classList.add('hopping');
     }
 
     function initUI(data) {
@@ -1537,6 +1597,19 @@
       const growthKr = { "FAST":"빠름", "MEDIUM_FAST":"보통빠름", "MEDIUM_SLOW":"보통느림", "SLOW":"느림" };
       const growthEl = document.getElementById('growthTag');
       if (growthEl) growthEl.innerText = growthKr[data.pokemon.growth] || "보통느림";
+
+      // 🌟 비행 vs 지상 포켓몬 위치 및 유휴 모션 전환
+      const stageArea = document.getElementById('stageArea');
+      const wanderWrapper = document.getElementById('idleWanderWrapper');
+      const isFlying = isFlyingPokemon(data.pokemon.id, data.pokemon.type);
+
+      if (isFlying && !data.isEgg) {
+        stageArea.className = "stage-area flying-mode";
+        wanderWrapper.className = "idle-wander-flying";
+      } else {
+        stageArea.className = "stage-area ground-mode";
+        wanderWrapper.className = "idle-wander-ground";
+      }
 
       // 🌟 단정하고 균형 잡힌 스케일 적용
       const pImg = document.getElementById('pokemonImage');
