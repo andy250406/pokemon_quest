@@ -362,7 +362,7 @@
     }
     .btn-eat-berries:active { transform: scale(0.95); }
 
-    /* 🌟 중앙 서식지 & 캐릭터 위치 영역 (지상 vs 공중 동적 전환) */
+    /* 🌟 중앙 서식지 & 캐릭터 위치 영역 (DB 기반 고도 3단계: 하 / 중 / 상) */
     .stage-area {
       position: absolute;
       left: 0; right: 0;
@@ -374,14 +374,19 @@
       transition: bottom 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
-    /* 지상 포켓몬 위치 */
+    /* 1) 🌿 [하] 지상 포켓몬 위치 (바닥 접지) */
     .stage-area.ground-mode {
-      bottom: clamp(22%, 26vh, 29%);
+      bottom: clamp(21%, 25vh, 28%);
     }
 
-    /* 공중 / 비행 포켓몬 위치 */
-    .stage-area.flying-mode {
-      bottom: clamp(40%, 48vh, 55%);
+    /* 2) ☁️ [중] 중간 부유 / 호버링 포켓몬 위치 (코일, 레어코일, 고오스, 또가스, 또도가스, 폴리곤 등) */
+    .stage-area.hover-mode {
+      bottom: clamp(34%, 39vh, 44%);
+    }
+
+    /* 3) 🕊️ [상] 하늘을 나는 비행 / 고공 부유 포켓몬 위치 (버터플, 독침붕, 피죤투, 프리져, 썬더, 파이어 등) */
+    .stage-area.sky-mode {
+      bottom: clamp(47%, 54vh, 61%);
     }
 
     .speech-bubble {
@@ -418,27 +423,40 @@
       100% { transform: translateY(0); }
     }
 
-    /* 🌟 상하좌우 10px 천천히 랜덤 유휴 애니메이션 */
+    /* 🌟 [하] 지상 포켓몬 상하좌우 8px 미세 워킹/바운스 유휴 애니메이션 */
     .idle-wander-ground {
       animation: groundGentleWander 5.5s ease-in-out infinite alternate;
     }
     @keyframes groundGentleWander {
       0% { transform: translate(0px, 0px); }
-      25% { transform: translate(7px, -5px); }
-      50% { transform: translate(-6px, 4px); }
-      75% { transform: translate(-5px, -8px); }
-      100% { transform: translate(6px, 6px); }
+      25% { transform: translate(7px, -4px); }
+      50% { transform: translate(-6px, 3px); }
+      75% { transform: translate(-4px, -6px); }
+      100% { transform: translate(5px, 5px); }
     }
 
-    .idle-wander-flying {
-      animation: flyingGentleWander 4.2s ease-in-out infinite alternate;
+    /* 🌟 [중] 중간 부유 포켓몬 12px 둥실둥실 호버링 유휴 애니메이션 */
+    .idle-wander-hover {
+      animation: hoverGentleWander 4.5s ease-in-out infinite alternate;
     }
-    @keyframes flyingGentleWander {
+    @keyframes hoverGentleWander {
       0% { transform: translate(0px, 0px) rotate(0deg); }
-      20% { transform: translate(-9px, -9px) rotate(-2deg); }
-      45% { transform: translate(8px, 6px) rotate(2deg); }
-      70% { transform: translate(-7px, 9px) rotate(-1.5deg); }
-      100% { transform: translate(9px, -6px) rotate(1.5deg); }
+      25% { transform: translate(-7px, -10px) rotate(-1.5deg); }
+      50% { transform: translate(8px, 6px) rotate(1.5deg); }
+      75% { transform: translate(-6px, 9px) rotate(-1deg); }
+      100% { transform: translate(7px, -7px) rotate(1deg); }
+    }
+
+    /* 🌟 [상] 고공 비행 포켓몬 15px 우아한 날개짓 유휴 애니메이션 */
+    .idle-wander-sky {
+      animation: skyGentleWander 4.0s ease-in-out infinite alternate;
+    }
+    @keyframes skyGentleWander {
+      0% { transform: translate(0px, 0px) rotate(0deg); }
+      20% { transform: translate(-10px, -11px) rotate(-2.5deg); }
+      45% { transform: translate(9px, 8px) rotate(2.5deg); }
+      70% { transform: translate(-8px, 11px) rotate(-2deg); }
+      100% { transform: translate(11px, -8px) rotate(2deg); }
     }
 
     /* 🌟 단정하고 일관된 스프라이트 컨테이너 (105px) */
@@ -990,13 +1008,13 @@
         <button class="btn-eat-berries" onclick="onFeedAccumulatedBerries()">먹어치우기 😋</button>
       </div>
 
-      <!-- 🌟 중앙 서식지 & 캐릭터 위치 영역 (지상 vs 공중 동적 전환) -->
+      <!-- 🌟 중앙 서식지 & 캐릭터 위치 영역 (DB altitude 하/중/상 동적 결정) -->
       <div class="stage-area ground-mode" id="stageArea">
         <div class="speech-bubble" id="speechBubble">씨-익! 🍃</div>
         
         <!-- 🌟 점프 애니메이션 래퍼 (스케일과 독립) -->
         <div class="sprite-hop-wrapper" id="spriteHopWrapper" onclick="triggerSpriteHopAnimation()">
-          <!-- 🌟 상하좌우 10px 천천히 랜덤 유휴 애니메이션 래퍼 -->
+          <!-- 🌟 상하좌우 8~15px 고도별 자연스러운 유휴 애니메이션 래퍼 -->
           <div class="idle-wander-ground" id="idleWanderWrapper">
             <div class="pokemon-sprite-container">
               <img 
@@ -1089,12 +1107,12 @@
             <span id="dexTypeText">풀 / 독</span>
           </div>
           <div class="dex-info-item">
-            <span>성장 유형</span>
-            <span id="dexGrowthText">보통느림</span>
+            <span>위치 / 고도</span>
+            <span id="dexAltitudeText">지상 (하)</span>
           </div>
           <div class="dex-info-item">
-            <span>성별 구분</span>
-            <span id="dexGenderRatioText">암수 모두 존재</span>
+            <span>성장 유형</span>
+            <span id="dexGrowthText">보통느림</span>
           </div>
           <div class="dex-info-item">
             <span>진화 조건</span>
@@ -1328,7 +1346,2122 @@
       "드래곤": "./images/types/16.png", "악": "./images/types/17.png", "페어리": "./images/types/18.png"
     };
 
-    const POKEDEX_DATA_151 = [{"id": 1, "name": "이상해씨", "genus": "씨앗포켓몬", "type": "풀/독", "description": "태어났을 때부터 등에 이상한 씨앗이 심어져 있으며 몸과 함께 자란다고 한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 16, "evolvesTo": 2}, {"id": 2, "name": "이상해풀", "genus": "씨앗포켓몬", "type": "풀/독", "description": "꽃봉오리가 등에 붙어 있으며 양분을 흡수해가면 커다란 꽃이 핀다고 한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 32, "evolvesTo": 3}, {"id": 3, "name": "이상해꽃", "genus": "씨앗포켓몬", "type": "풀/독", "description": "큰 꽃잎을 펼쳐 햇빛을 받고 있으면 몸에 힘이 넘쳐흐른다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 4, "name": "파이리", "genus": "도롱뇽포켓몬", "type": "불꽃", "description": "꼬리의 불꽃은 파이리의 생명력의 상징이다. 건강할 때 왕성하게 불타오른다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 16, "evolvesTo": 5}, {"id": 5, "name": "리자드", "genus": "화염포켓몬", "type": "불꽃", "description": "꼬리를 휘둘러 상대를 쓰러트리고 날카로운 발톱으로 갈기갈기 찢어버린다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 36, "evolvesTo": 6}, {"id": 6, "name": "리자몽", "genus": "화염포켓몬", "type": "불꽃/비행", "description": "입에서 작렬하는 불꽃을 토해낼 때 꼬리의 끝이 더욱 붉고 격렬하게 타오른다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 7, "name": "꼬부기", "genus": "꼬마거북포켓몬", "type": "물", "description": "등껍질에 숨어 몸을 보호한다. 상대의 빈틈을 놓치지 않고 물을 뿜어내어 반격한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 16, "evolvesTo": 8}, {"id": 8, "name": "어니부기", "genus": "거북포켓몬", "type": "물", "description": "딱 하고 머리를 맞을 때 등껍질로 숨어서 피한다. 하지만 꼬리가 살짝 삐져나와 있다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 36, "evolvesTo": 9}, {"id": 9, "name": "거북왕", "genus": "껍질포켓몬", "type": "물", "description": "무거운 몸으로 상대를 덮쳐서 기절시킨다. 위기에 처하면 등껍질에 숨는다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 10, "name": "캐터피", "genus": "애벌레포켓몬", "type": "벌레", "description": "머리의 더듬이로부터 강렬한 냄새를 내어 적을 물리치고 몸을 보호한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 7, "evolvesTo": 11}, {"id": 11, "name": "단데기", "genus": "번데기포켓몬", "type": "벌레", "description": "강철같이 단단한 껍질로 부드러운 몸을 보호하고 있다. 진화할 때까지 가만히 참고 있다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 10, "evolvesTo": 12}, {"id": 12, "name": "버터플", "genus": "나비포켓몬", "type": "벌레/비행", "description": "꽃의 꿀을 매우 좋아한다. 약간의 꽃가루만으로 꽃밭이 있는 장소를 찾아낼 수 있다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 13, "name": "뿔충이", "genus": "송충이포켓몬", "type": "벌레/독", "description": "숲이나 풀밭에 많이 서식한다. 머리끝에 5cm 정도의 작고 날카로운 독침을 지니고 있다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 7, "evolvesTo": 14}, {"id": 14, "name": "딱충이", "genus": "번데기포켓몬", "type": "벌레/독", "description": "스스로는 거의 움직일 수 없지만 위험할 때는 단단해져서 몸을 보호하고 있는 것 같다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 10, "evolvesTo": 15}, {"id": 15, "name": "독침붕", "genus": "독벌포켓몬", "type": "벌레/독", "description": "양손과 엉덩이에 있는 3개의 독침으로 상대를 찌르고 찌르고 또 찌르며 공격한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 16, "name": "구구", "genus": "아기새포켓몬", "type": "노말/비행", "description": "숲이나 수풀에 많이 분포해 있다. 땅에서도 격렬한 날갯짓으로 모래를 뿌리기도 한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 18, "evolvesTo": 17}, {"id": 17, "name": "피죤", "genus": "새포켓몬", "type": "노말/비행", "description": "발톱이 발달해 있다. 먹이인 아라리를 잡아 100km 떨어져 있는 둥지까지 나른다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 36, "evolvesTo": 18}, {"id": 18, "name": "피죤투", "genus": "새포켓몬", "type": "노말/비행", "description": "먹이를 찾을 때 수면을 아슬아슬하게 미끄러지듯 날아 잉어킹 등을 움켜잡는다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 19, "name": "꼬렛", "genus": "쥐포켓몬", "type": "노말", "description": "먹을 것이 있는 곳이라면 어디서든 서식한다. 온종일 먹이를 찾아다닌다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_FAST", "evolveLevel": 20, "evolvesTo": 20}, {"id": 20, "name": "레트라", "genus": "쥐포켓몬", "type": "노말", "description": "계속 자라는 앞니를 갈아내려고 딱딱한 것을 갉는 습성이 있다. 벽돌로 된 벽도 갉아서 부순다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 21, "name": "깨비참", "genus": "아기새포켓몬", "type": "노말/비행", "description": "자신의 영역을 지키기 위해 작은 날개를 쳐서 바쁘게 주위를 날아 맴돈다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 20, "evolvesTo": 22}, {"id": 22, "name": "깨비드릴조", "genus": "부리포켓몬", "type": "노말/비행", "description": "커다란 날개로 넓은 하늘을 계속 날 수 있다. 한 번도 내려앉지 않아도 괜찮다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 23, "name": "아보", "genus": "뱀포켓몬", "type": "독", "description": "성장할수록 점점 길어진다. 밤에는 나뭇가지에 몸을 돌돌 말고 쉰다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 22, "evolvesTo": 24}, {"id": 24, "name": "아보크", "genus": "코브라포켓몬", "type": "독", "description": "배의 무늬가 무서운 얼굴로 보인다. 약한 적은 그 무늬만 보고도 도망치고 만다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 25, "name": "피카츄", "genus": "쥐포켓몬", "type": "전기", "description": "꼬리를 세우고 주변의 상황을 살피다 보면 가끔 꼬리에 번개가 친다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_FAST", "evolveLevel": 26, "evolvesTo": 26}, {"id": 26, "name": "라이츄", "genus": "쥐포켓몬", "type": "전기", "description": "전기가 모이면 근육이 자극되어 여느 때보다 공격적이 된다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 27, "name": "모래두지", "genus": "쥐포켓몬", "type": "땅", "description": "지면에 구멍을 파고 산다. 자신에게 위험이 닥쳐오면 둥글게 말아서 몸을 보호한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 22, "evolvesTo": 28}, {"id": 28, "name": "고지", "genus": "쥐포켓몬", "type": "땅", "description": "굉장한 기세로 지면을 파면 가시와 발톱이 부러져 버리지만 다음 날에는 바로 돋아나 있다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 29, "name": "니드런♀", "genus": "독침포켓몬", "type": "독", "description": "몸은 작지만 독침을 지니고 있기 때문에 주의가 필요하다. 암컷의 뿔이 더 작다.", "genderType": "FEMALE_ONLY", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 16, "evolvesTo": 30}, {"id": 30, "name": "니드리나", "genus": "독침포켓몬", "type": "독", "description": "암컷으로 성격은 온화하다. 입에서 내보내는 초음파는 상대를 혼란시키는 힘이 있다.", "genderType": "FEMALE_ONLY", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 36, "evolvesTo": 31}, {"id": 31, "name": "니드퀸", "genus": "드릴포켓몬", "type": "독/땅", "description": "비늘로 뒤덮인 튼튼한 몸으로 둥지의 입구를 막아 상대로부터 새끼들을 지킨다.", "genderType": "FEMALE_ONLY", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 32, "name": "니드런♂", "genus": "독침포켓몬", "type": "독", "description": "풀밭 위로 귀만 내어 주위의 낌새를 살핀다. 맹독의 뿔로 몸을 보호한다.", "genderType": "MALE_ONLY", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 16, "evolvesTo": 33}, {"id": 33, "name": "니드리노", "genus": "독침포켓몬", "type": "독", "description": "발달한 귀를 세워 주위의 낌새를 살핀다. 무슨 일이 생기면 바로 덤벼든다.", "genderType": "MALE_ONLY", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 36, "evolvesTo": 34}, {"id": 34, "name": "니드킹", "genus": "드릴포켓몬", "type": "독/땅", "description": "돌처럼 딱딱한 피부와 길게 뻗은 뿔이 특징이다. 뿔에는 독이 있으니 주의해야 한다.", "genderType": "MALE_ONLY", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 35, "name": "삐삐", "genus": "요정포켓몬", "type": "페어리", "description": "보름달 밤에 삐삐가 모여 춤을 추는 모습을 보면 행복해진다고 전해진다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "FAST", "evolveLevel": 28, "evolvesTo": 36}, {"id": 36, "name": "픽시", "genus": "요정포켓몬", "type": "페어리", "description": "1km 전방에 떨어진 바늘 소리도 분간할 수 있는 우수한 귀를 가지고 있다. 조용한 산속에 살고 있다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 37, "name": "식스테일", "genus": "여우포켓몬", "type": "불꽃", "description": "태어났을 때는 꼬리가 새하얗고 하나밖에 없다. 성장하면 끝이 갈라지며 꼬리 수가 늘어난다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 29, "evolvesTo": 38}, {"id": 38, "name": "나인테일", "genus": "여우포켓몬", "type": "불꽃", "description": "황금빛으로 빛나는 털과 9개의 긴 꼬리를 지녔다. 1000년을 산다고 한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 39, "name": "푸린", "genus": "풍선포켓몬", "type": "노말/페어리", "description": "동그랗고 커다란 눈동자로 유인하고 기분 좋은 노래를 불러 상대방을 잠들게 한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "FAST", "evolveLevel": 28, "evolvesTo": 40}, {"id": 40, "name": "푸크린", "genus": "풍선포켓몬", "type": "노말/페어리", "description": "2마리가 바싹 붙어 있으면 서로의 털이 너무 기분 좋아서 떨어지지 않게 되어버린다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 41, "name": "주뱃", "genus": "박쥐포켓몬", "type": "독/비행", "description": "입에서 내는 초음파로 두 눈이 없어도 주위의 장애물을 탐색할 수 있다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_FAST", "evolveLevel": 22, "evolvesTo": 42}, {"id": 42, "name": "골뱃", "genus": "박쥐포켓몬", "type": "독/비행", "description": "물리면 끝이다. 죽을 정도로 피를 빨아들이기 때문에 무거워져서 날 수 없게 될 때도 있다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 43, "name": "뚜벅쵸", "genus": "잡초포켓몬", "type": "풀/독", "description": "낮에는 태양을 피하려고 차가운 땅속에 들어가 있다. 달빛을 쬐어 성장한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 21, "evolvesTo": 44}, {"id": 44, "name": "냄새꼬", "genus": "잡초포켓몬", "type": "풀/독", "description": "강렬한 악취가 난다! 그럼에도 불구하고 1000명에 한 명 정도 이 냄새를 즐겨 맡는 사람이 있다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_SLOW", "evolveLevel": 36, "evolvesTo": 45}, {"id": 45, "name": "라플레시아", "genus": "꽃포켓몬", "type": "풀/독", "description": "꽃잎이 클수록 많은 꽃가루를 만들어 내지만 머리가 무거워서 지쳐버린다고 한다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 46, "name": "파라스", "genus": "버섯포켓몬", "type": "벌레/풀", "description": "벌레의 등에 돋아나 있는 것은 동충하초라는 버섯이다. 성장하면 버섯도 커진다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 24, "evolvesTo": 47}, {"id": 47, "name": "파라섹트", "genus": "버섯포켓몬", "type": "벌레/풀", "description": "몸보다 큰 버섯이 파라섹트를 조종하고 있다. 독 포자를 여기저기 뿌린다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 48, "name": "콘팡", "genus": "곤충포켓몬", "type": "벌레/독", "description": "작은 눈이 많이 모여 큰 눈을 이루고 있다. 밤이 되면 불빛을 향해 모여든다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 31, "evolvesTo": 49}, {"id": 49, "name": "도나리", "genus": "독나방포켓몬", "type": "벌레/독", "description": "흩뿌려진 날개 가루에 닿으면 몸의 감각이 이상해져서 똑바로 서 있을 수 없게 된다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 50, "name": "디그다", "genus": "두더지포켓몬", "type": "땅", "description": "지하 1m 정도를 파고들어 가서 나무뿌리 등을 씹어 먹고 산다. 가끔 지상으로 얼굴을 내민다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 26, "evolvesTo": 51}, {"id": 51, "name": "닥트리오", "genus": "두더지포켓몬", "type": "땅", "description": "땅속을 파고들어 가 상대가 방심하고 있을 때 다른 곳에서 공격한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 52, "name": "나옹", "genus": "요괴고양이포켓몬", "type": "노말", "description": "한밤중에 움직이는 습성이 있다. 반짝반짝 빛나는 것을 발견하면 그에 못지않게 눈동자가 반짝인다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 28, "evolvesTo": 53}, {"id": 53, "name": "페르시온", "genus": "샴고양이포켓몬", "type": "노말", "description": "털의 결이 아름다워 애완용으로 기르려는 사람이 많지만, 곧잘 할퀴려 들기 때문에 쉽지 않다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 54, "name": "고라파덕", "genus": "오리포켓몬", "type": "물", "description": "항상 두통에 시달리고 있다. 이 두통이 심해지면 이상한 힘을 쓰기 시작한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 33, "evolvesTo": 55}, {"id": 55, "name": "골덕", "genus": "오리포켓몬", "type": "물", "description": "해 질 무렵 강가에 모습을 나타낸다. 이마가 이상하게 빛날 때 신통력을 발휘한다고 전해진다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 56, "name": "망키", "genus": "돈숭이포켓몬", "type": "격투", "description": "이유 없이 화내고 날뛰기 시작하면 동료도 구별하지 못하기 때문에 가까이 가는 것은 매우 위험하다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 28, "evolvesTo": 57}, {"id": 57, "name": "성원숭", "genus": "돈숭이포켓몬", "type": "격투", "description": "주위에 아무도 없을 때만은 화를 내지 않고 있다. 그러나 그 모습을 보기가 어렵다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 58, "name": "가디", "genus": "강아지포켓몬", "type": "불꽃", "description": "사람을 잘 따르는 충실한 성격이다. 적에게는 짖거나 물며 쫓아내려고 한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": 30, "evolvesTo": 59}, {"id": 59, "name": "윈디", "genus": "전설포켓몬", "type": "불꽃", "description": "옛날부터 많은 사람의 마음을 사로잡은 아름다운 포켓몬이다. 날듯이 경쾌하게 달린다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 60, "name": "발챙이", "genus": "올챙이포켓몬", "type": "물", "description": "매끄럽고 검은 피부는 얇고 축축하다. 내장 일부가 비쳐서 소용돌이 모양으로 보인다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 25, "evolvesTo": 61}, {"id": 61, "name": "슈륙챙이", "genus": "올챙이포켓몬", "type": "물", "description": "육지에서도 수중에서도 살 수 있다. 지상에서는 항상 땀을 흘려서 피부를 미끌미끌하게 하고 있다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 36, "evolvesTo": 62}, {"id": 62, "name": "강챙이", "genus": "올챙이포켓몬", "type": "물/격투", "description": "강인한 근육을 가지고 있다. 태평양을 쉬지 않고 계속 헤엄칠 수 있다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 63, "name": "캐이시", "genus": "초능력포켓몬", "type": "에스퍼", "description": "하루에 18시간은 자고 있다. 자는 동안에도 다양한 초능력을 사용한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 16, "evolvesTo": 64}, {"id": 64, "name": "윤겔라", "genus": "초능력포켓몬", "type": "에스퍼", "description": "초능력을 발휘하면 강한 알파파를 내어 정밀 기계를 고장 내 버린다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_SLOW", "evolveLevel": 36, "evolvesTo": 65}, {"id": 65, "name": "후딘", "genus": "초능력포켓몬", "type": "에스퍼", "description": "뇌세포는 항상 분열해서 죽을 때까지 늘어나기 때문에 모든 것을 기억해 놓을 수 있다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 66, "name": "알통몬", "genus": "괴력포켓몬", "type": "격투", "description": "데구리를 수없이 들었다 놨다 하며 전신의 근육을 단련한다. 모든 격투기를 사용한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 28, "evolvesTo": 67}, {"id": 67, "name": "근육몬", "genus": "괴력포켓몬", "type": "격투", "description": "엄청나게 강한 육체를 지녔기 때문에 파워 세이브 벨트를 차서 힘을 제어하고 있다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 36, "evolvesTo": 68}, {"id": 68, "name": "괴력몬", "genus": "괴력포켓몬", "type": "격투", "description": "발달한 4개의 팔은 2초 동안 1000번의 펀치를 날릴 수 있다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 69, "name": "모다피", "genus": "꽃포켓몬", "type": "풀/독", "description": "홀쭉한 체격이지만 먹이를 잡을 때의 움직임은 눈에 보이지 않을 정도로 빠르다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 21, "evolvesTo": 70}, {"id": 70, "name": "우츠동", "genus": "파리잡이포켓몬", "type": "풀/독", "description": "잎사귀 부분은 칼날이 되어 상대를 베어버린다. 입에서는 무엇이든 녹이는 액체를 뿜어낸다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 36, "evolvesTo": 71}, {"id": 71, "name": "우츠보트", "genus": "파리잡이포켓몬", "type": "풀/독", "description": "정글의 안쪽에 우츠보트만 있는 지대가 있어서 한 번 가면 두 번 다시 돌아올 수 없다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 72, "name": "왕눈해", "genus": "해파리포켓몬", "type": "물/독", "description": "몸 대부분이 수분이다. 수정 같은 눈에서 이상한 빔을 발사한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": 30, "evolvesTo": 73}, {"id": 73, "name": "독파리", "genus": "해파리포켓몬", "type": "물/독", "description": "촉수는 평소에는 짧고 먹이를 찌를 때 길게 늘어나 휘감는다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 74, "name": "꼬마돌", "genus": "암석포켓몬", "type": "바위/땅", "description": "초원이나 산에 서식한다. 돌멩이와 닮은 탓에 알아채지 못하고 밟거나 발이 걸려 넘어지기도 한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 25, "evolvesTo": 75}, {"id": 75, "name": "데구리", "genus": "암석포켓몬", "type": "바위/땅", "description": "산에서 굴러 떨어질 때 몸의 여기저기가 부서져도 신경 쓰지 않는 호쾌한 성격이다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 36, "evolvesTo": 76}, {"id": 76, "name": "딱구리", "genus": "메가톤포켓몬", "type": "바위/땅", "description": "산 정상에서 산기슭까지 이어지는 움푹 패인 홈은 딱구리가 굴러 다니는 길이므로 주의가 필요하다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 77, "name": "포니타", "genus": "불의말포켓몬", "type": "불꽃", "description": "막 태어나서는 겨우 일어설 수 있을 정도이지만 많이 달리면 하반신이 단련되어 달리는 속도가 빨라진다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 40, "evolvesTo": 78}, {"id": 78, "name": "날쌩마", "genus": "불의말포켓몬", "type": "불꽃", "description": "빠르게 움직이는 물체를 보면 경주를 하고 싶어져서 맹렬한 스피드로 쫓아가기 시작한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 79, "name": "야돈", "genus": "얼간이포켓몬", "type": "물/에스퍼", "description": "항상 멍하니 있으므로 무슨 생각을 하고 있는지 알 수 없다. 꼬리로 먹이를 낚는 것이 특기다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 37, "evolvesTo": 80}, {"id": 80, "name": "야도란", "genus": "기생포켓몬", "type": "물/에스퍼", "description": "붙어 있는 셀러는 꼬리에서 배어 나오는 맛을 좋아해서 계속 떨어지지 않는다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 81, "name": "코일", "genus": "자석포켓몬", "type": "전기/강철", "description": "좌우의 유닛에서 중력을 차단하는 힘을 발휘하기에 공중에 뜰 수 있다.", "genderType": "GENDERLESS", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 30, "evolvesTo": 82}, {"id": 82, "name": "레어코일", "genus": "자석포켓몬", "type": "전기/강철", "description": "다수의 코일이 연결되어 강력한 자기장과 높은 전압을 방사한다.", "genderType": "GENDERLESS", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 83, "name": "파오리", "genus": "청둥오리포켓몬", "type": "노말/비행", "description": "가지고 있는 파 줄기는 소중한 무기이기도 하며 칼을 휘두르듯 다양한 것을 자를 수 있다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 84, "name": "두두", "genus": "쌍둥이새포켓몬", "type": "노말/비행", "description": "돌연변이로 발견된 두 개의 머리를 지닌 포켓몬이다. 시속 100km로 달린다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_FAST", "evolveLevel": 31, "evolvesTo": 85}, {"id": 85, "name": "두트리오", "genus": "세쌍둥이새포켓몬", "type": "노말/비행", "description": "3개의 머리가 보고 있는 앞에서 조금이라도 빈틈을 보이면 부리로 격렬하게 쪼아댄다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 86, "name": "쥬쥬", "genus": "강치포켓몬", "type": "물", "description": "빙산에 사는 포켓몬이다. 머리의 뾰족하게 돌출된 부분으로 얼음을 깨고 바다를 헤엄친다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 34, "evolvesTo": 87}, {"id": 87, "name": "쥬레곤", "genus": "강치포켓몬", "type": "물/얼음", "description": "전신이 새하얀 털로 뒤덮여 있다. 추위에 강해서 오히려 추울수록 힘이 넘쳐 난다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 88, "name": "질퍽이", "genus": "진흙포켓몬", "type": "독", "description": "달로부터의 X선을 쬔 오물이 질퍽이로 변화했다. 더러운 것을 좋아한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 38, "evolvesTo": 89}, {"id": 89, "name": "질뻐기", "genus": "진흙포켓몬", "type": "독", "description": "진흙이 쌓여 악취가 나는 장소를 좋아해서 모여들기 때문에 주변은 더욱 악취가 난다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 90, "name": "셀러", "genus": "두조개포켓몬", "type": "물", "description": "단단한 껍데기는 어떤 공격도 튕겨낸다. 껍데기를 벌리고 있을 때 안쪽을 공격당하는 것에는 약하다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": 30, "evolvesTo": 91}, {"id": 91, "name": "파르셀", "genus": "두조개포켓몬", "type": "물/얼음", "description": "조수의 흐름이 격한 바다에 서식하고 있는 파르셀의 껍질의 가시는 크고 날카롭다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 92, "name": "고오스", "genus": "가스포켓몬", "type": "고스트/독", "description": "가스로 만들어진 몸은 어떠한 크기의 상대라도 둘러싸서 숨을 못 쉬게 한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 25, "evolvesTo": 93}, {"id": 93, "name": "고우스트", "genus": "가스포켓몬", "type": "고스트/독", "description": "어둠 속에서 아무도 없는데도 누군가가 보고 있다는 느낌이 들면 그곳에 고우스트가 있는 것이다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": 36, "evolvesTo": 94}, {"id": 94, "name": "팬텀", "genus": "그림자포켓몬", "type": "고스트/독", "description": "그림자에 모습을 숨긴다. 팬텀이 숨어 있는 방은 온도가 5도 내려간다고 전해진다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 95, "name": "롱스톤", "genus": "돌뱀포켓몬", "type": "바위/땅", "description": "땅속을 엄청난 기세로 뚫고 나아가며 먹이를 찾는다. 지나간 곳은 디그다의 보금자리가 된다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 96, "name": "슬리프", "genus": "최면포켓몬", "type": "에스퍼", "description": "잠들게 한 뒤 꿈을 먹지만 나쁜 꿈만 먹고 있으면 배탈이 날 때도 있는 것 같다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 26, "evolvesTo": 97}, {"id": 97, "name": "슬리퍼", "genus": "최면포켓몬", "type": "에스퍼", "description": "추 같은 것을 들고 다닌다. 어린아이에게 최면술을 걸어 어딘가로 데려가 버린 사건이 있었다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 98, "name": "크랩", "genus": "게포켓몬", "type": "물", "description": "위험이 닥치면 입에서 뿜어내는 거품으로 전신을 감싸서 몸을 크게 보이려고 한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 28, "evolvesTo": 99}, {"id": 99, "name": "킹크랩", "genus": "집게포켓몬", "type": "물", "description": "단단한 집게는 1만 마력의 파워를 지녔지만 너무 커서 움직임이 둔하다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 100, "name": "찌리리공", "genus": "볼포켓몬", "type": "전기", "description": "몬스터볼이 팔리기 시작했을 때와 같은 시기에 발견되었다. 뭔가 관계가 있다고 전해진다.", "genderType": "GENDERLESS", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 30, "evolvesTo": 101}, {"id": 101, "name": "붐볼", "genus": "볼포켓몬", "type": "전기", "description": "작은 자극에도 반응해서 폭발한다. 폭탄볼이라 불리며 두려움의 대상이 되고 있다.", "genderType": "GENDERLESS", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 102, "name": "아라리", "genus": "알포켓몬", "type": "풀/에스퍼", "description": "텔레파시로 대화를 하기 때문에 아라리를 갈라놓으려 해도 바로 모여들어 6마리가 된다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": 30, "evolvesTo": 103}, {"id": 103, "name": "나시", "genus": "야자열매포켓몬", "type": "풀/에스퍼", "description": "3개의 머리는 생각하는 것이 각각 다르지만 사이가 좋아서 싸우지 않는 것 같다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 104, "name": "탕구리", "genus": "고독포켓몬", "type": "땅", "description": "죽은 어미의 해골을 머리에 쓰고 있다. 외로울 때는 큰 소리로 운다고 한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 28, "evolvesTo": 105}, {"id": 105, "name": "텅구리", "genus": "뼈다귀포켓몬", "type": "땅", "description": "몸집도 작으며 원래는 약했다. 뼈를 쓰기 시작하면서 성격이 흉포해졌다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 106, "name": "시라소몬", "genus": "킥포켓몬", "type": "격투", "description": "다리를 자유자재로 늘였다 줄였다 한다. 멀리 떨어져 있을 때도 상대를 차올릴 수 있다.", "genderType": "MALE_ONLY", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 107, "name": "홍수몬", "genus": "펀치포켓몬", "type": "격투", "description": "팔을 비틀며 날리는 펀치는 콘크리트도 부스러뜨린다. 3분 싸우면 잠시 쉰다.", "genderType": "MALE_ONLY", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 108, "name": "내루미", "genus": "핥기포켓몬", "type": "노말", "description": "긴 혀는 끈적끈적한 침으로 덮여 있다. 어떤 것이든 달라붙어서 매우 편리하다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 109, "name": "또가스", "genus": "독가스포켓몬", "type": "독", "description": "얇고 풍선 같은 몸에 맹독 가스가 차있다. 가까이 오면 역겨운 냄새가 난다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 35, "evolvesTo": 110}, {"id": 110, "name": "또도가스", "genus": "독가스포켓몬", "type": "독", "description": "한쪽이 부풀어 오르면 다른 한쪽은 오그라드는 쌍둥이 또가스. 항상 체내의 독가스를 섞고 있다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 111, "name": "뿔카노", "genus": "뿔포켓몬", "type": "땅/바위", "description": "머리는 나쁘지만 힘이 세서 고층 빌딩도 몸통박치기로 산산조각 낸다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "SLOW", "evolveLevel": 42, "evolvesTo": 112}, {"id": 112, "name": "코뿌리", "genus": "드릴포켓몬", "type": "땅/바위", "description": "진화하여 뒷다리만으로 서게 되었다. 뿔에 찔리면 암석에도 구멍이 뚫리고 만다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 113, "name": "럭키", "genus": "알포켓몬", "type": "노말", "description": "행복을 가져다준다고 전해진다. 상처 입은 사람에게 알을 나눠주는 상냥한 포켓몬이다.", "genderType": "FEMALE_ONLY", "hasGenderDiff": false, "growth": "FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 114, "name": "덩쿠리", "genus": "넝쿨포켓몬", "type": "풀", "description": "수많은 움직이는 덩굴에 둘러싸여 정체불명이다. 파란 덩굴은 평생 자란다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 115, "name": "캥카", "genus": "가족포켓몬", "type": "노말", "description": "배의 주머니에서 새끼를 키운다. 안전할 때만 새끼를 주머니에서 꺼내어 놀게 한다.", "genderType": "FEMALE_ONLY", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 116, "name": "쏘드라", "genus": "드래곤포켓몬", "type": "물", "description": "수면에서 힘차게 먹물을 발사해서 날고 있는 벌레를 맞춰서 떨어뜨릴 때가 있다고 한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 32, "evolvesTo": 117}, {"id": 117, "name": "시드라", "genus": "드래곤포켓몬", "type": "물", "description": "섣불리 만지려고 하면 몸 전체에서 돋아나는 가시에 찔려 기절할 수도 있다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 118, "name": "콘치", "genus": "금붕어포켓몬", "type": "물", "description": "5노트의 스피드로 헤엄친다. 몸에 위험을 느끼면 날카로운 뿔로 반격한다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_FAST", "evolveLevel": 33, "evolvesTo": 119}, {"id": 119, "name": "왕콘치", "genus": "금붕어포켓몬", "type": "물", "description": "가을이 오면 산란을 위해 힘차게 강물을 거슬러 올라가며 헤엄치는 모습을 볼 수 있다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 120, "name": "별가사리", "genus": "별포켓몬", "type": "물", "description": "몸의 중심에서 빛나는 핵이 있는 한 몸이 찢겨나가도 재생할 수 있다.", "genderType": "GENDERLESS", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": 30, "evolvesTo": 121}, {"id": 121, "name": "아쿠스타", "genus": "수수께끼포켓몬", "type": "물/에스퍼", "description": "코어라고 불리는 중심 부분은 일곱 빛깔로 빛난다. 이것을 보석으로 삼는 사람도 있다고 한다.", "genderType": "GENDERLESS", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 122, "name": "마임맨", "genus": "배리어포켓몬", "type": "에스퍼/페어리", "description": "손가락 끝에서 내는 파동이 공기를 굳혀서 벽을 만든다. 격렬한 공격도 튕겨 낸다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 123, "name": "스라크", "genus": "버마재비포켓몬", "type": "벌레/비행", "description": "날카로운 낫으로 먹이를 베고 숨통을 끊는다. 매우 드물게 날개를 사용해서 난다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 124, "name": "루주라", "genus": "인간형태포켓몬", "type": "얼음/에스퍼", "description": "허리를 흔드는 듯이 걷고 있다. 방심하면 엉겁결에 따라서 춤춰버린다고 한다.", "genderType": "FEMALE_ONLY", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 125, "name": "에레브", "genus": "전기포켓몬", "type": "전기", "description": "몸의 표면에는 전기가 흐르고 있다. 주변이 어두우면 전신이 푸르스름하게 빛난다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 126, "name": "마그마", "genus": "불뿜기포켓몬", "type": "불꽃", "description": "화산의 분화구 근처에서 발견되었다. 입에서 불꽃을 뿜어낸다. 체온은 1200도나 된다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 127, "name": "쁘사이저", "genus": "뿔집게포켓몬", "type": "벌레", "description": "2개의 뿔 사이에 먹이를 끼우고 조각날 때까지 놓지 않는다. 조각나지 않으면 저편으로 세게 내던진다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 128, "name": "켄타로스", "genus": "성난소포켓몬", "type": "노말", "description": "3개의 꼬리로 자신을 때려서 투지가 끓어오르면 전속력으로 돌진해온다.", "genderType": "MALE_ONLY", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 129, "name": "잉어킹", "genus": "물고기포켓몬", "type": "물", "description": "힘도 스피드도 거의 없다. 세상에서 가장 약하고 한심한 포켓몬이다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "SLOW", "evolveLevel": 20, "evolvesTo": 130}, {"id": 130, "name": "갸라도스", "genus": "흉악포켓몬", "type": "물/비행", "description": "분쟁이 일어난 마을을 다 태워버렸다는 기록이 고문서에 남아 있다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 131, "name": "라프라스", "genus": "탈것포켓몬", "type": "물/얼음", "description": "부드러운 마음의 소유자다. 좀처럼 다투지 않아 많이 잡혔기 때문에 수가 줄었다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 132, "name": "메타몽", "genus": "변신포켓몬", "type": "노말", "description": "전신의 세포를 재구성해서 본 것의 모양과 똑 닮게 변신하는 능력을 가지고 있다.", "genderType": "GENDERLESS", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 133, "name": "이브이", "genus": "진화포켓몬", "type": "노말", "description": "진화할 때 모습과 능력이 바뀜으로써 혹독한 환경에 적응하는 희귀한 포켓몬이다.", "genderType": "BOTH", "hasGenderDiff": true, "growth": "MEDIUM_FAST", "evolveLevel": 25, "evolvesTo": 134}, {"id": 134, "name": "샤미드", "genus": "거품뿜기포켓몬", "type": "물", "description": "아름다운 물가를 좋아한다. 세포가 물의 분자구조와 닮아서 물에 녹는 것도 가능하다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 135, "name": "쥬피썬더", "genus": "번개포켓몬", "type": "전기", "description": "체내에 전기가 모이면 전신의 털이 모두 날카롭게 곤두서기 시작한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 136, "name": "부스터", "genus": "불꽃포켓몬", "type": "불꽃", "description": "체내에 불꽃 주머니를 가지고 있다. 싸움이 시작되기 직전에는 체온이 900도까지 올라간다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 137, "name": "폴리곤", "genus": "가상포켓몬", "type": "노말", "description": "연구 끝에 태어난 인공 포켓몬이다. 기본적인 동작만 프로그램되어 있다.", "genderType": "GENDERLESS", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 138, "name": "암나이트", "genus": "소용돌이포켓몬", "type": "바위/물", "description": "먼 옛날 바다에서 살고 있던 고대 포켓몬. 10개의 다리를 구불거리며 헤엄친다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 40, "evolvesTo": 139}, {"id": 139, "name": "암스타", "genus": "소용돌이포켓몬", "type": "바위/물", "description": "촉수가 팔다리처럼 발달해 있다. 달라붙자마자 문다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 140, "name": "투구", "genus": "껍질포켓몬", "type": "바위/물", "description": "3억 년 전에 모래 해변에서 살고 있었던 것으로 추측된다. 단단한 껍질이 몸을 보호한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": 40, "evolvesTo": 141}, {"id": 141, "name": "투구푸스", "genus": "껍질포켓몬", "type": "바위/물", "description": "수중을 이동할 때 손발을 작게 접고 등껍질을 구부려 빠르게 헤엄친다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "MEDIUM_FAST", "evolveLevel": null, "evolvesTo": null}, {"id": 142, "name": "프테라", "genus": "화석포켓몬", "type": "바위/비행", "description": "호박에 남아 있던 공룡의 유전자에서 부활시켰다. 높은 소리로 울며 난다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 143, "name": "잠만보", "genus": "졸음포켓몬", "type": "노말", "description": "하루에 먹을 것을 400kg 먹지 않으면 성에 차지 않는다. 다 먹으면 잠이 들어 버린다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 144, "name": "프리져", "genus": "냉동포켓몬", "type": "얼음/비행", "description": "전설의 새포켓몬이다. 공기 중의 수분을 얼려 눈보라를 만들어 낼 수 있다.", "genderType": "GENDERLESS", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 145, "name": "썬더", "genus": "전기포켓몬", "type": "전기/비행", "description": "구름 위에서 거대한 번개를 내리치며 나타난다. 전설의 새포켓몬이다.", "genderType": "GENDERLESS", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 146, "name": "파이어", "genus": "화염포켓몬", "type": "불꽃/비행", "description": "오래전부터 불새의 전설로 알려져 있다. 날갯짓할 때마다 날개가 눈부시게 불타올라서 아름답다.", "genderType": "GENDERLESS", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 147, "name": "미뇽", "genus": "드래곤포켓몬", "type": "드래곤", "description": "목격자가 적기 때문에 환상의 포켓몬이라고 불리고 있다. 탈피한 껍질이 발견되고 있다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": 30, "evolvesTo": 148}, {"id": 148, "name": "신뇽", "genus": "드래곤포켓몬", "type": "드래곤", "description": "새해에 몸을 구부리며 하늘을 나는 모습을 보면 1년 동안 건강하다고 전해진다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": 55, "evolvesTo": 149}, {"id": 149, "name": "망나뇽", "genus": "드래곤포켓몬", "type": "드래곤/비행", "description": "커다란 몸집으로 하늘을 난다. 지구를 약 16시간 만에 일주한다.", "genderType": "BOTH", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 150, "name": "뮤츠", "genus": "유전포켓몬", "type": "에스퍼", "description": "한 과학자가 몇 년에 걸쳐 무서운 유전자의 연구를 계속한 결과 탄생했다.", "genderType": "GENDERLESS", "hasGenderDiff": false, "growth": "SLOW", "evolveLevel": null, "evolvesTo": null}, {"id": 151, "name": "뮤", "genus": "신종포켓몬", "type": "에스퍼", "description": "모든 기술을 사용하기 때문에 포켓몬의 조상이라고 생각하는 학자가 많다.", "genderType": "GENDERLESS", "hasGenderDiff": false, "growth": "MEDIUM_SLOW", "evolveLevel": null, "evolvesTo": null}];
+    const POKEDEX_DATA_151 = [
+  {
+    "id": 1,
+    "name": "이상해씨",
+    "genus": "씨앗포켓몬",
+    "type": "풀/독",
+    "description": "태어났을 때부터 등에 이상한 씨앗이 심어져 있으며 몸과 함께 자란다고 한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 16,
+    "evolvesTo": 2,
+    "altitude": "하",
+    "scale": 0.82
+  },
+  {
+    "id": 2,
+    "name": "이상해풀",
+    "genus": "씨앗포켓몬",
+    "type": "풀/독",
+    "description": "꽃봉오리가 등에 붙어 있으며 양분을 흡수해가면 커다란 꽃이 핀다고 한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 32,
+    "evolvesTo": 3,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 3,
+    "name": "이상해꽃",
+    "genus": "씨앗포켓몬",
+    "type": "풀/독",
+    "description": "큰 꽃잎을 펼쳐 햇빛을 받고 있으면 몸에 힘이 넘쳐흐른다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 4,
+    "name": "파이리",
+    "genus": "도롱뇽포켓몬",
+    "type": "불꽃",
+    "description": "꼬리의 불꽃은 파이리의 생명력의 상징이다. 건강할 때 왕성하게 불타오른다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 16,
+    "evolvesTo": 5,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 5,
+    "name": "리자드",
+    "genus": "화염포켓몬",
+    "type": "불꽃",
+    "description": "꼬리를 휘둘러 상대를 쓰러트리고 날카로운 발톱으로 갈기갈기 찢어버린다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 36,
+    "evolvesTo": 6,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 6,
+    "name": "리자몽",
+    "genus": "화염포켓몬",
+    "type": "불꽃/비행",
+    "description": "입에서 작렬하는 불꽃을 토해낼 때 꼬리의 끝이 더욱 붉고 격렬하게 타오른다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 7,
+    "name": "꼬부기",
+    "genus": "꼬마거북포켓몬",
+    "type": "물",
+    "description": "등껍질에 숨어 몸을 보호한다. 상대의 빈틈을 놓치지 않고 물을 뿜어내어 반격한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 16,
+    "evolvesTo": 8,
+    "altitude": "하",
+    "scale": 0.82
+  },
+  {
+    "id": 8,
+    "name": "어니부기",
+    "genus": "거북포켓몬",
+    "type": "물",
+    "description": "딱 하고 머리를 맞을 때 등껍질로 숨어서 피한다. 하지만 꼬리가 살짝 삐져나와 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 36,
+    "evolvesTo": 9,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 9,
+    "name": "거북왕",
+    "genus": "껍질포켓몬",
+    "type": "물",
+    "description": "무거운 몸으로 상대를 덮쳐서 기절시킨다. 위기에 처하면 등껍질에 숨는다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 10,
+    "name": "캐터피",
+    "genus": "애벌레포켓몬",
+    "type": "벌레",
+    "description": "머리의 더듬이로부터 강렬한 냄새를 내어 적을 물리치고 몸을 보호한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 7,
+    "evolvesTo": 11,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 11,
+    "name": "단데기",
+    "genus": "번데기포켓몬",
+    "type": "벌레",
+    "description": "강철같이 단단한 껍질로 부드러운 몸을 보호하고 있다. 진화할 때까지 가만히 참고 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 10,
+    "evolvesTo": 12,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 12,
+    "name": "버터플",
+    "genus": "나비포켓몬",
+    "type": "벌레/비행",
+    "description": "꽃의 꿀을 매우 좋아한다. 약간의 꽃가루만으로 꽃밭이 있는 장소를 찾아낼 수 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "상",
+    "scale": 1.2
+  },
+  {
+    "id": 13,
+    "name": "뿔충이",
+    "genus": "송충이포켓몬",
+    "type": "벌레/독",
+    "description": "숲이나 풀밭에 많이 서식한다. 머리끝에 5cm 정도의 작고 날카로운 독침을 지니고 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 7,
+    "evolvesTo": 14,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 14,
+    "name": "딱충이",
+    "genus": "번데기포켓몬",
+    "type": "벌레/독",
+    "description": "스스로는 거의 움직일 수 없지만 위험할 때는 단단해져서 몸을 보호하고 있는 것 같다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 10,
+    "evolvesTo": 15,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 15,
+    "name": "독침붕",
+    "genus": "독벌포켓몬",
+    "type": "벌레/독",
+    "description": "양손과 엉덩이에 있는 3개의 독침으로 상대를 찌르고 찌르고 또 찌르며 공격한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "상",
+    "scale": 1.2
+  },
+  {
+    "id": 16,
+    "name": "구구",
+    "genus": "아기새포켓몬",
+    "type": "노말/비행",
+    "description": "숲이나 수풀에 많이 분포해 있다. 땅에서도 격렬한 날갯짓으로 모래를 뿌리기도 한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 18,
+    "evolvesTo": 17,
+    "altitude": "상",
+    "scale": 0.98
+  },
+  {
+    "id": 17,
+    "name": "피죤",
+    "genus": "새포켓몬",
+    "type": "노말/비행",
+    "description": "발톱이 발달해 있다. 먹이인 아라리를 잡아 100km 떨어져 있는 둥지까지 나른다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 36,
+    "evolvesTo": 18,
+    "altitude": "상",
+    "scale": 0.98
+  },
+  {
+    "id": 18,
+    "name": "피죤투",
+    "genus": "새포켓몬",
+    "type": "노말/비행",
+    "description": "먹이를 찾을 때 수면을 아슬아슬하게 미끄러지듯 날아 잉어킹 등을 움켜잡는다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "상",
+    "scale": 1.2
+  },
+  {
+    "id": 19,
+    "name": "꼬렛",
+    "genus": "쥐포켓몬",
+    "type": "노말",
+    "description": "먹을 것이 있는 곳이라면 어디서든 서식한다. 온종일 먹이를 찾아다닌다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 20,
+    "evolvesTo": 20,
+    "altitude": "하",
+    "scale": 0.82
+  },
+  {
+    "id": 20,
+    "name": "레트라",
+    "genus": "쥐포켓몬",
+    "type": "노말",
+    "description": "계속 자라는 앞니를 갈아내려고 딱딱한 것을 갉는 습성이 있다. 벽돌로 된 벽도 갉아서 부순다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.82
+  },
+  {
+    "id": 21,
+    "name": "깨비참",
+    "genus": "아기새포켓몬",
+    "type": "노말/비행",
+    "description": "자신의 영역을 지키기 위해 작은 날개를 쳐서 바쁘게 주위를 날아 맴돈다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 20,
+    "evolvesTo": 22,
+    "altitude": "상",
+    "scale": 0.98
+  },
+  {
+    "id": 22,
+    "name": "깨비드릴조",
+    "genus": "부리포켓몬",
+    "type": "노말/비행",
+    "description": "커다란 날개로 넓은 하늘을 계속 날 수 있다. 한 번도 내려앉지 않아도 괜찮다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "상",
+    "scale": 0.98
+  },
+  {
+    "id": 23,
+    "name": "아보",
+    "genus": "뱀포켓몬",
+    "type": "독",
+    "description": "성장할수록 점점 길어진다. 밤에는 나뭇가지에 몸을 돌돌 말고 쉰다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 22,
+    "evolvesTo": 24,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 24,
+    "name": "아보크",
+    "genus": "코브라포켓몬",
+    "type": "독",
+    "description": "배의 무늬가 무서운 얼굴로 보인다. 약한 적은 그 무늬만 보고도 도망치고 만다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 25,
+    "name": "피카츄",
+    "genus": "쥐포켓몬",
+    "type": "전기",
+    "description": "꼬리를 세우고 주변의 상황을 살피다 보면 가끔 꼬리에 번개가 친다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 26,
+    "evolvesTo": 26,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 26,
+    "name": "라이츄",
+    "genus": "쥐포켓몬",
+    "type": "전기",
+    "description": "전기가 모이면 근육이 자극되어 여느 때보다 공격적이 된다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 27,
+    "name": "모래두지",
+    "genus": "쥐포켓몬",
+    "type": "땅",
+    "description": "지면에 구멍을 파고 산다. 자신에게 위험이 닥쳐오면 둥글게 말아서 몸을 보호한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 22,
+    "evolvesTo": 28,
+    "altitude": "하",
+    "scale": 0.82
+  },
+  {
+    "id": 28,
+    "name": "고지",
+    "genus": "쥐포켓몬",
+    "type": "땅",
+    "description": "굉장한 기세로 지면을 파면 가시와 발톱이 부러져 버리지만 다음 날에는 바로 돋아나 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.82
+  },
+  {
+    "id": 29,
+    "name": "니드런♀",
+    "genus": "독침포켓몬",
+    "type": "독",
+    "description": "몸은 작지만 독침을 지니고 있기 때문에 주의가 필요하다. 암컷의 뿔이 더 작다.",
+    "genderType": "FEMALE_ONLY",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 16,
+    "evolvesTo": 30,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 30,
+    "name": "니드리나",
+    "genus": "독침포켓몬",
+    "type": "독",
+    "description": "암컷으로 성격은 온화하다. 입에서 내보내는 초음파는 상대를 혼란시키는 힘이 있다.",
+    "genderType": "FEMALE_ONLY",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 36,
+    "evolvesTo": 31,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 31,
+    "name": "니드퀸",
+    "genus": "드릴포켓몬",
+    "type": "독/땅",
+    "description": "비늘로 뒤덮인 튼튼한 몸으로 둥지의 입구를 막아 상대로부터 새끼들을 지킨다.",
+    "genderType": "FEMALE_ONLY",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 32,
+    "name": "니드런♂",
+    "genus": "독침포켓몬",
+    "type": "독",
+    "description": "풀밭 위로 귀만 내어 주위의 낌새를 살핀다. 맹독의 뿔로 몸을 보호한다.",
+    "genderType": "MALE_ONLY",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 16,
+    "evolvesTo": 33,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 33,
+    "name": "니드리노",
+    "genus": "독침포켓몬",
+    "type": "독",
+    "description": "발달한 귀를 세워 주위의 낌새를 살핀다. 무슨 일이 생기면 바로 덤벼든다.",
+    "genderType": "MALE_ONLY",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 36,
+    "evolvesTo": 34,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 34,
+    "name": "니드킹",
+    "genus": "드릴포켓몬",
+    "type": "독/땅",
+    "description": "돌처럼 딱딱한 피부와 길게 뻗은 뿔이 특징이다. 뿔에는 독이 있으니 주의해야 한다.",
+    "genderType": "MALE_ONLY",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 35,
+    "name": "삐삐",
+    "genus": "요정포켓몬",
+    "type": "페어리",
+    "description": "보름달 밤에 삐삐가 모여 춤을 추는 모습을 보면 행복해진다고 전해진다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "FAST",
+    "evolveLevel": 28,
+    "evolvesTo": 36,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 36,
+    "name": "픽시",
+    "genus": "요정포켓몬",
+    "type": "페어리",
+    "description": "1km 전방에 떨어진 바늘 소리도 분간할 수 있는 우수한 귀를 가지고 있다. 조용한 산속에 살고 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 37,
+    "name": "식스테일",
+    "genus": "여우포켓몬",
+    "type": "불꽃",
+    "description": "태어났을 때는 꼬리가 새하얗고 하나밖에 없다. 성장하면 끝이 갈라지며 꼬리 수가 늘어난다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 29,
+    "evolvesTo": 38,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 38,
+    "name": "나인테일",
+    "genus": "여우포켓몬",
+    "type": "불꽃",
+    "description": "황금빛으로 빛나는 털과 9개의 긴 꼬리를 지녔다. 1000년을 산다고 한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 39,
+    "name": "푸린",
+    "genus": "풍선포켓몬",
+    "type": "노말/페어리",
+    "description": "동그랗고 커다란 눈동자로 유인하고 기분 좋은 노래를 불러 상대방을 잠들게 한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "FAST",
+    "evolveLevel": 28,
+    "evolvesTo": 40,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 40,
+    "name": "푸크린",
+    "genus": "풍선포켓몬",
+    "type": "노말/페어리",
+    "description": "2마리가 바싹 붙어 있으면 서로의 털이 너무 기분 좋아서 떨어지지 않게 되어버린다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 41,
+    "name": "주뱃",
+    "genus": "박쥐포켓몬",
+    "type": "독/비행",
+    "description": "입에서 내는 초음파로 두 눈이 없어도 주위의 장애물을 탐색할 수 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 22,
+    "evolvesTo": 42,
+    "altitude": "상",
+    "scale": 1.2
+  },
+  {
+    "id": 42,
+    "name": "골뱃",
+    "genus": "박쥐포켓몬",
+    "type": "독/비행",
+    "description": "물리면 끝이다. 죽을 정도로 피를 빨아들이기 때문에 무거워져서 날 수 없게 될 때도 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "상",
+    "scale": 1.25
+  },
+  {
+    "id": 43,
+    "name": "뚜벅쵸",
+    "genus": "잡초포켓몬",
+    "type": "풀/독",
+    "description": "낮에는 태양을 피하려고 차가운 땅속에 들어가 있다. 달빛을 쬐어 성장한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 21,
+    "evolvesTo": 44,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 44,
+    "name": "냄새꼬",
+    "genus": "잡초포켓몬",
+    "type": "풀/독",
+    "description": "강렬한 악취가 난다! 그럼에도 불구하고 1000명에 한 명 정도 이 냄새를 즐겨 맡는 사람이 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 36,
+    "evolvesTo": 45,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 45,
+    "name": "라플레시아",
+    "genus": "꽃포켓몬",
+    "type": "풀/독",
+    "description": "꽃잎이 클수록 많은 꽃가루를 만들어 내지만 머리가 무거워서 지쳐버린다고 한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 46,
+    "name": "파라스",
+    "genus": "버섯포켓몬",
+    "type": "벌레/풀",
+    "description": "벌레의 등에 돋아나 있는 것은 동충하초라는 버섯이다. 성장하면 버섯도 커진다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 24,
+    "evolvesTo": 47,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 47,
+    "name": "파라섹트",
+    "genus": "버섯포켓몬",
+    "type": "벌레/풀",
+    "description": "몸보다 큰 버섯이 파라섹트를 조종하고 있다. 독 포자를 여기저기 뿌린다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 48,
+    "name": "콘팡",
+    "genus": "곤충포켓몬",
+    "type": "벌레/독",
+    "description": "작은 눈이 많이 모여 큰 눈을 이루고 있다. 밤이 되면 불빛을 향해 모여든다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 31,
+    "evolvesTo": 49,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 49,
+    "name": "도나리",
+    "genus": "독나방포켓몬",
+    "type": "벌레/독",
+    "description": "흩뿌려진 날개 가루에 닿으면 몸의 감각이 이상해져서 똑바로 서 있을 수 없게 된다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "중",
+    "scale": 0.98
+  },
+  {
+    "id": 50,
+    "name": "디그다",
+    "genus": "두더지포켓몬",
+    "type": "땅",
+    "description": "지하 1m 정도를 파고들어 가서 나무뿌리 등을 씹어 먹고 산다. 가끔 지상으로 얼굴을 내민다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 26,
+    "evolvesTo": 51,
+    "altitude": "하",
+    "scale": 0.8
+  },
+  {
+    "id": 51,
+    "name": "닥트리오",
+    "genus": "두더지포켓몬",
+    "type": "땅",
+    "description": "땅속을 파고들어 가 상대가 방심하고 있을 때 다른 곳에서 공격한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.8
+  },
+  {
+    "id": 52,
+    "name": "나옹",
+    "genus": "요괴고양이포켓몬",
+    "type": "노말",
+    "description": "한밤중에 움직이는 습성이 있다. 반짝반짝 빛나는 것을 발견하면 그에 못지않게 눈동자가 반짝인다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 28,
+    "evolvesTo": 53,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 53,
+    "name": "페르시온",
+    "genus": "샴고양이포켓몬",
+    "type": "노말",
+    "description": "털의 결이 아름다워 애완용으로 기르려는 사람이 많지만, 곧잘 할퀴려 들기 때문에 쉽지 않다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 54,
+    "name": "고라파덕",
+    "genus": "오리포켓몬",
+    "type": "물",
+    "description": "항상 두통에 시달리고 있다. 이 두통이 심해지면 이상한 힘을 쓰기 시작한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 33,
+    "evolvesTo": 55,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 55,
+    "name": "골덕",
+    "genus": "오리포켓몬",
+    "type": "물",
+    "description": "해 질 무렵 강가에 모습을 나타낸다. 이마가 이상하게 빛날 때 신통력을 발휘한다고 전해진다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 56,
+    "name": "망키",
+    "genus": "돈숭이포켓몬",
+    "type": "격투",
+    "description": "이유 없이 화내고 날뛰기 시작하면 동료도 구별하지 못하기 때문에 가까이 가는 것은 매우 위험하다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 28,
+    "evolvesTo": 57,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 57,
+    "name": "성원숭",
+    "genus": "돈숭이포켓몬",
+    "type": "격투",
+    "description": "주위에 아무도 없을 때만은 화를 내지 않고 있다. 그러나 그 모습을 보기가 어렵다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 58,
+    "name": "가디",
+    "genus": "강아지포켓몬",
+    "type": "불꽃",
+    "description": "사람을 잘 따르는 충실한 성격이다. 적에게는 짖거나 물며 쫓아내려고 한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": 30,
+    "evolvesTo": 59,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 59,
+    "name": "윈디",
+    "genus": "전설포켓몬",
+    "type": "불꽃",
+    "description": "옛날부터 많은 사람의 마음을 사로잡은 아름다운 포켓몬이다. 날듯이 경쾌하게 달린다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 60,
+    "name": "발챙이",
+    "genus": "올챙이포켓몬",
+    "type": "물",
+    "description": "매끄럽고 검은 피부는 얇고 축축하다. 내장 일부가 비쳐서 소용돌이 모양으로 보인다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 25,
+    "evolvesTo": 61,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 61,
+    "name": "슈륙챙이",
+    "genus": "올챙이포켓몬",
+    "type": "물",
+    "description": "육지에서도 수중에서도 살 수 있다. 지상에서는 항상 땀을 흘려서 피부를 미끌미끌하게 하고 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 36,
+    "evolvesTo": 62,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 62,
+    "name": "강챙이",
+    "genus": "올챙이포켓몬",
+    "type": "물/격투",
+    "description": "강인한 근육을 가지고 있다. 태평양을 쉬지 않고 계속 헤엄칠 수 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 63,
+    "name": "캐이시",
+    "genus": "초능력포켓몬",
+    "type": "에스퍼",
+    "description": "하루에 18시간은 자고 있다. 자는 동안에도 다양한 초능력을 사용한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 16,
+    "evolvesTo": 64,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 64,
+    "name": "윤겔라",
+    "genus": "초능력포켓몬",
+    "type": "에스퍼",
+    "description": "초능력을 발휘하면 강한 알파파를 내어 정밀 기계를 고장 내 버린다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 36,
+    "evolvesTo": 65,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 65,
+    "name": "후딘",
+    "genus": "초능력포켓몬",
+    "type": "에스퍼",
+    "description": "뇌세포는 항상 분열해서 죽을 때까지 늘어나기 때문에 모든 것을 기억해 놓을 수 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 66,
+    "name": "알통몬",
+    "genus": "괴력포켓몬",
+    "type": "격투",
+    "description": "데구리를 수없이 들었다 놨다 하며 전신의 근육을 단련한다. 모든 격투기를 사용한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 28,
+    "evolvesTo": 67,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 67,
+    "name": "근육몬",
+    "genus": "괴력포켓몬",
+    "type": "격투",
+    "description": "엄청나게 강한 육체를 지녔기 때문에 파워 세이브 벨트를 차서 힘을 제어하고 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 36,
+    "evolvesTo": 68,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 68,
+    "name": "괴력몬",
+    "genus": "괴력포켓몬",
+    "type": "격투",
+    "description": "발달한 4개의 팔은 2초 동안 1000번의 펀치를 날릴 수 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 69,
+    "name": "모다피",
+    "genus": "꽃포켓몬",
+    "type": "풀/독",
+    "description": "홀쭉한 체격이지만 먹이를 잡을 때의 움직임은 눈에 보이지 않을 정도로 빠르다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 21,
+    "evolvesTo": 70,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 70,
+    "name": "우츠동",
+    "genus": "파리잡이포켓몬",
+    "type": "풀/독",
+    "description": "잎사귀 부분은 칼날이 되어 상대를 베어버린다. 입에서는 무엇이든 녹이는 액체를 뿜어낸다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 36,
+    "evolvesTo": 71,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 71,
+    "name": "우츠보트",
+    "genus": "파리잡이포켓몬",
+    "type": "풀/독",
+    "description": "정글의 안쪽에 우츠보트만 있는 지대가 있어서 한 번 가면 두 번 다시 돌아올 수 없다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 72,
+    "name": "왕눈해",
+    "genus": "해파리포켓몬",
+    "type": "물/독",
+    "description": "몸 대부분이 수분이다. 수정 같은 눈에서 이상한 빔을 발사한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": 30,
+    "evolvesTo": 73,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 73,
+    "name": "독파리",
+    "genus": "해파리포켓몬",
+    "type": "물/독",
+    "description": "촉수는 평소에는 짧고 먹이를 찌를 때 길게 늘어나 휘감는다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 74,
+    "name": "꼬마돌",
+    "genus": "암석포켓몬",
+    "type": "바위/땅",
+    "description": "초원이나 산에 서식한다. 돌멩이와 닮은 탓에 알아채지 못하고 밟거나 발이 걸려 넘어지기도 한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 25,
+    "evolvesTo": 75,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 75,
+    "name": "데구리",
+    "genus": "암석포켓몬",
+    "type": "바위/땅",
+    "description": "산에서 굴러 떨어질 때 몸의 여기저기가 부서져도 신경 쓰지 않는 호쾌한 성격이다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 36,
+    "evolvesTo": 76,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 76,
+    "name": "딱구리",
+    "genus": "메가톤포켓몬",
+    "type": "바위/땅",
+    "description": "산 정상에서 산기슭까지 이어지는 움푹 패인 홈은 딱구리가 굴러 다니는 길이므로 주의가 필요하다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 77,
+    "name": "포니타",
+    "genus": "불의말포켓몬",
+    "type": "불꽃",
+    "description": "막 태어나서는 겨우 일어설 수 있을 정도이지만 많이 달리면 하반신이 단련되어 달리는 속도가 빨라진다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 40,
+    "evolvesTo": 78,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 78,
+    "name": "날쌩마",
+    "genus": "불의말포켓몬",
+    "type": "불꽃",
+    "description": "빠르게 움직이는 물체를 보면 경주를 하고 싶어져서 맹렬한 스피드로 쫓아가기 시작한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 79,
+    "name": "야돈",
+    "genus": "얼간이포켓몬",
+    "type": "물/에스퍼",
+    "description": "항상 멍하니 있으므로 무슨 생각을 하고 있는지 알 수 없다. 꼬리로 먹이를 낚는 것이 특기다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 37,
+    "evolvesTo": 80,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 80,
+    "name": "야도란",
+    "genus": "기생포켓몬",
+    "type": "물/에스퍼",
+    "description": "붙어 있는 셀러는 꼬리에서 배어 나오는 맛을 좋아해서 계속 떨어지지 않는다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 81,
+    "name": "코일",
+    "genus": "자석포켓몬",
+    "type": "전기/강철",
+    "description": "좌우의 유닛에서 중력을 차단하는 힘을 발휘하기에 공중에 뜰 수 있다.",
+    "genderType": "GENDERLESS",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 30,
+    "evolvesTo": 82,
+    "altitude": "중",
+    "scale": 1.2
+  },
+  {
+    "id": 82,
+    "name": "레어코일",
+    "genus": "자석포켓몬",
+    "type": "전기/강철",
+    "description": "다수의 코일이 연결되어 강력한 자기장과 높은 전압을 방사한다.",
+    "genderType": "GENDERLESS",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "중",
+    "scale": 1.25
+  },
+  {
+    "id": 83,
+    "name": "파오리",
+    "genus": "청둥오리포켓몬",
+    "type": "노말/비행",
+    "description": "가지고 있는 파 줄기는 소중한 무기이기도 하며 칼을 휘두르듯 다양한 것을 자를 수 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "상",
+    "scale": 0.98
+  },
+  {
+    "id": 84,
+    "name": "두두",
+    "genus": "쌍둥이새포켓몬",
+    "type": "노말/비행",
+    "description": "돌연변이로 발견된 두 개의 머리를 지닌 포켓몬이다. 시속 100km로 달린다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 31,
+    "evolvesTo": 85,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 85,
+    "name": "두트리오",
+    "genus": "세쌍둥이새포켓몬",
+    "type": "노말/비행",
+    "description": "3개의 머리가 보고 있는 앞에서 조금이라도 빈틈을 보이면 부리로 격렬하게 쪼아댄다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 86,
+    "name": "쥬쥬",
+    "genus": "강치포켓몬",
+    "type": "물",
+    "description": "빙산에 사는 포켓몬이다. 머리의 뾰족하게 돌출된 부분으로 얼음을 깨고 바다를 헤엄친다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 34,
+    "evolvesTo": 87,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 87,
+    "name": "쥬레곤",
+    "genus": "강치포켓몬",
+    "type": "물/얼음",
+    "description": "전신이 새하얀 털로 뒤덮여 있다. 추위에 강해서 오히려 추울수록 힘이 넘쳐 난다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 88,
+    "name": "질퍽이",
+    "genus": "진흙포켓몬",
+    "type": "독",
+    "description": "달로부터의 X선을 쬔 오물이 질퍽이로 변화했다. 더러운 것을 좋아한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 38,
+    "evolvesTo": 89,
+    "altitude": "하",
+    "scale": 0.82
+  },
+  {
+    "id": 89,
+    "name": "질뻐기",
+    "genus": "진흙포켓몬",
+    "type": "독",
+    "description": "진흙이 쌓여 악취가 나는 장소를 좋아해서 모여들기 때문에 주변은 더욱 악취가 난다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.82
+  },
+  {
+    "id": 90,
+    "name": "셀러",
+    "genus": "두조개포켓몬",
+    "type": "물",
+    "description": "단단한 껍데기는 어떤 공격도 튕겨낸다. 껍데기를 벌리고 있을 때 안쪽을 공격당하는 것에는 약하다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": 30,
+    "evolvesTo": 91,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 91,
+    "name": "파르셀",
+    "genus": "두조개포켓몬",
+    "type": "물/얼음",
+    "description": "조수의 흐름이 격한 바다에 서식하고 있는 파르셀의 껍질의 가시는 크고 날카롭다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 92,
+    "name": "고오스",
+    "genus": "가스포켓몬",
+    "type": "고스트/독",
+    "description": "가스로 만들어진 몸은 어떠한 크기의 상대라도 둘러싸서 숨을 못 쉬게 한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 25,
+    "evolvesTo": 93,
+    "altitude": "중",
+    "scale": 1.2
+  },
+  {
+    "id": 93,
+    "name": "고우스트",
+    "genus": "가스포켓몬",
+    "type": "고스트/독",
+    "description": "어둠 속에서 아무도 없는데도 누군가가 보고 있다는 느낌이 들면 그곳에 고우스트가 있는 것이다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": 36,
+    "evolvesTo": 94,
+    "altitude": "중",
+    "scale": 1.2
+  },
+  {
+    "id": 94,
+    "name": "팬텀",
+    "genus": "그림자포켓몬",
+    "type": "고스트/독",
+    "description": "그림자에 모습을 숨긴다. 팬텀이 숨어 있는 방은 온도가 5도 내려간다고 전해진다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 1.05
+  },
+  {
+    "id": 95,
+    "name": "롱스톤",
+    "genus": "돌뱀포켓몬",
+    "type": "바위/땅",
+    "description": "땅속을 엄청난 기세로 뚫고 나아가며 먹이를 찾는다. 지나간 곳은 디그다의 보금자리가 된다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 96,
+    "name": "슬리프",
+    "genus": "최면포켓몬",
+    "type": "에스퍼",
+    "description": "잠들게 한 뒤 꿈을 먹지만 나쁜 꿈만 먹고 있으면 배탈이 날 때도 있는 것 같다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 26,
+    "evolvesTo": 97,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 97,
+    "name": "슬리퍼",
+    "genus": "최면포켓몬",
+    "type": "에스퍼",
+    "description": "추 같은 것을 들고 다닌다. 어린아이에게 최면술을 걸어 어딘가로 데려가 버린 사건이 있었다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 98,
+    "name": "크랩",
+    "genus": "게포켓몬",
+    "type": "물",
+    "description": "위험이 닥치면 입에서 뿜어내는 거품으로 전신을 감싸서 몸을 크게 보이려고 한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 28,
+    "evolvesTo": 99,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 99,
+    "name": "킹크랩",
+    "genus": "집게포켓몬",
+    "type": "물",
+    "description": "단단한 집게는 1만 마력의 파워를 지녔지만 너무 커서 움직임이 둔하다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 100,
+    "name": "찌리리공",
+    "genus": "볼포켓몬",
+    "type": "전기",
+    "description": "몬스터볼이 팔리기 시작했을 때와 같은 시기에 발견되었다. 뭔가 관계가 있다고 전해진다.",
+    "genderType": "GENDERLESS",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 30,
+    "evolvesTo": 101,
+    "altitude": "중",
+    "scale": 0.98
+  },
+  {
+    "id": 101,
+    "name": "붐볼",
+    "genus": "볼포켓몬",
+    "type": "전기",
+    "description": "작은 자극에도 반응해서 폭발한다. 폭탄볼이라 불리며 두려움의 대상이 되고 있다.",
+    "genderType": "GENDERLESS",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "중",
+    "scale": 0.98
+  },
+  {
+    "id": 102,
+    "name": "아라리",
+    "genus": "알포켓몬",
+    "type": "풀/에스퍼",
+    "description": "텔레파시로 대화를 하기 때문에 아라리를 갈라놓으려 해도 바로 모여들어 6마리가 된다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": 30,
+    "evolvesTo": 103,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 103,
+    "name": "나시",
+    "genus": "야자열매포켓몬",
+    "type": "풀/에스퍼",
+    "description": "3개의 머리는 생각하는 것이 각각 다르지만 사이가 좋아서 싸우지 않는 것 같다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 104,
+    "name": "탕구리",
+    "genus": "고독포켓몬",
+    "type": "땅",
+    "description": "죽은 어미의 해골을 머리에 쓰고 있다. 외로울 때는 큰 소리로 운다고 한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 28,
+    "evolvesTo": 105,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 105,
+    "name": "텅구리",
+    "genus": "뼈다귀포켓몬",
+    "type": "땅",
+    "description": "몸집도 작으며 원래는 약했다. 뼈를 쓰기 시작하면서 성격이 흉포해졌다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 106,
+    "name": "시라소몬",
+    "genus": "킥포켓몬",
+    "type": "격투",
+    "description": "다리를 자유자재로 늘였다 줄였다 한다. 멀리 떨어져 있을 때도 상대를 차올릴 수 있다.",
+    "genderType": "MALE_ONLY",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 107,
+    "name": "홍수몬",
+    "genus": "펀치포켓몬",
+    "type": "격투",
+    "description": "팔을 비틀며 날리는 펀치는 콘크리트도 부스러뜨린다. 3분 싸우면 잠시 쉰다.",
+    "genderType": "MALE_ONLY",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 108,
+    "name": "내루미",
+    "genus": "핥기포켓몬",
+    "type": "노말",
+    "description": "긴 혀는 끈적끈적한 침으로 덮여 있다. 어떤 것이든 달라붙어서 매우 편리하다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 109,
+    "name": "또가스",
+    "genus": "독가스포켓몬",
+    "type": "독",
+    "description": "얇고 풍선 같은 몸에 맹독 가스가 차있다. 가까이 오면 역겨운 냄새가 난다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 35,
+    "evolvesTo": 110,
+    "altitude": "중",
+    "scale": 1.25
+  },
+  {
+    "id": 110,
+    "name": "또도가스",
+    "genus": "독가스포켓몬",
+    "type": "독",
+    "description": "한쪽이 부풀어 오르면 다른 한쪽은 오그라드는 쌍둥이 또가스. 항상 체내의 독가스를 섞고 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "중",
+    "scale": 1.3
+  },
+  {
+    "id": 111,
+    "name": "뿔카노",
+    "genus": "뿔포켓몬",
+    "type": "땅/바위",
+    "description": "머리는 나쁘지만 힘이 세서 고층 빌딩도 몸통박치기로 산산조각 낸다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "SLOW",
+    "evolveLevel": 42,
+    "evolvesTo": 112,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 112,
+    "name": "코뿌리",
+    "genus": "드릴포켓몬",
+    "type": "땅/바위",
+    "description": "진화하여 뒷다리만으로 서게 되었다. 뿔에 찔리면 암석에도 구멍이 뚫리고 만다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 113,
+    "name": "럭키",
+    "genus": "알포켓몬",
+    "type": "노말",
+    "description": "행복을 가져다준다고 전해진다. 상처 입은 사람에게 알을 나눠주는 상냥한 포켓몬이다.",
+    "genderType": "FEMALE_ONLY",
+    "hasGenderDiff": false,
+    "growth": "FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 114,
+    "name": "덩쿠리",
+    "genus": "넝쿨포켓몬",
+    "type": "풀",
+    "description": "수많은 움직이는 덩굴에 둘러싸여 정체불명이다. 파란 덩굴은 평생 자란다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 115,
+    "name": "캥카",
+    "genus": "가족포켓몬",
+    "type": "노말",
+    "description": "배의 주머니에서 새끼를 키운다. 안전할 때만 새끼를 주머니에서 꺼내어 놀게 한다.",
+    "genderType": "FEMALE_ONLY",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 116,
+    "name": "쏘드라",
+    "genus": "드래곤포켓몬",
+    "type": "물",
+    "description": "수면에서 힘차게 먹물을 발사해서 날고 있는 벌레를 맞춰서 떨어뜨릴 때가 있다고 한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 32,
+    "evolvesTo": 117,
+    "altitude": "중",
+    "scale": 0.98
+  },
+  {
+    "id": 117,
+    "name": "시드라",
+    "genus": "드래곤포켓몬",
+    "type": "물",
+    "description": "섣불리 만지려고 하면 몸 전체에서 돋아나는 가시에 찔려 기절할 수도 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "중",
+    "scale": 0.98
+  },
+  {
+    "id": 118,
+    "name": "콘치",
+    "genus": "금붕어포켓몬",
+    "type": "물",
+    "description": "5노트의 스피드로 헤엄친다. 몸에 위험을 느끼면 날카로운 뿔로 반격한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 33,
+    "evolvesTo": 119,
+    "altitude": "중",
+    "scale": 0.98
+  },
+  {
+    "id": 119,
+    "name": "왕콘치",
+    "genus": "금붕어포켓몬",
+    "type": "물",
+    "description": "가을이 오면 산란을 위해 힘차게 강물을 거슬러 올라가며 헤엄치는 모습을 볼 수 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "중",
+    "scale": 0.98
+  },
+  {
+    "id": 120,
+    "name": "별가사리",
+    "genus": "별포켓몬",
+    "type": "물",
+    "description": "몸의 중심에서 빛나는 핵이 있는 한 몸이 찢겨나가도 재생할 수 있다.",
+    "genderType": "GENDERLESS",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": 30,
+    "evolvesTo": 121,
+    "altitude": "중",
+    "scale": 0.98
+  },
+  {
+    "id": 121,
+    "name": "아쿠스타",
+    "genus": "수수께끼포켓몬",
+    "type": "물/에스퍼",
+    "description": "코어라고 불리는 중심 부분은 일곱 빛깔로 빛난다. 이것을 보석으로 삼는 사람도 있다고 한다.",
+    "genderType": "GENDERLESS",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "중",
+    "scale": 0.98
+  },
+  {
+    "id": 122,
+    "name": "마임맨",
+    "genus": "배리어포켓몬",
+    "type": "에스퍼/페어리",
+    "description": "손가락 끝에서 내는 파동이 공기를 굳혀서 벽을 만든다. 격렬한 공격도 튕겨 낸다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 123,
+    "name": "스라크",
+    "genus": "버마재비포켓몬",
+    "type": "벌레/비행",
+    "description": "날카로운 낫으로 먹이를 베고 숨통을 끊는다. 매우 드물게 날개를 사용해서 난다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 124,
+    "name": "루주라",
+    "genus": "인간형태포켓몬",
+    "type": "얼음/에스퍼",
+    "description": "허리를 흔드는 듯이 걷고 있다. 방심하면 엉겁결에 따라서 춤춰버린다고 한다.",
+    "genderType": "FEMALE_ONLY",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 125,
+    "name": "에레브",
+    "genus": "전기포켓몬",
+    "type": "전기",
+    "description": "몸의 표면에는 전기가 흐르고 있다. 주변이 어두우면 전신이 푸르스름하게 빛난다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 126,
+    "name": "마그마",
+    "genus": "불뿜기포켓몬",
+    "type": "불꽃",
+    "description": "화산의 분화구 근처에서 발견되었다. 입에서 불꽃을 뿜어낸다. 체온은 1200도나 된다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 127,
+    "name": "쁘사이저",
+    "genus": "뿔집게포켓몬",
+    "type": "벌레",
+    "description": "2개의 뿔 사이에 먹이를 끼우고 조각날 때까지 놓지 않는다. 조각나지 않으면 저편으로 세게 내던진다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 128,
+    "name": "켄타로스",
+    "genus": "성난소포켓몬",
+    "type": "노말",
+    "description": "3개의 꼬리로 자신을 때려서 투지가 끓어오르면 전속력으로 돌진해온다.",
+    "genderType": "MALE_ONLY",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 129,
+    "name": "잉어킹",
+    "genus": "물고기포켓몬",
+    "type": "물",
+    "description": "힘도 스피드도 거의 없다. 세상에서 가장 약하고 한심한 포켓몬이다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "SLOW",
+    "evolveLevel": 20,
+    "evolvesTo": 130,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 130,
+    "name": "갸라도스",
+    "genus": "흉악포켓몬",
+    "type": "물/비행",
+    "description": "분쟁이 일어난 마을을 다 태워버렸다는 기록이 고문서에 남아 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 131,
+    "name": "라프라스",
+    "genus": "탈것포켓몬",
+    "type": "물/얼음",
+    "description": "부드러운 마음의 소유자다. 좀처럼 다투지 않아 많이 잡혔기 때문에 수가 줄었다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 132,
+    "name": "메타몽",
+    "genus": "변신포켓몬",
+    "type": "노말",
+    "description": "전신의 세포를 재구성해서 본 것의 모양과 똑 닮게 변신하는 능력을 가지고 있다.",
+    "genderType": "GENDERLESS",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 133,
+    "name": "이브이",
+    "genus": "진화포켓몬",
+    "type": "노말",
+    "description": "진화할 때 모습과 능력이 바뀜으로써 혹독한 환경에 적응하는 희귀한 포켓몬이다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": true,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 25,
+    "evolvesTo": 134,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 134,
+    "name": "샤미드",
+    "genus": "거품뿜기포켓몬",
+    "type": "물",
+    "description": "아름다운 물가를 좋아한다. 세포가 물의 분자구조와 닮아서 물에 녹는 것도 가능하다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 135,
+    "name": "쥬피썬더",
+    "genus": "번개포켓몬",
+    "type": "전기",
+    "description": "체내에 전기가 모이면 전신의 털이 모두 날카롭게 곤두서기 시작한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 136,
+    "name": "부스터",
+    "genus": "불꽃포켓몬",
+    "type": "불꽃",
+    "description": "체내에 불꽃 주머니를 가지고 있다. 싸움이 시작되기 직전에는 체온이 900도까지 올라간다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 137,
+    "name": "폴리곤",
+    "genus": "가상포켓몬",
+    "type": "노말",
+    "description": "연구 끝에 태어난 인공 포켓몬이다. 기본적인 동작만 프로그램되어 있다.",
+    "genderType": "GENDERLESS",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "중",
+    "scale": 1.2
+  },
+  {
+    "id": 138,
+    "name": "암나이트",
+    "genus": "소용돌이포켓몬",
+    "type": "바위/물",
+    "description": "먼 옛날 바다에서 살고 있던 고대 포켓몬. 10개의 다리를 구불거리며 헤엄친다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 40,
+    "evolvesTo": 139,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 139,
+    "name": "암스타",
+    "genus": "소용돌이포켓몬",
+    "type": "바위/물",
+    "description": "촉수가 팔다리처럼 발달해 있다. 달라붙자마자 문다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 140,
+    "name": "투구",
+    "genus": "껍질포켓몬",
+    "type": "바위/물",
+    "description": "3억 년 전에 모래 해변에서 살고 있었던 것으로 추측된다. 단단한 껍질이 몸을 보호한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": 40,
+    "evolvesTo": 141,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 141,
+    "name": "투구푸스",
+    "genus": "껍질포켓몬",
+    "type": "바위/물",
+    "description": "수중을 이동할 때 손발을 작게 접고 등껍질을 구부려 빠르게 헤엄친다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_FAST",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 142,
+    "name": "프테라",
+    "genus": "화석포켓몬",
+    "type": "바위/비행",
+    "description": "호박에 남아 있던 공룡의 유전자에서 부활시켰다. 높은 소리로 울며 난다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "상",
+    "scale": 1.25
+  },
+  {
+    "id": 143,
+    "name": "잠만보",
+    "genus": "졸음포켓몬",
+    "type": "노말",
+    "description": "하루에 먹을 것을 400kg 먹지 않으면 성에 차지 않는다. 다 먹으면 잠이 들어 버린다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "하",
+    "scale": 0.98
+  },
+  {
+    "id": 144,
+    "name": "프리져",
+    "genus": "냉동포켓몬",
+    "type": "얼음/비행",
+    "description": "전설의 새포켓몬이다. 공기 중의 수분을 얼려 눈보라를 만들어 낼 수 있다.",
+    "genderType": "GENDERLESS",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "상",
+    "scale": 1.25
+  },
+  {
+    "id": 145,
+    "name": "썬더",
+    "genus": "전기포켓몬",
+    "type": "전기/비행",
+    "description": "구름 위에서 거대한 번개를 내리치며 나타난다. 전설의 새포켓몬이다.",
+    "genderType": "GENDERLESS",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "상",
+    "scale": 1.15
+  },
+  {
+    "id": 146,
+    "name": "파이어",
+    "genus": "화염포켓몬",
+    "type": "불꽃/비행",
+    "description": "오래전부터 불새의 전설로 알려져 있다. 날갯짓할 때마다 날개가 눈부시게 불타올라서 아름답다.",
+    "genderType": "GENDERLESS",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "상",
+    "scale": 1.25
+  },
+  {
+    "id": 147,
+    "name": "미뇽",
+    "genus": "드래곤포켓몬",
+    "type": "드래곤",
+    "description": "목격자가 적기 때문에 환상의 포켓몬이라고 불리고 있다. 탈피한 껍질이 발견되고 있다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": 30,
+    "evolvesTo": 148,
+    "altitude": "중",
+    "scale": 1.25
+  },
+  {
+    "id": 148,
+    "name": "신뇽",
+    "genus": "드래곤포켓몬",
+    "type": "드래곤",
+    "description": "새해에 몸을 구부리며 하늘을 나는 모습을 보면 1년 동안 건강하다고 전해진다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": 55,
+    "evolvesTo": 149,
+    "altitude": "중",
+    "scale": 1.35
+  },
+  {
+    "id": 149,
+    "name": "망나뇽",
+    "genus": "드래곤포켓몬",
+    "type": "드래곤/비행",
+    "description": "커다란 몸집으로 하늘을 난다. 지구를 약 16시간 만에 일주한다.",
+    "genderType": "BOTH",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "상",
+    "scale": 1.2
+  },
+  {
+    "id": 150,
+    "name": "뮤츠",
+    "genus": "유전포켓몬",
+    "type": "에스퍼",
+    "description": "한 과학자가 몇 년에 걸쳐 무서운 유전자의 연구를 계속한 결과 탄생했다.",
+    "genderType": "GENDERLESS",
+    "hasGenderDiff": false,
+    "growth": "SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "상",
+    "scale": 1.15
+  },
+  {
+    "id": 151,
+    "name": "뮤",
+    "genus": "신종포켓몬",
+    "type": "에스퍼",
+    "description": "모든 기술을 사용하기 때문에 포켓몬의 조상이라고 생각하는 학자가 많다.",
+    "genderType": "GENDERLESS",
+    "hasGenderDiff": false,
+    "growth": "MEDIUM_SLOW",
+    "evolveLevel": null,
+    "evolvesTo": null,
+    "altitude": "상",
+    "scale": 1.2
+  }
+];
 
     const POKEMON_GROUPS = {
       STARTERS: [1, 4, 7, 25, 133],
@@ -1336,16 +3469,6 @@
       RARE: [108, 113, 115, 123, 124, 125, 126, 127, 128, 131, 137, 138, 140, 142, 143, 147],
       COMMON: [10, 13, 16, 19, 21, 23, 27, 29, 32, 35, 37, 39, 41, 43, 46, 48, 50, 52, 54, 56, 58, 60, 63, 66, 69, 72, 74, 77, 79, 81, 83, 84, 86, 88, 90, 92, 95, 96, 98, 100, 102, 104, 106, 107, 109, 111, 114, 116, 118, 120, 122, 129, 132]
     };
-
-    // 🕊️ 하늘을 나는 비행/부유 포켓몬 판별 목록
-    const FLYING_POKEMON_IDS = [12, 15, 16, 17, 18, 21, 22, 41, 42, 49, 92, 93, 94, 109, 110, 142, 144, 145, 146, 149, 150, 151];
-
-    function isFlyingPokemon(pokeId, typeStr) {
-      if (!pokeId || pokeId === 0) return false;
-      const t = typeStr || "";
-      if (t.includes("비행")) return true;
-      return FLYING_POKEMON_IDS.includes(Number(pokeId));
-    }
 
     const TIER_PROBABILITIES = {
       1: { common: 70, starter: 20, rare: 9, legendary: 1, name: "🌱 일반 알 (Lv.1~29)" },
@@ -1409,19 +3532,12 @@
       return POKEDEX_DATA_151[id - 1] || null;
     }
 
-    // 🌟 썬더 / 샤미드 기준 모든 포켓몬 크기 정밀 밸런스 조정
+    // 🌟 DB 기반 고유 스케일 팩터 가져오기 (신뇽 1.35, 또도가스 1.30, 프리져 1.25 등 정밀 보정)
     function getPokemonScaleFactor(pokeId, isEgg) {
       if (isEgg || pokeId === 0) return 0.85;
-      
-      const pId = Number(pokeId);
-
-      // 캔버스 여백이 없어 유난히 거대하게 꽉 차 보였던 포켓몬들 ➔ 차분하게 축소 (0.8)
-      const OVERSIZED_MONS = [1, 7, 50, 51, 19, 20, 27, 28, 41, 42, 43, 44, 46, 47, 88, 89, 90, 100, 101, 109, 110];
-      if (OVERSIZED_MONS.includes(pId)) {
-        return 0.8;
-      }
-
-      return 0.95;
+      const pInfo = getPokemonData(pokeId);
+      if (pInfo && pInfo.scale) return pInfo.scale;
+      return 0.98;
     }
 
     function restoreLocalPokemonCache() {
@@ -1569,7 +3685,7 @@
       });
     }
 
-    // 🌟 찰진 점프 애니메이션 트리거 (스케일과 독립된 부모 래퍼에서 실행)
+    // 🌟 찰진 점프 애니메이션 트리거
     function triggerSpriteHopAnimation() {
       const wrapper = document.getElementById('spriteHopWrapper');
       if (!wrapper) return;
@@ -1598,20 +3714,24 @@
       const growthEl = document.getElementById('growthTag');
       if (growthEl) growthEl.innerText = growthKr[data.pokemon.growth] || "보통느림";
 
-      // 🌟 비행 vs 지상 포켓몬 위치 및 유휴 모션 전환
+      // 🌟 DB의 altitude (하 / 중 / 상) 속성에 기반한 동적 위치 및 애니메이션 결정
       const stageArea = document.getElementById('stageArea');
       const wanderWrapper = document.getElementById('idleWanderWrapper');
-      const isFlying = isFlyingPokemon(data.pokemon.id, data.pokemon.type);
+      const pInfo = getPokemonData(data.pokemon.id);
+      const alt = (data.isEgg || !pInfo) ? "하" : (pInfo.altitude || "하");
 
-      if (isFlying && !data.isEgg) {
-        stageArea.className = "stage-area flying-mode";
-        wanderWrapper.className = "idle-wander-flying";
+      if (alt === "상") {
+        stageArea.className = "stage-area sky-mode";
+        wanderWrapper.className = "idle-wander-sky";
+      } else if (alt === "중") {
+        stageArea.className = "stage-area hover-mode";
+        wanderWrapper.className = "idle-wander-hover";
       } else {
         stageArea.className = "stage-area ground-mode";
         wanderWrapper.className = "idle-wander-ground";
       }
 
-      // 🌟 단정하고 균형 잡힌 스케일 적용
+      // 🌟 DB 보정 스케일 적용 (신뇽 1.35, 프리져 1.25, 또도가스 1.30 등)
       const pImg = document.getElementById('pokemonImage');
       pImg.src = data.pokemon.idleGif;
       const scaleFactor = getPokemonScaleFactor(data.pokemon.id, data.isEgg);
@@ -2309,6 +4429,10 @@
       document.getElementById('dexFlavorText').innerText = isUnlocked ? pInfo.description : '아직 키워보지 않아 도감 정보가 기록되지 않았습니다. 퀘스트를 달성하여 새로운 알이나 진화로 만나보세요!';
       document.getElementById('dexTypeText').innerText = pInfo.type;
       
+      const altKrMap = { "하": "지상 (하)", "중": "중간 부유 (중)", "상": "고공 비행 (상)" };
+      const altEl = document.getElementById('dexAltitudeText');
+      if (altEl) altEl.innerText = altKrMap[pInfo.altitude] || "지상 (하)";
+
       const growthKr = { "FAST":"빠름", "MEDIUM_FAST":"보통빠름", "MEDIUM_SLOW":"보통느림", "SLOW":"느림" };
       document.getElementById('dexGrowthText').innerText = growthKr[pInfo.growth] || "보통느림";
       
