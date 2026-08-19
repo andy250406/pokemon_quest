@@ -1502,14 +1502,14 @@
       if (btn) btn.innerText = "⏳ OneSignal 서버 등록 중...";
       logDebug("--- [🔔 푸시 구독 등록 프로세스 시작] ---", "warn");
 
-      // 1. 서비스 워커 명시적 등록 (모바일 필수)
+      // 1. 서비스 워커 명시적 등록 (상대 경로로 안전하게 등록)
       if ("serviceWorker" in navigator) {
         try {
           logDebug("Step 1: 서비스 워커 등록 확인...", "info");
-          const reg = await navigator.serviceWorker.register('/pokemon_quest/OneSignalSDKWorker.js', { scope: '/pokemon_quest/' });
+          const reg = await navigator.serviceWorker.register('OneSignalSDKWorker.js');
           logDebug(`Step 1 성공: SW 등록됨 (Scope: ${reg.scope})`, "success");
         } catch (swErr) {
-          logDebug(`Step 1 주의: SW 등록 건너뜀 (${swErr.message})`, "warn");
+          logDebug(`Step 1 안내: OneSignal 내장 워커 로더로 위임 (${swErr.message})`, "info");
         }
       }
 
