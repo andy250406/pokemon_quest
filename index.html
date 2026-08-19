@@ -309,7 +309,7 @@
     }
     .quest-badge:active { transform: scale(0.95); }
 
-    /* 🌳 나무열매 파밍 */
+    /* 🌳 나무열매 파밍 레이어 */
     .berry-harvest-layer {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -329,7 +329,7 @@
     @keyframes berryBranchSway { 0% { transform: rotate(-8deg); } 100% { transform: rotate(8deg); } }
     .berry-item.small { width: 38px; height: 38px; }
 
-    /* 🍒 열매 자연스러운 낙하 & 페이드아웃 애니메이션 */
+    /* 🍒 열매 자연스러운 낙하 & 반투명 페이드아웃 */
     .berry-item.dropping {
       animation: berryNaturalFall 1.1s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards !important;
       pointer-events: none !important;
@@ -399,12 +399,12 @@
       bottom: clamp(21%, 25vh, 28%);
     }
 
-    /* 2) ☁️ [중] 중간 부유 / 호버링 포켓몬 위치 (코일, 레어코일, 고오스, 또가스, 또도가스, 폴리곤 등) */
+    /* 2) ☁️ [중] 중간 부유 / 호버링 포켓몬 위치 */
     .stage-area.hover-mode {
       bottom: clamp(34%, 39vh, 44%);
     }
 
-    /* 3) 🕊️ [상] 하늘을 나는 비행 / 고공 부유 포켓몬 위치 (버터플, 독침붕, 피죤투, 프리져, 썬더, 파이어 등) */
+    /* 3) 🕊️ [상] 하늘을 나는 비행 / 고공 부유 포켓몬 위치 */
     .stage-area.sky-mode {
       bottom: clamp(47%, 54vh, 61%);
     }
@@ -3722,6 +3722,8 @@
       isCurrentHabitatForest = (bgKey === "PogoGrasslandBg");
       if (isCurrentHabitatForest) {
         startBerryFarming();
+      } else {
+        clearAllBerryTimers();
       }
 
       document.getElementById('lvBadge').innerText = 'Lv.' + data.userStats.level;
@@ -4545,38 +4547,54 @@
       document.getElementById('pokedexDetailModal').classList.remove('open');
     }
 
-    let berryIntervalId = null;
+    // ========================================================
+    // 🍒 3개 슬롯 독립 비동기 나무열매 시스템
+    // - 슬롯 1 (메인 가지): 10초 ~ 15초에 1회
+    // - 슬롯 2 (아래 가지): 20초 ~ 30초에 1회
+    // - 슬롯 3 (오른쪽 가지): 20초 ~ 30초에 1회
+    // ========================================================
+    let berrySlotTimers = [];
 
     function startBerryFarming() {
-      if (berryIntervalId) {
-        clearInterval(berryIntervalId);
-        berryIntervalId = null;
-      }
+      clearAllBerryTimers();
 
-      // 🍒 최대 3개 중첩 허용, 공백 10초 미만 보장, 3~5초 자연스러운 낙하 & 페이드아웃
-      berryIntervalId = setInterval(() => {
-        if (!isCurrentHabitatForest) return;
-        const layer = document.getElementById('berryLayer');
-        if (!layer) return;
+      // 슬롯 1: 10초 ~ 15초 (메인 가지)
+      scheduleBerrySlot(0, 10000, 15000, { minTop: 125, maxTop: 145, minLeft: 20, maxLeft: 45 });
 
-        const currentBerryCount = layer.querySelectorAll('.berry-item:not(.dropping)').length;
-        if (currentBerryCount >= 3) return; // 최대 3개까지 중첩
+      // 슬롯 2: 20초 ~ 30초 (아래 가지)
+      scheduleBerrySlot(1, 20000, 30000, { minTop: 165, maxTop: 190, minLeft: 45, maxLeft: 70 });
 
-        // 열매가 아예 없을 때는 100% 즉시 생성(공백 10초 미만 보장), 1~2개 있을 땐 60% 확률로 추가
-        if (currentBerryCount > 0 && Math.random() < 0.4) return;
-
-        spawnSingleBerry(layer);
-      }, 3800);
+      // 슬롯 3: 20초 ~ 30초 (오른쪽 가지)
+      scheduleBerrySlot(2, 20000, 30000, { minTop: 110, maxTop: 130, minLeft: 60, maxLeft: 88 });
     }
 
-    function spawnSingleBerry(layer) {
+    function clearAllBerryTimers() {
+      berrySlotTimers.forEach(t => clearTimeout(t));
+      berrySlotTimers = [];
+    }
+
+    function scheduleBerrySlot(slotIdx, minDelay, maxDelay, bounds) {
+      if (!isCurrentHabitatForest) return;
+
+      const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay)) + minDelay;
+      const timerId = setTimeout(() => {
+        if (!isCurrentHabitatForest) return;
+        spawnBerryInSlot(slotIdx, minDelay, maxDelay, bounds);
+      }, randomDelay);
+
+      berrySlotTimers.push(timerId);
+    }
+
+    function spawnBerryInSlot(slotIdx, minDelay, maxDelay, bounds) {
+      const layer = document.getElementById('berryLayer');
+      if (!layer || !isCurrentHabitatForest) return;
+
       const el = document.createElement('img');
       el.className = 'berry-item small hanging';
       el.src = './images/items/razz-berry.png';
 
-      // 숲 상단 가지 다양한 위치에 자연스럽게 배치
-      const topOffset = Math.floor(Math.random() * 95) + 115;
-      const leftOffset = Math.floor(Math.random() * 85) + 18;
+      const topOffset = Math.floor(Math.random() * (bounds.maxTop - bounds.minTop)) + bounds.minTop;
+      const leftOffset = Math.floor(Math.random() * (bounds.maxLeft - bounds.minLeft)) + bounds.minLeft;
       el.style.top = topOffset + 'px';
       el.style.left = leftOffset + 'px';
 
@@ -4591,20 +4609,26 @@
         pendingBerryXp += 5;
         document.getElementById('pendingBerryXpText').innerText = '+' + pendingBerryXp + ' XP';
         document.getElementById('berryBasketWidget').classList.add('show');
+
+        // 수확 후 다음 스폰 스케줄 등록
+        scheduleBerrySlot(slotIdx, minDelay, maxDelay, bounds);
       };
 
       layer.appendChild(el);
 
-      // 🍒 3~4.5초 후 바닥으로 톡 떨어지며 반투명 페이드아웃
-      const hangDuration = Math.floor(Math.random() * 1500) + 3000; // 3000ms ~ 4500ms
+      // 4~5.5초 후 바닥으로 톡 떨어지며 자연스럽게 반투명 페이드아웃
+      const hangDuration = Math.floor(Math.random() * 1500) + 4000;
       setTimeout(() => {
         if (isCollected || !el.parentNode) return;
         el.classList.remove('hanging');
         el.classList.add('dropping');
 
-        // 낙하 애니메이션 완료(1.1초) 후 완전 제거
+        // 낙하(1.1초) 완료 후 DOM 제거 및 다음 열매 스케줄링
         setTimeout(() => {
           if (el.parentNode) el.parentNode.removeChild(el);
+          if (!isCollected) {
+            scheduleBerrySlot(slotIdx, minDelay, maxDelay, bounds);
+          }
         }, 1100);
       }, hangDuration);
     }
