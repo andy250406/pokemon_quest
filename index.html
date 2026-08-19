@@ -256,6 +256,15 @@
       white-space: nowrap;
     }
 
+    .growth-tag {
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+
     .xp-text {
       font-size: 10px;
       color: #666;
@@ -396,6 +405,67 @@
       100% { transform: translateY(0) scale(1); }
     }
 
+    /* ✨ 진화 축하 연출 팝업 */
+    .evolve-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle, rgba(30,58,138,0.95) 0%, rgba(10,15,30,0.98) 100%);
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: all 0.4s ease;
+    }
+    .evolve-overlay.active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .evolve-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: #60a5fa;
+      margin-bottom: 16px;
+      text-shadow: 0 0 12px rgba(96,165,250,0.8);
+      text-align: center;
+    }
+    .evolve-sprite {
+      width: 140px;
+      height: 140px;
+      object-fit: contain;
+      image-rendering: pixelated;
+      animation: evolveGlow 1.2s infinite alternate;
+      margin-bottom: 16px;
+    }
+    @keyframes evolveGlow {
+      0% { filter: drop-shadow(0 0 8px #60a5fa) brightness(1); transform: scale(1); }
+      100% { filter: drop-shadow(0 0 24px #38bdf8) brightness(1.3); transform: scale(1.1); }
+    }
+    .evolve-desc {
+      font-size: 14px;
+      color: #e2e8f0;
+      font-weight: 800;
+      text-align: center;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .btn-evolve-confirm {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(37,99,235,0.5);
+    }
+
     /* 하단 네비게이션 바 */
     .bottom-nav {
       position: absolute;
@@ -438,14 +508,8 @@
       gap: 6px;
       flex-wrap: wrap;
     }
-    .quest-toolbar-left {
-      display: flex;
-      gap: 6px;
-    }
-    .quest-toolbar-right {
-      display: flex;
-      gap: 6px;
-    }
+    .quest-toolbar-left { display: flex; gap: 6px; }
+    .quest-toolbar-right { display: flex; gap: 6px; }
 
     /* 📋 퀘스트 카드 */
     .quest-card {
@@ -960,7 +1024,10 @@
           
           <div class="type-nature-row">
             <div class="type-icons-row" id="typeIconsRow"></div>
-            <span class="nature-tag" id="natureTag">고집 (+공격)</span>
+            <div style="display:flex; align-items:center; gap:4px;">
+              <span class="growth-tag" id="growthTag">보통느림</span>
+              <span class="nature-tag" id="natureTag">고집 (+공격)</span>
+            </div>
           </div>
 
           <div class="xp-text">
@@ -997,6 +1064,14 @@
           alt="포켓몬"
           onclick="this.classList.remove('hopping'); void this.offsetWidth; this.classList.add('hopping');"
         />
+      </div>
+
+      <!-- ✨ 자동 진화 축하 연출 팝업 모달 -->
+      <div class="evolve-overlay" id="evolveOverlay">
+        <div class="evolve-title">✨ 축하합니다! 포켓몬 진화! ✨</div>
+        <img id="evolveSpriteImg" class="evolve-sprite" src="" alt="진화 포켓몬">
+        <div class="evolve-desc" id="evolveDescText">포켓몬이 새로운 모습으로 진화했습니다!</div>
+        <button class="btn-evolve-confirm" onclick="closeEvolveOverlay()">멋져요! 확인 👍</button>
       </div>
 
       <!-- 🛠️ 좌측 하단 치트 콘솔 트리거 -->
@@ -1248,90 +1323,193 @@
       "드래곤": "./images/types/16.png", "악": "./images/types/17.png", "페어리": "./images/types/18.png"
     };
 
-    // 1세대 151마리 포켓몬 명칭 & 대표 타입 목록
+    // =========================================================================
+    // 🧬 1세대 151마리 진화 레벨(evolveLevel), 진화대상(evolvesToId), 성장유형(growth) 데이터베이스
+    // growth: "FAST"(빠름), "MEDIUM_FAST"(보통빠름), "MEDIUM_SLOW"(보통느림), "SLOW"(느림)
+    // =========================================================================
     const POKEDEX_DATA_151 = [
-      {id:1, name:"이상해씨", type:"풀/독"}, {id:2, name:"이상해풀", type:"풀/독"}, {id:3, name:"이상해꽃", type:"풀/독"},
-      {id:4, name:"파이리", type:"불꽃"}, {id:5, name:"리자드", type:"불꽃"}, {id:6, name:"리자몽", type:"불꽃/비행"},
-      {id:7, name:"꼬부기", type:"물"}, {id:8, name:"어니부기", type:"물"}, {id:9, name:"거북왕", type:"물"},
-      {id:10, name:"캐터피", type:"벌레"}, {id:11, name:"단데기", type:"벌레"}, {id:12, name:"버터플", type:"벌레/비행"},
-      {id:13, name:"뿔충이", type:"벌레/독"}, {id:14, name:"딱충이", type:"벌레/독"}, {id:15, name:"독침붕", type:"벌레/독"},
-      {id:16, name:"구구", type:"노말/비행"}, {id:17, name:"피죤", type:"노말/비행"}, {id:18, name:"피죤투", type:"노말/비행"},
-      {id:19, name:"꼬렛", type:"노말"}, {id:20, name:"레트라", type:"노말"},
-      {id:21, name:"깨비참", type:"노말/비행"}, {id:22, name:"깨비드릴조", type:"노말/비행"},
-      {id:23, name:"아보", type:"독"}, {id:24, name:"아보크", type:"독"},
-      {id:25, name:"피카츄", type:"전기"}, {id:26, name:"라이츄", type:"전기"},
-      {id:27, name:"모래두지", type:"땅"}, {id:28, name:"고지", type:"땅"},
-      {id:29, name:"니드런♀", type:"독"}, {id:30, name:"니드리나", type:"독"}, {id:31, name:"니드퀸", type:"독/땅"},
-      {id:32, name:"니드런♂", type:"독"}, {id:33, name:"니드리노", type:"독"}, {id:34, name:"니드킹", type:"독/땅"},
-      {id:35, name:"삐삐", type:"페어리"}, {id:36, name:"픽시", type:"페어리"},
-      {id:37, name:"식스테일", type:"불꽃"}, {id:38, name:"나인테일", type:"불꽃"},
-      {id:39, name:"푸린", type:"노말/페어리"}, {id:40, name:"푸크린", type:"노말/페어리"},
-      {id:41, name:"주뱃", type:"독/비행"}, {id:42, name:"골뱃", type:"독/비행"},
-      {id:43, name:"뚜벅쵸", type:"풀/독"}, {id:44, name:"냄새꼬", type:"풀/독"}, {id:45, name:"라플레시아", type:"풀/독"},
-      {id:46, name:"파라스", type:"벌레/풀"}, {id:47, name:"파라섹트", type:"벌레/풀"},
-      {id:48, name:"콘팡", type:"벌레/독"}, {id:49, name:"도나리", type:"벌레/독"},
-      {id:50, name:"디그다", type:"땅"}, {id:51, name:"닥트리오", type:"땅"},
-      {id:52, name:"나옹", type:"노말"}, {id:53, name:"페르시온", type:"노말"},
-      {id:54, name:"고라파덕", type:"물"}, {id:55, name:"골덕", type:"물"},
-      {id:56, name:"망키", type:"격투"}, {id:57, name:"성원숭", type:"격투"},
-      {id:58, name:"가디", type:"불꽃"}, {id:59, name:"윈디", type:"불꽃"},
-      {id:60, name:"발챙이", type:"물"}, {id:61, name:"슈륙챙이", type:"물"}, {id:62, name:"강챙이", type:"물/격투"},
-      {id:63, name:"케이시", type:"에스퍼"}, {id:64, name:"윤겔라", type:"에스퍼"}, {id:65, name:"후딘", type:"에스퍼"},
-      {id:66, name:"알통몬", type:"격투"}, {id:67, name:"근육몬", type:"격투"}, {id:68, name:"괴력몬", type:"격투"},
-      {id:69, name:"모다피", type:"풀/독"}, {id:70, name:"우츠동", type:"풀/독"}, {id:71, name:"우츠보트", type:"풀/독"},
-      {id:72, name:"왕눈해", type:"물/독"}, {id:73, name:"독파리", type:"물/독"},
-      {id:74, name:"꼬마돌", type:"바위/땅"}, {id:75, name:"데구리", type:"바위/땅"}, {id:76, name:"딱구리", type:"바위/땅"},
-      {id:77, name:"포니타", type:"불꽃"}, {id:78, name:"날쌩마", type:"불꽃"},
-      {id:79, name:"야돈", type:"물/에스퍼"}, {id:80, name:"야도란", type:"물/에스퍼"},
-      {id:81, name:"코일", type:"전기/강철"}, {id:82, name:"레어코일", type:"전기/강철"},
-      {id:83, name:"파오리", type:"노말/비행"},
-      {id:84, name:"두두", type:"노말/비행"}, {id:85, name:"두트리오", type:"노말/비행"},
-      {id:86, name:"쥬쥬", type:"물"}, {id:87, name:"쥬레곤", type:"물/얼음"},
-      {id:88, name:"질퍽이", type:"독"}, {id:89, name:"질뻐기", type:"독"},
-      {id:90, name:"셀러", type:"물"}, {id:91, name:"파르셀", type:"물/얼음"},
-      {id:92, name:"고오스", type:"고스트/독"}, {id:93, name:"고우스트", type:"고스트/독"}, {id:94, name:"팬텀", type:"고스트/독"},
-      {id:95, name:"롱스톤", type:"바위/땅"},
-      {id:96, name:"슬리프", type:"에스퍼"}, {id:97, name:"슬리퍼", type:"에스퍼"},
-      {id:98, name:"크랩", type:"물"}, {id:99, name:"킹크랩", type:"물"},
-      {id:100, name:"찌리리공", type:"전기"}, {id:101, name:"붐볼", type:"전기"},
-      {id:102, name:"아라리", type:"풀/에스퍼"}, {id:103, name:"나시", type:"풀/에스퍼"},
-      {id:104, name:"탕구리", type:"땅"}, {id:105, name:"텅구리", type:"땅"},
-      {id:106, name:"시라소몬", type:"격투"}, {id:107, name:"홍수몬", type:"격투"},
-      {id:108, name:"내루미", type:"노말"},
-      {id:109, name:"또가스", type:"독"}, {id:110, name:"또도가스", type:"독"},
-      {id:111, name:"뿔카노", type:"땅/바위"}, {id:112, name:"코뿌리", type:"땅/바위"},
-      {id:113, name:"핑복", type:"노말"},
-      {id:114, name:"덩쿠리", type:"풀"},
-      {id:115, name:"캥카", type:"노말"},
-      {id:116, name:"쏘드라", type:"물"}, {id:117, name:"시드라", type:"물"},
-      {id:118, name:"콘치", type:"물"}, {id:119, name:"왕콘치", type:"물"},
-      {id:120, name:"별가사리", type:"물"}, {id:121, name:"아쿠스타", type:"물/에스퍼"},
-      {id:122, name:"마임맨", type:"에스퍼/페어리"},
-      {id:123, name:"스라크", type:"벌레/비행"},
-      {id:124, name:"루주라", type:"얼음/에스퍼"},
-      {id:125, name:"에레브", type:"전기"},
-      {id:126, name:"마그마", type:"불꽃"},
-      {id:127, name:"쁘사이저", type:"벌레"},
-      {id:128, name:"켄타로스", type:"노말"},
-      {id:129, name:"잉어킹", type:"물"}, {id:130, name:"갸라도스", type:"물/비행"},
-      {id:131, name:"라프라스", type:"물/얼음"},
-      {id:132, name:"메타몽", type:"노말"},
-      {id:133, name:"이브이", type:"노말"}, {id:134, name:"샤미드", type:"물"}, {id:135, name:"쥬피썬더", type:"전기"}, {id:136, name:"부스터", type:"불꽃"},
-      {id:137, name:"폴리곤", type:"노말"},
-      {id:138, name:"암나이트", type:"바위/물"}, {id:139, name:"암스타", type:"바위/물"},
-      {id:140, name:"투구", type:"바위/물"}, {id:141, name:"투구푸스", type:"바위/물"},
-      {id:142, name:"프테라", type:"바위/비행"},
-      {id:143, name:"잠만보", type:"노말"},
-      {id:144, name:"프리져", type:"얼음/비행"}, {id:145, name:"썬더", type:"전기/비행"}, {id:146, name:"파이어", type:"불꽃/비행"},
-      {id:147, name:"미뇽", type:"드래곤"}, {id:148, name:"신뇽", type:"드래곤"}, {id:149, name:"망나뇽", type:"드래곤/비행"},
-      {id:150, name:"뮤츠", type:"에스퍼"}, {id:151, name:"뮤", type:"에스퍼"}
+      {id:1, name:"이상해씨", type:"풀/독", growth:"MEDIUM_SLOW", evolveLevel:16, evolvesTo:2},
+      {id:2, name:"이상해풀", type:"풀/독", growth:"MEDIUM_SLOW", evolveLevel:32, evolvesTo:3},
+      {id:3, name:"이상해꽃", type:"풀/독", growth:"MEDIUM_SLOW", evolveLevel:null, evolvesTo:null},
+      {id:4, name:"파이리", type:"불꽃", growth:"MEDIUM_SLOW", evolveLevel:16, evolvesTo:5},
+      {id:5, name:"리자드", type:"불꽃", growth:"MEDIUM_SLOW", evolveLevel:36, evolvesTo:6},
+      {id:6, name:"리자몽", type:"불꽃/비행", growth:"MEDIUM_SLOW", evolveLevel:null, evolvesTo:null},
+      {id:7, name:"꼬부기", type:"물", growth:"MEDIUM_SLOW", evolveLevel:16, evolvesTo:8},
+      {id:8, name:"어니부기", type:"물", growth:"MEDIUM_SLOW", evolveLevel:36, evolvesTo:9},
+      {id:9, name:"거북왕", type:"물", growth:"MEDIUM_SLOW", evolveLevel:null, evolvesTo:null},
+      {id:10, name:"캐터피", type:"벌레", growth:"MEDIUM_FAST", evolveLevel:7, evolvesTo:11},
+      {id:11, name:"단데기", type:"벌레", growth:"MEDIUM_FAST", evolveLevel:10, evolvesTo:12},
+      {id:12, name:"버터플", type:"벌레/비행", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:13, name:"뿔충이", type:"벌레/독", growth:"MEDIUM_FAST", evolveLevel:7, evolvesTo:14},
+      {id:14, name:"딱충이", type:"벌레/독", growth:"MEDIUM_FAST", evolveLevel:10, evolvesTo:15},
+      {id:15, name:"독침붕", type:"벌레/독", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:16, name:"구구", type:"노말/비행", growth:"MEDIUM_SLOW", evolveLevel:18, evolvesTo:17},
+      {id:17, name:"피죤", type:"노말/비행", growth:"MEDIUM_SLOW", evolveLevel:36, evolvesTo:18},
+      {id:18, name:"피죤투", type:"노말/비행", growth:"MEDIUM_SLOW", evolveLevel:null, evolvesTo:null},
+      {id:19, name:"꼬렛", type:"노말", growth:"MEDIUM_FAST", evolveLevel:20, evolvesTo:20},
+      {id:20, name:"레트라", type:"노말", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:21, name:"깨비참", type:"노말/비행", growth:"MEDIUM_FAST", evolveLevel:20, evolvesTo:22},
+      {id:22, name:"깨비드릴조", type:"노말/비행", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:23, name:"아보", type:"독", growth:"MEDIUM_FAST", evolveLevel:22, evolvesTo:24},
+      {id:24, name:"아보크", type:"독", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:25, name:"피카츄", type:"전기", growth:"MEDIUM_FAST", evolveLevel:26, evolvesTo:26},
+      {id:26, name:"라이츄", type:"전기", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:27, name:"모래두지", type:"땅", growth:"MEDIUM_FAST", evolveLevel:22, evolvesTo:28},
+      {id:28, name:"고지", type:"땅", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:29, name:"니드런♀", type:"독", growth:"MEDIUM_SLOW", evolveLevel:16, evolvesTo:30},
+      {id:30, name:"니드리나", type:"독", growth:"MEDIUM_SLOW", evolveLevel:36, evolvesTo:31},
+      {id:31, name:"니드퀸", type:"독/땅", growth:"MEDIUM_SLOW", evolveLevel:null, evolvesTo:null},
+      {id:32, name:"니드런♂", type:"독", growth:"MEDIUM_SLOW", evolveLevel:16, evolvesTo:33},
+      {id:33, name:"니드리노", type:"독", growth:"MEDIUM_SLOW", evolveLevel:36, evolvesTo:34},
+      {id:34, name:"니드킹", type:"독/땅", growth:"MEDIUM_SLOW", evolveLevel:null, evolvesTo:null},
+      {id:35, name:"삐삐", type:"페어리", growth:"FAST", evolveLevel:28, evolvesTo:36},
+      {id:36, name:"픽시", type:"페어리", growth:"FAST", evolveLevel:null, evolvesTo:null},
+      {id:37, name:"식스테일", type:"불꽃", growth:"MEDIUM_FAST", evolveLevel:29, evolvesTo:38},
+      {id:38, name:"나인테일", type:"불꽃", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:39, name:"푸린", type:"노말/페어리", growth:"FAST", evolveLevel:28, evolvesTo:40},
+      {id:40, name:"푸크린", type:"노말/페어리", growth:"FAST", evolveLevel:null, evolvesTo:null},
+      {id:41, name:"주뱃", type:"독/비행", growth:"MEDIUM_FAST", evolveLevel:22, evolvesTo:42},
+      {id:42, name:"골뱃", type:"독/비행", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:43, name:"뚜벅쵸", type:"풀/독", growth:"MEDIUM_SLOW", evolveLevel:21, evolvesTo:44},
+      {id:44, name:"냄새꼬", type:"풀/독", growth:"MEDIUM_SLOW", evolveLevel:36, evolvesTo:45},
+      {id:45, name:"라플레시아", type:"풀/독", growth:"MEDIUM_SLOW", evolveLevel:null, evolvesTo:null},
+      {id:46, name:"파라스", type:"벌레/풀", growth:"MEDIUM_FAST", evolveLevel:24, evolvesTo:47},
+      {id:47, name:"파라섹트", type:"벌레/풀", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:48, name:"콘팡", type:"벌레/독", growth:"MEDIUM_FAST", evolveLevel:31, evolvesTo:49},
+      {id:49, name:"도나리", type:"벌레/독", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:50, name:"디그다", type:"땅", growth:"MEDIUM_FAST", evolveLevel:26, evolvesTo:51},
+      {id:51, name:"닥트리오", type:"땅", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:52, name:"나옹", type:"노말", growth:"MEDIUM_FAST", evolveLevel:28, evolvesTo:53},
+      {id:53, name:"페르시온", type:"노말", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:54, name:"고라파덕", type:"물", growth:"MEDIUM_FAST", evolveLevel:33, evolvesTo:55},
+      {id:55, name:"골덕", type:"물", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:56, name:"망키", type:"격투", growth:"MEDIUM_FAST", evolveLevel:28, evolvesTo:57},
+      {id:57, name:"성원숭", type:"격투", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:58, name:"가디", type:"불꽃", growth:"SLOW", evolveLevel:30, evolvesTo:59},
+      {id:59, name:"윈디", type:"불꽃", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:60, name:"발챙이", type:"물", growth:"MEDIUM_SLOW", evolveLevel:25, evolvesTo:61},
+      {id:61, name:"슈륙챙이", type:"물", growth:"MEDIUM_SLOW", evolveLevel:36, evolvesTo:62},
+      {id:62, name:"강챙이", type:"물/격투", growth:"MEDIUM_SLOW", evolveLevel:null, evolvesTo:null},
+      {id:63, name:"케이시", type:"에스퍼", growth:"MEDIUM_SLOW", evolveLevel:16, evolvesTo:64},
+      {id:64, name:"윤겔라", type:"에스퍼", growth:"MEDIUM_SLOW", evolveLevel:36, evolvesTo:65},
+      {id:65, name:"후딘", type:"에스퍼", growth:"MEDIUM_SLOW", evolveLevel:null, evolvesTo:null},
+      {id:66, name:"알통몬", type:"격투", growth:"MEDIUM_SLOW", evolveLevel:28, evolvesTo:67},
+      {id:67, name:"근육몬", type:"격투", growth:"MEDIUM_SLOW", evolveLevel:36, evolvesTo:68},
+      {id:68, name:"괴력몬", type:"격투", growth:"MEDIUM_SLOW", evolveLevel:null, evolvesTo:null},
+      {id:69, name:"모다피", type:"풀/독", growth:"MEDIUM_SLOW", evolveLevel:21, evolvesTo:70},
+      {id:70, name:"우츠동", type:"풀/독", growth:"MEDIUM_SLOW", evolveLevel:36, evolvesTo:71},
+      {id:71, name:"우츠보트", type:"풀/독", growth:"MEDIUM_SLOW", evolveLevel:null, evolvesTo:null},
+      {id:72, name:"왕눈해", type:"물/독", growth:"SLOW", evolveLevel:30, evolvesTo:73},
+      {id:73, name:"독파리", type:"물/독", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:74, name:"꼬마돌", type:"바위/땅", growth:"MEDIUM_SLOW", evolveLevel:25, evolvesTo:75},
+      {id:75, name:"데구리", type:"바위/땅", growth:"MEDIUM_SLOW", evolveLevel:36, evolvesTo:76},
+      {id:76, name:"딱구리", type:"바위/땅", growth:"MEDIUM_SLOW", evolveLevel:null, evolvesTo:null},
+      {id:77, name:"포니타", type:"불꽃", growth:"MEDIUM_FAST", evolveLevel:40, evolvesTo:78},
+      {id:78, name:"날쌩마", type:"불꽃", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:79, name:"야돈", type:"물/에스퍼", growth:"MEDIUM_FAST", evolveLevel:37, evolvesTo:80},
+      {id:80, name:"야도란", type:"물/에스퍼", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:81, name:"코일", type:"전기/강철", growth:"MEDIUM_FAST", evolveLevel:30, evolvesTo:82},
+      {id:82, name:"레어코일", type:"전기/강철", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:83, name:"파오리", type:"노말/비행", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:84, name:"두두", type:"노말/비행", growth:"MEDIUM_FAST", evolveLevel:31, evolvesTo:85},
+      {id:85, name:"두트리오", type:"노말/비행", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:86, name:"쥬쥬", type:"물", growth:"MEDIUM_FAST", evolveLevel:34, evolvesTo:87},
+      {id:87, name:"쥬레곤", type:"물/얼음", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:88, name:"질퍽이", type:"독", growth:"MEDIUM_FAST", evolveLevel:38, evolvesTo:89},
+      {id:89, name:"질뻐기", type:"독", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:90, name:"셀러", type:"물", growth:"SLOW", evolveLevel:30, evolvesTo:91},
+      {id:91, name:"파르셀", type:"물/얼음", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:92, name:"고오스", type:"고스트/독", growth:"MEDIUM_SLOW", evolveLevel:25, evolvesTo:93},
+      {id:93, name:"고우스트", type:"고스트/독", growth:"MEDIUM_SLOW", evolveLevel:36, evolvesTo:94},
+      {id:94, name:"팬텀", type:"고스트/독", growth:"MEDIUM_SLOW", evolveLevel:null, evolvesTo:null},
+      {id:95, name:"롱스톤", type:"바위/땅", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:96, name:"슬리프", type:"에스퍼", growth:"MEDIUM_FAST", evolveLevel:26, evolvesTo:97},
+      {id:97, name:"슬리퍼", type:"에스퍼", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:98, name:"크랩", type:"물", growth:"MEDIUM_FAST", evolveLevel:28, evolvesTo:99},
+      {id:99, name:"킹크랩", type:"물", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:100, name:"찌리리공", type:"전기", growth:"MEDIUM_FAST", evolveLevel:30, evolvesTo:101},
+      {id:101, name:"붐볼", type:"전기", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:102, name:"아라리", type:"풀/에스퍼", growth:"SLOW", evolveLevel:30, evolvesTo:103},
+      {id:103, name:"나시", type:"풀/에스퍼", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:104, name:"탕구리", type:"땅", growth:"MEDIUM_FAST", evolveLevel:28, evolvesTo:105},
+      {id:105, name:"텅구리", type:"땅", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:106, name:"시라소몬", type:"격투", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:107, name:"홍수몬", type:"격투", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:108, name:"내루미", type:"노말", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:109, name:"또가스", type:"독", growth:"MEDIUM_FAST", evolveLevel:35, evolvesTo:110},
+      {id:110, name:"또도가스", type:"독", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:111, name:"뿔카노", type:"땅/바위", growth:"SLOW", evolveLevel:42, evolvesTo:112},
+      {id:112, name:"코뿌리", type:"땅/바위", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:113, name:"핑복", type:"노말", growth:"FAST", evolveLevel:null, evolvesTo:null},
+      {id:114, name:"덩쿠리", type:"풀", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:115, name:"캥카", type:"노말", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:116, name:"쏘드라", type:"물", growth:"MEDIUM_FAST", evolveLevel:32, evolvesTo:117},
+      {id:117, name:"시드라", type:"물", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:118, name:"콘치", type:"물", growth:"MEDIUM_FAST", evolveLevel:33, evolvesTo:119},
+      {id:119, name:"왕콘치", type:"물", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:120, name:"별가사리", type:"물", growth:"SLOW", evolveLevel:30, evolvesTo:121},
+      {id:121, name:"아쿠스타", type:"물/에스퍼", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:122, name:"마임맨", type:"에스퍼/페어리", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:123, name:"스라크", type:"벌레/비행", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:124, name:"루주라", type:"얼음/에스퍼", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:125, name:"에레브", type:"전기", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:126, name:"마그마", type:"불꽃", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:127, name:"쁘사이저", type:"벌레", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:128, name:"켄타로스", type:"노말", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:129, name:"잉어킹", type:"물", growth:"SLOW", evolveLevel:20, evolvesTo:130},
+      {id:130, name:"갸라도스", type:"물/비행", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:131, name:"라프라스", type:"물/얼음", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:132, name:"메타몽", type:"노말", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:133, name:"이브이", type:"노말", growth:"MEDIUM_FAST", evolveLevel:25, evolvesTo:134},
+      {id:134, name:"샤미드", type:"물", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:135, name:"쥬피썬더", type:"전기", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:136, name:"부스터", type:"불꽃", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:137, name:"폴리곤", type:"노말", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:138, name:"암나이트", type:"바위/물", growth:"MEDIUM_FAST", evolveLevel:40, evolvesTo:139},
+      {id:139, name:"암스타", type:"바위/물", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:140, name:"투구", type:"바위/물", growth:"MEDIUM_FAST", evolveLevel:40, evolvesTo:141},
+      {id:141, name:"투구푸스", type:"바위/물", growth:"MEDIUM_FAST", evolveLevel:null, evolvesTo:null},
+      {id:142, name:"프테라", type:"바위/비행", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:143, name:"잠만보", type:"노말", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:144, name:"프리져", type:"얼음/비행", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:145, name:"썬더", type:"전기/비행", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:146, name:"파이어", type:"불꽃/비행", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:147, name:"미뇽", type:"드래곤", growth:"SLOW", evolveLevel:30, evolvesTo:148},
+      {id:148, name:"신뇽", type:"드래곤", growth:"SLOW", evolveLevel:55, evolvesTo:149},
+      {id:149, name:"망나뇽", type:"드래곤/비행", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:150, name:"뮤츠", type:"에스퍼", growth:"SLOW", evolveLevel:null, evolvesTo:null},
+      {id:151, name:"뮤", type:"에스퍼", growth:"MEDIUM_SLOW", evolveLevel:null, evolvesTo:null}
     ];
+
+    // =========================================================================
+    // 📊 포켓몬 성장 유형별 레벨업 필요 경험치(Required XP) 계산 공식
+    // =========================================================================
+    function calculateRequiredXpForLevel(level, growthRate = "MEDIUM_SLOW") {
+      const L = Math.max(1, parseInt(level) || 1);
+
+      switch (growthRate) {
+        case "FAST": // 빠름 (삐삐, 푸린, 럭키 등)
+          return Math.floor(35 + (L * 8) + Math.pow(L, 1.35) * 2.2);
+
+        case "MEDIUM_FAST": // 보통 빠름 (피카츄, 나옹, 이브이 등)
+          return Math.floor(45 + (L * 10) + Math.pow(L, 1.45) * 2.5);
+
+        case "MEDIUM_SLOW": // 보통 느림 (이상해씨, 파이리, 꼬부기 스타팅 및 3단계 진화형)
+          return Math.floor(55 + (L * 12) + Math.pow(L, 1.52) * 2.8);
+
+        case "SLOW": // 느림/대기만성 (미뇽/망나뇽, 가디, 잉어킹, 뿔카노, 전설/환상 포켓몬)
+          return Math.floor(70 + (L * 15) + Math.pow(L, 1.6) * 3.2);
+
+        default:
+          return Math.floor(50 + (L * 10) + Math.pow(L, 1.5) * 2.5);
+      }
+    }
 
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxVbpj0MyIAMzd_c7PcWgx94yoNkFFlQ3kcjnk81BMv7TcRJH3KLNeHIB7lJBepOlAtjw/exec";
 
     let appState = {
-      userStats: { level: 1, currentXp: 0, requiredXp: 100, stageName: "1단계" },
-      pokemon: { id: 1, name: "이상해씨", gender: "♂", nature: "고집", natureBuff: "+공격", type: "풀/독", idleGif: "./images/pokemon/showdown/1.gif" },
+      userStats: { level: 1, currentXp: 0, requiredXp: 70, stageName: "1단계" },
+      pokemon: { id: 1, name: "이상해씨", gender: "♂", nature: "고집", natureBuff: "+공격", type: "풀/독", growth: "MEDIUM_SLOW", idleGif: "./images/pokemon/showdown/1.gif" },
       isEgg: false,
       quests: []
     };
@@ -1340,7 +1518,11 @@
     let isCurrentHabitatForest = false;
     let isBatchDeleteMode = false;
 
-    // 로컬 스토리지에 캐시된 포켓몬 상태 복원
+    function getPokemonData(id) {
+      if (!id || id <= 0) return null;
+      return POKEDEX_DATA_151[id - 1] || null;
+    }
+
     function restoreLocalPokemonCache() {
       try {
         const saved = localStorage.getItem('poketasks_mon_state');
@@ -1399,6 +1581,10 @@
       
       restoreLocalPokemonCache();
 
+      // 성장 유형에 맞는 정확한 필요 경험치 재계산
+      const growth = appState.pokemon?.growth || "MEDIUM_SLOW";
+      appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, growth);
+
       const todayIso = new Date().toISOString().split('T')[0];
       const dateInput = document.getElementById('inputQuestDate');
       if (dateInput) dateInput.value = todayIso;
@@ -1450,6 +1636,11 @@
       document.getElementById('lvBadge').innerText = 'Lv.' + data.userStats.level;
       document.getElementById('pokeName').innerHTML = `${data.pokemon.name} <span class="gender-symbol male">${data.pokemon.gender}</span>`;
       document.getElementById('natureTag').innerText = `${data.pokemon.nature} (${data.pokemon.natureBuff})`;
+      
+      const growthKr = { "FAST":"빠름", "MEDIUM_FAST":"보통빠름", "MEDIUM_SLOW":"보통느림", "SLOW":"느림" };
+      const growthEl = document.getElementById('growthTag');
+      if (growthEl) growthEl.innerText = growthKr[data.pokemon.growth] || "보통느림";
+
       document.getElementById('pokemonImage').src = data.pokemon.idleGif;
 
       const xpPercent = Math.min(100, Math.floor((data.userStats.currentXp / data.userStats.requiredXp) * 100));
@@ -1473,13 +1664,24 @@
         if (json.success && json.data) {
           appState.quests = json.data.quests || [];
           
-          // 백엔드에 저장된 포켓몬 상태 동기화
           if (json.data.pokemon) {
-            appState.pokemon = json.data.pokemon;
+            const pInfo = getPokemonData(json.data.pokemon.id);
+            appState.pokemon = {
+              id: json.data.pokemon.id,
+              name: json.data.pokemon.name,
+              gender: json.data.pokemon.gender || "♂",
+              nature: json.data.pokemon.nature || "고집",
+              natureBuff: json.data.pokemon.natureBuff || "+공격",
+              type: pInfo ? pInfo.type : json.data.pokemon.type,
+              growth: pInfo ? pInfo.growth : "MEDIUM_SLOW",
+              idleGif: `./images/pokemon/showdown/${json.data.pokemon.id}.gif`
+            };
             appState.isEgg = Boolean(json.data.isEgg);
           }
           if (json.data.userStats) {
-            appState.userStats = json.data.userStats;
+            appState.userStats.level = json.data.userStats.level;
+            appState.userStats.currentXp = json.data.userStats.currentXp;
+            appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, appState.pokemon.growth);
           }
           saveLocalPokemonCache();
 
@@ -1487,11 +1689,9 @@
           logDebug(`Google Tasks 동기화 성공 (퀘스트 ${appState.quests.length}개)`, "success");
           if (btn) btn.innerText = "🔄 구글 동기화";
         } else {
-          logDebug("Google Tasks 응답 비정상: " + JSON.stringify(json), "warn");
           if (btn) btn.innerText = "🔄 구글 동기화";
         }
       } catch (e) {
-        logDebug("Google Tasks 동기화 오류: " + e.message, "error");
         if (btn) btn.innerText = "🔄 구글 동기화";
       }
     }
@@ -1746,7 +1946,6 @@
       const execBtn = document.getElementById('btnExecBatchDelete');
       execBtn.innerText = "⏳ 일괄 삭제 중...";
       execBtn.disabled = true;
-      logDebug(`일괄 삭제 요청: ${questIds.join(', ')}`, "warn");
 
       try {
         const response = await fetch(GAS_API_URL, {
@@ -1861,27 +2060,87 @@
       document.getElementById('questText').innerText = `${reqDone}/${reqTotal}`;
     }
 
+    // ========================================================
+    // 🌟 경험치 획득 및 실제 레벨업 / 자동 진화 판별 엔진
+    // ========================================================
+    function processXpGainAndEvolve(earnedXp) {
+      if (appState.isEgg) {
+        // 알 상태에서 50 XP 이상 모이면 스타팅 포켓몬으로 자동 부화!
+        appState.userStats.currentXp += earnedXp;
+        if (appState.userStats.currentXp >= 50) {
+          executeCheatCustom(2); // 스타팅 알 부화!
+        }
+        return;
+      }
+
+      appState.userStats.currentXp += earnedXp;
+      const growth = appState.pokemon?.growth || "MEDIUM_SLOW";
+      let leveledUp = false;
+
+      while (appState.userStats.currentXp >= appState.userStats.requiredXp) {
+        appState.userStats.currentXp -= appState.userStats.requiredXp;
+        appState.userStats.level++;
+        appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, growth);
+        leveledUp = true;
+      }
+
+      // 레벨업 시 진화 조건(evolveLevel) 검사!
+      if (leveledUp) {
+        checkAutoEvolution(appState.pokemon.id, appState.userStats.level);
+      }
+
+      initUI(appState);
+      syncCheatToGasBackend(appState.pokemon.id, appState.isEgg, appState.userStats.level, appState.userStats.currentXp);
+    }
+
+    // 자동 진화 검사 함수
+    function checkAutoEvolution(pokemonId, currentLevel) {
+      const pInfo = getPokemonData(pokemonId);
+      if (!pInfo || !pInfo.evolveLevel || !pInfo.evolvesTo) return;
+
+      if (currentLevel >= pInfo.evolveLevel) {
+        const nextMon = getPokemonData(pInfo.evolvesTo);
+        if (nextMon) {
+          appState.pokemon.id = nextMon.id;
+          appState.pokemon.name = nextMon.name;
+          appState.pokemon.type = nextMon.type;
+          appState.pokemon.growth = nextMon.growth;
+          appState.pokemon.idleGif = `./images/pokemon/showdown/${nextMon.id}.gif`;
+
+          // 필요 경험치 성장곡선 재조정
+          appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, nextMon.growth);
+
+          // ✨ 축하 진화 오버레이 연출 트리거!
+          triggerEvolutionOverlay(pInfo.name, nextMon.name, nextMon.id, pInfo.evolveLevel);
+        }
+      }
+    }
+
+    function triggerEvolutionOverlay(oldName, newName, newId, evolveLv) {
+      document.getElementById('evolveSpriteImg').src = `./images/pokemon/showdown/${newId}.gif`;
+      document.getElementById('evolveDescText').innerHTML = `Lv.${evolveLv}에 도달하여 <b>${oldName}</b>(이)가<br><b>${newName}</b>(으)로 진화했습니다! 🎉`;
+      document.getElementById('evolveOverlay').classList.add('active');
+    }
+
+    function closeEvolveOverlay() {
+      document.getElementById('evolveOverlay').classList.remove('active');
+    }
+
     async function completeQuestDirect(questId, questName) {
       const q = appState.quests.find(x => x.id === questId);
       if (q && !q.isCompletedToday) {
         q.isCompletedToday = true;
         q.consecutiveDays = (q.consecutiveDays || 0) + 1;
-        appState.userStats.currentXp += q.rewardXp;
         
         const img = document.getElementById('pokemonImage');
         img.classList.remove('hopping');
         void img.offsetWidth;
         img.classList.add('hopping');
 
-        if (appState.userStats.currentXp >= appState.userStats.requiredXp) {
-          appState.userStats.currentXp -= appState.userStats.requiredXp;
-          appState.userStats.level++;
-          alert("🎉 레벨업! Lv." + appState.userStats.level + "에 도달했습니다!");
-        }
-        initUI(appState);
-        saveLocalPokemonCache();
+        // 정밀 경험치 및 진화 엔진 가동
+        processXpGainAndEvolve(q.rewardXp);
 
-        logDebug(`퀘스트 완료 처리: "${questName}" (+${q.rewardXp}XP)`, "info");
+        logDebug(`퀘스트 완료: "${questName}" (+${q.rewardXp}XP)`, "info");
         try {
           fetch(GAS_API_URL, {
             method: "POST",
@@ -1955,16 +2214,11 @@
 
     function onFeedAccumulatedBerries() {
       if (pendingBerryXp <= 0) return;
-      appState.userStats.currentXp += pendingBerryXp;
+      const earned = pendingBerryXp;
       pendingBerryXp = 0;
       document.getElementById('berryBasketWidget').classList.remove('show');
-      if (appState.userStats.currentXp >= appState.userStats.requiredXp) {
-        appState.userStats.currentXp -= appState.userStats.requiredXp;
-        appState.userStats.level++;
-        alert("🎉 배부르게 먹고 레벨업! Lv." + appState.userStats.level);
-      }
-      initUI(appState);
-      saveLocalPokemonCache();
+      
+      processXpGainAndEvolve(earned);
     }
 
     // ========================================================
@@ -1978,7 +2232,6 @@
       document.getElementById('cheatModal').classList.remove('open');
     }
 
-    // 백엔드 스프레드시트에 포켓몬 상태 영구 동기화
     function syncCheatToGasBackend(pokemonId, isEgg, level, currentXp, resetAll = false) {
       saveLocalPokemonCache();
       fetch(GAS_API_URL, {
@@ -1996,10 +2249,10 @@
     }
 
     function executeCheatCustom(num) {
-      closeCheatModal(); // 실행 즉시 팝업창 자동 닫힘!
+      closeCheatModal();
 
       switch (num) {
-        case 1: // 1. 현재 포켓몬 없애고 강제로 알 받기
+        case 1: // 1. 강제로 알 받기
           appState.isEgg = true;
           appState.pokemon = {
             id: 0,
@@ -2008,10 +2261,12 @@
             nature: "순수",
             natureBuff: "+잠재력",
             type: "노말",
+            growth: "MEDIUM_SLOW",
             idleGif: "./images/items/poke-ball.png"
           };
           appState.userStats.currentXp = 0;
           appState.userStats.level = 1;
+          appState.userStats.requiredXp = calculateRequiredXpForLevel(1, "MEDIUM_SLOW");
           initUI(appState);
           syncCheatToGasBackend(0, true, 1, 0);
           alert("🥚 새로운 포켓몬 알을 받았습니다! 퀘스트를 완료하여 부화시켜 보세요!");
@@ -2033,8 +2288,10 @@
             nature: "고집",
             natureBuff: "+공격",
             type: hatched.type,
+            growth: hatched.growth,
             idleGif: `./images/pokemon/showdown/${hatchedId}.gif`
           };
+          appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, hatched.growth);
           initUI(appState);
           syncCheatToGasBackend(hatchedId, false, appState.userStats.level, appState.userStats.currentXp);
           alert("🐣 알이 깨어나고 " + hatched.name + "(이)가 태어났습니다! ✨");
@@ -2051,20 +2308,23 @@
             nature: "명랑",
             natureBuff: "+스피드",
             type: randomMon.type,
+            growth: randomMon.growth,
             idleGif: `./images/pokemon/showdown/${randomId}.gif`
           };
+          appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, randomMon.growth);
           initUI(appState);
           syncCheatToGasBackend(randomId, false, appState.userStats.level, appState.userStats.currentXp);
-          alert("🎲 [No." + randomId + " " + randomMon.name + "] 포켓몬으로 즉시 변경되었습니다!");
+          alert("🎲 [No." + randomId + " " + randomMon.name + " (" + randomMon.growth + ")] 포켓몬으로 변경되었습니다!");
           break;
 
         case 4: // 4. 즉시 레벨업
           appState.userStats.level++;
           appState.userStats.currentXp = 0;
-          appState.userStats.requiredXp = Math.floor(appState.userStats.requiredXp * 1.5);
+          appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, appState.pokemon.growth);
+          checkAutoEvolution(appState.pokemon.id, appState.userStats.level);
           initUI(appState);
           syncCheatToGasBackend(appState.pokemon.id, appState.isEgg, appState.userStats.level, 0);
-          alert("👑 즉시 레벨업! 현재 Lv." + appState.userStats.level);
+          alert("👑 즉시 레벨업! 현재 Lv." + appState.userStats.level + " (다음 필요 XP: " + appState.userStats.requiredXp + ")");
           break;
 
         case 5: // 5. 즉시 진화
@@ -2072,27 +2332,26 @@
             executeCheatCustom(2);
             return;
           }
-          const currentId = appState.pokemon.id;
-          let nextId = currentId + 1;
-          if (currentId === 3 || currentId === 6 || currentId === 9 || currentId === 26 || currentId === 151) {
+          const pInfo = getPokemonData(appState.pokemon.id);
+          if (!pInfo || !pInfo.evolvesTo) {
             alert("✨ 현재 포켓몬은 최종 진화형입니다!");
             return;
           }
-          if (nextId <= 151) {
-            const nextMon = POKEDEX_DATA_151[nextId - 1];
-            appState.pokemon.id = nextId;
-            appState.pokemon.name = nextMon.name;
-            appState.pokemon.type = nextMon.type;
-            appState.pokemon.idleGif = `./images/pokemon/showdown/${nextId}.gif`;
-            initUI(appState);
-            syncCheatToGasBackend(nextId, false, appState.userStats.level, appState.userStats.currentXp);
-            alert("✨ 축하합니다! " + nextMon.name + "(으)로 진화했습니다! 🎉");
-          }
+          const nextMon = getPokemonData(pInfo.evolvesTo);
+          appState.pokemon.id = nextMon.id;
+          appState.pokemon.name = nextMon.name;
+          appState.pokemon.type = nextMon.type;
+          appState.pokemon.growth = nextMon.growth;
+          appState.pokemon.idleGif = `./images/pokemon/showdown/${nextMon.id}.gif`;
+          appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, nextMon.growth);
+          initUI(appState);
+          syncCheatToGasBackend(nextMon.id, false, appState.userStats.level, appState.userStats.currentXp);
+          triggerEvolutionOverlay(pInfo.name, nextMon.name, nextMon.id, pInfo.evolveLevel || appState.userStats.level);
           break;
 
         case 24: // 24. 지금까지 기록 모두 초기화
           if (confirm("⚠️ 정말 지금까지의 모든 기록(도감, 레벨, 경험치 등)을 초기화하시겠습니까?")) {
-            appState.userStats = { level: 1, currentXp: 0, requiredXp: 100, stageName: "1단계" };
+            appState.userStats = { level: 1, currentXp: 0, requiredXp: 70, stageName: "1단계" };
             appState.isEgg = false;
             appState.pokemon = {
               id: 1,
@@ -2101,6 +2360,7 @@
               nature: "고집",
               natureBuff: "+공격",
               type: "풀/독",
+              growth: "MEDIUM_SLOW",
               idleGif: "./images/pokemon/showdown/1.gif"
             };
             initUI(appState);
@@ -2109,7 +2369,7 @@
           }
           break;
 
-        case 25: // 25. 현재 기능 팝업창 닫기 X 버튼
+        case 25: // 25. 닫기
           closeCheatModal();
           break;
 
