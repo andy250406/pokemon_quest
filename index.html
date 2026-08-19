@@ -1340,6 +1340,29 @@
     let isCurrentHabitatForest = false;
     let isBatchDeleteMode = false;
 
+    // 로컬 스토리지에 캐시된 포켓몬 상태 복원
+    function restoreLocalPokemonCache() {
+      try {
+        const saved = localStorage.getItem('poketasks_mon_state');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.pokemon) appState.pokemon = parsed.pokemon;
+          if (parsed.isEgg !== undefined) appState.isEgg = parsed.isEgg;
+          if (parsed.userStats) appState.userStats = parsed.userStats;
+        }
+      } catch (e) {}
+    }
+
+    function saveLocalPokemonCache() {
+      try {
+        localStorage.setItem('poketasks_mon_state', JSON.stringify({
+          pokemon: appState.pokemon,
+          isEgg: appState.isEgg,
+          userStats: appState.userStats
+        }));
+      } catch (e) {}
+    }
+
     async function runDiagnostics() {
       logDebug("--- [🔍 실시간 OneSignal & 브라우저 환경 진단] ---", "warn");
       logDebug(`URL: ${window.location.href}`, "info");
@@ -1374,6 +1397,8 @@
     window.onload = function() {
       logDebug("🌱 포켓Tasks 웹 앱 로드 시작", "info");
       
+      restoreLocalPokemonCache();
+
       const todayIso = new Date().toISOString().split('T')[0];
       const dateInput = document.getElementById('inputQuestDate');
       if (dateInput) dateInput.value = todayIso;
@@ -1447,8 +1472,17 @@
         const json = await res.json();
         if (json.success && json.data) {
           appState.quests = json.data.quests || [];
-          if (json.data.userStats) appState.userStats = json.data.userStats;
-          if (json.data.pokemon) appState.pokemon = json.data.pokemon;
+          
+          // 백엔드에 저장된 포켓몬 상태 동기화
+          if (json.data.pokemon) {
+            appState.pokemon = json.data.pokemon;
+            appState.isEgg = Boolean(json.data.isEgg);
+          }
+          if (json.data.userStats) {
+            appState.userStats = json.data.userStats;
+          }
+          saveLocalPokemonCache();
+
           initUI(appState);
           logDebug(`Google Tasks 동기화 성공 (퀘스트 ${appState.quests.length}개)`, "success");
           if (btn) btn.innerText = "🔄 구글 동기화";
@@ -1845,6 +1879,7 @@
           alert("🎉 레벨업! Lv." + appState.userStats.level + "에 도달했습니다!");
         }
         initUI(appState);
+        saveLocalPokemonCache();
 
         logDebug(`퀘스트 완료 처리: "${questName}" (+${q.rewardXp}XP)`, "info");
         try {
@@ -1929,10 +1964,11 @@
         alert("🎉 배부르게 먹고 레벨업! Lv." + appState.userStats.level);
       }
       initUI(appState);
+      saveLocalPokemonCache();
     }
 
     // ========================================================
-    // 🕹️ 5x5 치트 콘솔 팝업 모달 관리 (사용자 지정 25개 버튼)
+    // 🕹️ 5x5 치트 콘솔 팝업 모달 관리 & 백엔드 영구 저장
     // ========================================================
     function openCheatModal() {
       document.getElementById('cheatModal').classList.add('open');
@@ -1940,6 +1976,23 @@
 
     function closeCheatModal() {
       document.getElementById('cheatModal').classList.remove('open');
+    }
+
+    // 백엔드 스프레드시트에 포켓몬 상태 영구 동기화
+    function syncCheatToGasBackend(pokemonId, isEgg, level, currentXp, resetAll = false) {
+      saveLocalPokemonCache();
+      fetch(GAS_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          action: "cheatSetPokemon",
+          pokemonId: pokemonId,
+          isEgg: isEgg,
+          level: level,
+          currentXp: currentXp,
+          resetAll: resetAll
+        })
+      }).catch(() => {});
     }
 
     function executeCheatCustom(num) {
@@ -1960,6 +2013,7 @@
           appState.userStats.currentXp = 0;
           appState.userStats.level = 1;
           initUI(appState);
+          syncCheatToGasBackend(0, true, 1, 0);
           alert("🥚 새로운 포켓몬 알을 받았습니다! 퀘스트를 완료하여 부화시켜 보세요!");
           break;
 
@@ -1968,7 +2022,6 @@
             alert("💡 현재 알 상태가 아닙니다! 1번 치트로 알을 먼저 받아보세요.");
             return;
           }
-          // 스타팅 4종 중 랜덤 부화
           const starters = [1, 4, 7, 25];
           const hatchedId = starters[Math.floor(Math.random() * starters.length)];
           const hatched = POKEDEX_DATA_151[hatchedId - 1];
@@ -1983,6 +2036,7 @@
             idleGif: `./images/pokemon/showdown/${hatchedId}.gif`
           };
           initUI(appState);
+          syncCheatToGasBackend(hatchedId, false, appState.userStats.level, appState.userStats.currentXp);
           alert("🐣 알이 깨어나고 " + hatched.name + "(이)가 태어났습니다! ✨");
           break;
 
@@ -2000,6 +2054,7 @@
             idleGif: `./images/pokemon/showdown/${randomId}.gif`
           };
           initUI(appState);
+          syncCheatToGasBackend(randomId, false, appState.userStats.level, appState.userStats.currentXp);
           alert("🎲 [No." + randomId + " " + randomMon.name + "] 포켓몬으로 즉시 변경되었습니다!");
           break;
 
@@ -2008,6 +2063,7 @@
           appState.userStats.currentXp = 0;
           appState.userStats.requiredXp = Math.floor(appState.userStats.requiredXp * 1.5);
           initUI(appState);
+          syncCheatToGasBackend(appState.pokemon.id, appState.isEgg, appState.userStats.level, 0);
           alert("👑 즉시 레벨업! 현재 Lv." + appState.userStats.level);
           break;
 
@@ -2029,6 +2085,7 @@
             appState.pokemon.type = nextMon.type;
             appState.pokemon.idleGif = `./images/pokemon/showdown/${nextId}.gif`;
             initUI(appState);
+            syncCheatToGasBackend(nextId, false, appState.userStats.level, appState.userStats.currentXp);
             alert("✨ 축하합니다! " + nextMon.name + "(으)로 진화했습니다! 🎉");
           }
           break;
@@ -2047,6 +2104,7 @@
               idleGif: "./images/pokemon/showdown/1.gif"
             };
             initUI(appState);
+            syncCheatToGasBackend(1, false, 1, 0, true);
             alert("🧹 모든 육성 및 도감 기록이 초기화되었습니다!");
           }
           break;
