@@ -309,26 +309,33 @@
     }
     .quest-badge:active { transform: scale(0.95); }
 
-    /* 🌾 배경별 인터랙티브 파밍 레이어 */
+    /* 🌾 배경별 인터랙티브 파밍 레이어 (터치/클릭 최우선권 z-index: 18) */
     .berry-harvest-layer {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
       pointer-events: none;
-      z-index: 15;
+      z-index: 18;
       overflow: hidden;
     }
 
     .berry-item {
       position: absolute;
-      pointer-events: auto;
+      pointer-events: auto !important;
       cursor: pointer;
       filter: drop-shadow(0 6px 8px rgba(0,0,0,0.35));
-      width: 38px;
-      height: 38px;
+      width: 44px;
+      height: 44px;
+      padding: 3px;
+      box-sizing: border-box;
       object-fit: contain;
-      transition: transform 0.2s ease;
+      user-select: none;
+      -webkit-user-drag: none;
+      touch-action: manipulation;
+      transition: transform 0.15s ease, opacity 0.15s ease;
     }
-    .berry-item:active { transform: scale(1.15) !important; }
+    .berry-item:active {
+      transform: scale(1.25) !important;
+    }
 
     /* 1) 🌳 숲/초원: 가지에 매달림 & 낙하 */
     .berry-item.hanging {
@@ -347,51 +354,51 @@
       100% { transform: translateY(115px) rotate(35deg) scale(0.7); opacity: 0; }
     }
 
-    /* 2) 🪨 동굴 & 🏖️ 해변: 바닥 구르기 애니메이션 */
+    /* 2) 🪨 동굴 & 🏖️ 해변: 바닥 좌우 구르기 애니메이션 */
     .berry-item.rolling-left-to-right {
-      animation: rollLeftToRight 4.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      animation: rollLeftToRight 5.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
     }
     @keyframes rollLeftToRight {
-      0% { transform: translateX(-40px) rotate(0deg); opacity: 0; }
-      15% { opacity: 1; }
-      75% { opacity: 1; }
-      100% { transform: translateX(340px) rotate(720deg); opacity: 0; }
+      0% { transform: translateX(0px) rotate(0deg); opacity: 0; }
+      10% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translateX(420px) rotate(900deg); opacity: 0; }
     }
 
     .berry-item.rolling-right-to-left {
-      animation: rollRightToLeft 4.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+      animation: rollRightToLeft 5.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
     }
     @keyframes rollRightToLeft {
-      0% { transform: translateX(40px) rotate(0deg); opacity: 0; }
-      15% { opacity: 1; }
-      75% { opacity: 1; }
-      100% { transform: translateX(-340px) rotate(-720deg); opacity: 0; }
+      0% { transform: translateX(0px) rotate(0deg); opacity: 0; }
+      10% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translateX(-420px) rotate(-900deg); opacity: 0; }
     }
 
-    /* 3) 🕊️ 하늘: 깃털 살랑살랑 고공 낙하 */
+    /* 3) 🕊️ 하늘: 깃털 고공 살랑살랑 지그재그 낙하 */
     .berry-item.feather-falling {
-      animation: featherFloatFall 5.5s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+      animation: featherFloatFall 5.8s cubic-bezier(0.4, 0, 0.6, 1) forwards;
     }
     @keyframes featherFloatFall {
-      0% { transform: translateY(-40px) translateX(0px) rotate(0deg); opacity: 0; }
-      12% { opacity: 1; }
-      25% { transform: translateY(120px) translateX(25px) rotate(20deg); }
-      50% { transform: translateY(270px) translateX(-20px) rotate(-15deg); }
-      75% { transform: translateY(420px) translateX(20px) rotate(18deg); opacity: 0.9; }
-      100% { transform: translateY(580px) translateX(-10px) rotate(-10deg); opacity: 0; }
+      0% { transform: translateY(0px) translateX(0px) rotate(0deg); opacity: 0; }
+      10% { opacity: 1; }
+      25% { transform: translateY(130px) translateX(28px) rotate(22deg); }
+      50% { transform: translateY(280px) translateX(-24px) rotate(-18deg); }
+      75% { transform: translateY(440px) translateX(22px) rotate(20deg); opacity: 0.9; }
+      100% { transform: translateY(600px) translateX(-12px) rotate(-12deg); opacity: 0; }
     }
 
     /* 4) 🌊 바다: 심해 수중 살랑살랑 가라앉기 */
     .berry-item.ocean-sinking {
-      animation: oceanFloatSink 5.8s ease-in-out forwards;
+      animation: oceanFloatSink 6.2s ease-in-out forwards;
     }
     @keyframes oceanFloatSink {
-      0% { transform: translateY(-30px) translateX(0px) rotate(0deg) scale(0.85); opacity: 0; }
-      15% { opacity: 1; }
-      30% { transform: translateY(110px) translateX(-18px) rotate(-12deg) scale(1); }
-      60% { transform: translateY(260px) translateX(20px) rotate(14deg) scale(1.05); }
-      85% { transform: translateY(420px) translateX(-12px) rotate(-8deg) scale(0.95); opacity: 0.85; }
-      100% { transform: translateY(550px) translateX(8px) rotate(6deg) scale(0.8); opacity: 0; }
+      0% { transform: translateY(0px) translateX(0px) rotate(0deg) scale(0.85); opacity: 0; }
+      12% { opacity: 1; }
+      30% { transform: translateY(120px) translateX(-20px) rotate(-14deg) scale(1); }
+      60% { transform: translateY(280px) translateX(22px) rotate(16deg) scale(1.05); }
+      85% { transform: translateY(450px) translateX(-14px) rotate(-10deg) scale(0.95); opacity: 0.85; }
+      100% { transform: translateY(590px) translateX(10px) rotate(8deg) scale(0.8); opacity: 0; }
     }
 
     /* 🍒 우측 하단 아이템 수확 위젯 (치트 콘솔과 동일한 슬림 사이즈) */
@@ -1063,7 +1070,7 @@
         </div>
       </div>
 
-      <!-- 🌾 배경별 인터랙티브 파밍 레이어 (열매/진화돌/깃털) -->
+      <!-- 🌾 배경별 인터랙티브 파밍 레이어 (터치/클릭 우선순위 z-index: 18) -->
       <div class="berry-harvest-layer" id="berryLayer"></div>
 
       <!-- 🍒 우측 하단 아이템 수확 위젯 -->
@@ -4590,12 +4597,7 @@
     }
 
     // ========================================================
-    // 🌾 5대 서식지 배경별 인터랙티브 파밍 시스템 (동일 3-슬롯 공식)
-    // - 초원/숲 (PogoGrasslandBg): 열매 가지 맺힘 & 낙하
-    // - 동굴 (PogoCaveBg): 진화의 돌 바닥 구르기
-    // - 하늘 (PogoSkyBg): 깃털 종류 고공 살랑살랑 낙하
-    // - 해변 (PogoBeachBg): 열매 모래사장 바닥 구르기
-    // - 바다 (PogoOceanBg): 열매/진주 심해 침강 낙하
+    // 🌾 5대 서식지 배경별 인터랙티브 파밍 시스템 (터치/클릭 즉시 수확 완벽 대응)
     // ========================================================
     const HABITAT_ITEM_POOLS = {
       "PogoGrasslandBg": [
@@ -4664,7 +4666,7 @@
       let isCollected = false;
       let lifeDuration = 4800;
 
-      // 1) 🌳 숲/초원: 나뭇가지 매달림
+      // 1) 🌳 숲/초원: 나뭇가지 매달림 & 낙하
       if (bgKey === "PogoGrasslandBg") {
         el.classList.add('hanging');
         const topOffsets = [135, 175, 120];
@@ -4687,12 +4689,12 @@
       else if (bgKey === "PogoCaveBg" || bgKey === "PogoBeachBg" || bgKey === "PogoCityBg") {
         const isFromLeft = Math.random() < 0.5;
         el.classList.add(isFromLeft ? 'rolling-left-to-right' : 'rolling-right-to-left');
-        const bottomOffsets = [17, 21, 25]; // 바닥 높이
-        el.style.bottom = (bottomOffsets[slotIdx] + Math.floor(Math.random() * 4)) + '%';
-        el.style.left = isFromLeft ? '10px' : 'auto';
-        el.style.right = isFromLeft ? 'auto' : '10px';
+        const bottomOffsets = [22, 25, 28];
+        el.style.bottom = (bottomOffsets[slotIdx] + Math.floor(Math.random() * 3)) + '%';
+        el.style.left = isFromLeft ? '-30px' : 'auto';
+        el.style.right = isFromLeft ? 'auto' : '-30px';
 
-        lifeDuration = 4800;
+        lifeDuration = 5200;
         setTimeout(() => {
           if (el.parentNode) el.parentNode.removeChild(el);
           if (!isCollected) scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
@@ -4701,11 +4703,11 @@
       // 3) 🕊️ 하늘: 깃털 고공 살랑살랑 낙하
       else if (bgKey === "PogoSkyBg") {
         el.classList.add('feather-falling');
-        const xPositions = [20, 50, 75]; // % 단위 x좌표
+        const xPositions = [20, 50, 75];
         el.style.top = '-30px';
         el.style.left = (xPositions[slotIdx] + Math.floor(Math.random() * 10) - 5) + '%';
 
-        lifeDuration = 5500;
+        lifeDuration = 5800;
         setTimeout(() => {
           if (el.parentNode) el.parentNode.removeChild(el);
           if (!isCollected) scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
@@ -4718,34 +4720,54 @@
         el.style.top = '-20px';
         el.style.left = (xPositions[slotIdx] + Math.floor(Math.random() * 12) - 6) + '%';
 
-        lifeDuration = 5800;
+        lifeDuration = 6200;
         setTimeout(() => {
           if (el.parentNode) el.parentNode.removeChild(el);
           if (!isCollected) scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
         }, lifeDuration);
       }
 
-      el.onclick = (e) => {
-        e.stopPropagation();
+      // 🌟 터치/클릭 즉각 수확 핸들러 (모바일 터치 & PC 마우스 100% 즉시 반응)
+      const onHarvest = (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
         if (isCollected) return;
         isCollected = true;
 
-        if (el.parentNode) el.parentNode.removeChild(el);
-        pendingBerryXp += 5;
-        document.getElementById('pendingBerryXpText').innerText = '+' + pendingBerryXp + ' XP';
-        
-        // 아이콘 동적 변경 (동굴: 💎, 하늘: 🪶, 바다/해변/숲: 🍒)
-        const iconEl = document.getElementById('basketIcon');
-        if (bgKey === "PogoCaveBg") iconEl.innerText = "💎";
-        else if (bgKey === "PogoSkyBg") iconEl.innerText = "🪶";
-        else if (bgKey === "PogoOceanBg") iconEl.innerText = "🌊";
-        else iconEl.innerText = "🍒";
+        el.style.transform = 'scale(1.35)';
+        el.style.opacity = '0';
+        el.style.pointerEvents = 'none';
 
-        document.getElementById('berryBasketWidget').classList.add('show');
+        setTimeout(() => {
+          if (el.parentNode) el.parentNode.removeChild(el);
+        }, 150);
+
+        pendingBerryXp += 5;
+        const xpTextEl = document.getElementById('pendingBerryXpText');
+        if (xpTextEl) xpTextEl.innerText = '+' + pendingBerryXp + ' XP';
+        
+        // 아이콘 동적 변경 (동굴: 💎, 하늘: 🪶, 바다: 🌊, 해변: 🐚, 숲: 🍒)
+        const iconEl = document.getElementById('basketIcon');
+        if (iconEl) {
+          if (bgKey === "PogoCaveBg") iconEl.innerText = "💎";
+          else if (bgKey === "PogoSkyBg") iconEl.innerText = "🪶";
+          else if (bgKey === "PogoOceanBg") iconEl.innerText = "🌊";
+          else if (bgKey === "PogoBeachBg") iconEl.innerText = "🐚";
+          else iconEl.innerText = "🍒";
+        }
+
+        const basket = document.getElementById('berryBasketWidget');
+        if (basket) basket.classList.add('show');
 
         // 수확 후 다음 스폰 스케줄 등록
         scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
       };
+
+      el.addEventListener('pointerdown', onHarvest, { passive: false });
+      el.addEventListener('touchstart', onHarvest, { passive: false });
+      el.addEventListener('click', onHarvest, { passive: false });
 
       layer.appendChild(el);
     }
