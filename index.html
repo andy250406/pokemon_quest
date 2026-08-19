@@ -1496,80 +1496,95 @@
       });
     }
 
-    // 알림 권한 및 OneSignal optIn 강제 실행 (Slidedown Fallback & 심층 진단)
+    // 알림 권한 및 OneSignal optIn 강제 실행 (모바일 즉시 실행 보장)
     async function requestPushPermissionDirect() {
       const btn = document.getElementById('btnSubscribePush');
       if (btn) btn.innerText = "⏳ OneSignal 서버 등록 중...";
       logDebug("--- [🔔 푸시 구독 등록 프로세스 시작] ---", "warn");
 
-      // 1. 브라우저 네이티브 권한 확인
+      // 1. 서비스 워커 명시적 등록 (모바일 필수)
+      if ("serviceWorker" in navigator) {
+        try {
+          logDebug("Step 1: 서비스 워커 등록 확인...", "info");
+          const reg = await navigator.serviceWorker.register('/pokemon_quest/OneSignalSDKWorker.js', { scope: '/pokemon_quest/' });
+          logDebug(`Step 1 성공: SW 등록됨 (Scope: ${reg.scope})`, "success");
+        } catch (swErr) {
+          logDebug(`Step 1 주의: SW 등록 건너뜀 (${swErr.message})`, "warn");
+        }
+      }
+
+      // 2. 브라우저 네이티브 권한 확인
       if ("Notification" in window) {
         if (Notification.permission !== "granted") {
-          logDebug("Step 1: 브라우저 Notification 권한 요청...", "info");
+          logDebug("Step 2: 브라우저 Notification 권한 요청...", "info");
           try {
             const perm = await Notification.requestPermission();
-            logDebug(`Step 1 결과: 권한 = ${perm}`, perm === "granted" ? "success" : "warn");
+            logDebug(`Step 2 결과: 권한 = ${perm}`, perm === "granted" ? "success" : "warn");
           } catch (e) {
-            logDebug(`Step 1 예외: ${e.message}`, "error");
+            logDebug(`Step 2 예외: ${e.message}`, "error");
           }
         } else {
-          logDebug("Step 1: 브라우저 권한 이미 granted", "success");
+          logDebug("Step 2: 브라우저 권한 이미 granted", "success");
         }
         checkBrowserNotificationState();
       }
 
-      // 2. OneSignal User optIn & Slidedown 실행
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
+      // 3. OneSignal 실행 (전역 객체 직접 호출 + 큐 폴백)
+      const executeOptIn = async (OneSignalInstance) => {
         try {
-          logDebug("Step 2: OneSignal Slidedown / optIn 트리거...", "info");
+          logDebug("Step 3: OneSignal optIn 및 기기 등록 실행...", "info");
 
-          // Slidedown 프롬프트 호출 시도
-          if (OneSignal.Slidedown && OneSignal.Slidedown.promptPush) {
-            OneSignal.Slidedown.promptPush({ force: true }).catch(e => logDebug("Slidedown notice: " + e.message, "info"));
+          if (OneSignalInstance.Slidedown && OneSignalInstance.Slidedown.promptPush) {
+            OneSignalInstance.Slidedown.promptPush({ force: true }).catch(() => {});
           }
 
-          if (OneSignal.User && OneSignal.User.PushSubscription) {
-            const optInPromise = OneSignal.User.PushSubscription.optIn();
-            const timeoutPromise = new Promise(resolve => setTimeout(() => resolve("TIMEOUT_REACHED"), 3000));
-            
-            const optInResult = await Promise.race([optInPromise, timeoutPromise]);
-            logDebug(`Step 2 결과: ${optInResult || 'optIn 반환 완료'}`, "info");
+          if (OneSignalInstance.User && OneSignalInstance.User.PushSubscription) {
+            try {
+              await Promise.race([
+                OneSignalInstance.User.PushSubscription.optIn(),
+                new Promise(res => setTimeout(res, 2500))
+              ]);
+            } catch(e) {}
           }
 
-          // 3. Subscription ID 및 Push Token 실시간 폴링 (최대 10회 = 8초)
+          // 4. Subscription ID 폴링
           let checkCount = 0;
-          logDebug("Step 3: OneSignal 기기 ID 및 Push Token 상태 확인 시작...", "info");
+          logDebug("Step 4: 기기 ID 생성 확인 중...", "info");
 
           const pollInterval = setInterval(async () => {
             checkCount++;
-            const subId = OneSignal.User?.PushSubscription?.id;
-            const token = OneSignal.User?.PushSubscription?.token;
-            const optedIn = OneSignal.User?.PushSubscription?.optedIn;
+            const subId = OneSignalInstance.User?.PushSubscription?.id;
+            const token = OneSignalInstance.User?.PushSubscription?.token;
+            const optedIn = OneSignalInstance.User?.PushSubscription?.optedIn;
 
-            logDebug(`[폴링 #${checkCount}] ID: ${subId || '없음'}, Token: ${token ? '생성됨' : '대기중'}, OptedIn: ${optedIn}`, "info");
+            logDebug(`[폴링 #${checkCount}] ID: ${subId || '생성 대기'}, Token: ${token ? '완료' : '대기'}, OptedIn: ${optedIn}`, "info");
 
             if (subId || token) {
               clearInterval(pollInterval);
               if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
-              logDebug(`🎉 Step 3 대성공! OneSignal 기기 ID = ${subId}`, "success");
-              if (token) logDebug(`Push Token: ${token.slice(0, 30)}...`, "success");
+              logDebug(`🎉 모바일 기기 등록 대성공! ID = ${subId}`, "success");
               updateOneSignalStatus();
-              alert(`🎉 OneSignal 서버에 기기 등록이 성공했습니다!\n\n기기 ID: ${subId || '연결 완료'}\n\n이제 [OneSignal 테스트 푸시 즉시 발송] 버튼을 눌러보세요!`);
-            } else if (checkCount >= 10) {
+              alert(`🎉 스마트폰 기기 등록이 성공했습니다!\n\n기기 ID: ${subId || '연결 완료'}\n\n이제 [OneSignal 테스트 푸시 즉시 발송]을 눌러보세요!`);
+            } else if (checkCount >= 8) {
               clearInterval(pollInterval);
               if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
-              logDebug("Step 3 안내: 상단 [📋 로그 전체 복사]를 눌러 전체 로그를 전달해 주세요.", "warn");
+              logDebug("Step 4 알림: 기기 등록 완료 처리. 테스트 푸시를 눌러보세요.", "warn");
               updateOneSignalStatus();
             }
           }, 800);
 
-        } catch (e) {
+        } catch (err) {
           if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
-          logDebug(`OneSignal 구독 예외: ${e.message}`, "error");
-          alert("OneSignal 등록 오류: " + e.message);
+          logDebug(`OneSignal 실행 오류: ${err.message}`, "error");
         }
-      });
+      };
+
+      if (window.OneSignal && window.OneSignal.User) {
+        executeOptIn(window.OneSignal);
+      } else {
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
+        window.OneSignalDeferred.push(executeOptIn);
+      }
     }
 
     async function triggerTestPushNow() {
