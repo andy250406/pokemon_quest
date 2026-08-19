@@ -362,11 +362,11 @@
     }
     .btn-eat-berries:active { transform: scale(0.95); }
 
-    /* 중앙 서식지 & 캐릭터 */
+    /* 🌟 중앙 서식지 & 웅장한 캐릭터 스프라이트 영역 */
     .stage-area {
       position: absolute;
       left: 0; right: 0;
-      bottom: clamp(23%, 27vh, 30%);
+      bottom: clamp(20%, 25vh, 28%);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -389,20 +389,34 @@
     }
     .speech-bubble.active { opacity: 1; transform: translateY(0); }
 
+    /* 🌟 포켓몬 크기 정규화 및 대형화 */
+    .pokemon-sprite-container {
+      width: clamp(140px, 38vw, 190px);
+      height: clamp(140px, 38vw, 190px);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      position: relative;
+    }
+
     .pokemon-sprite {
-      width: clamp(90px, 25vw, 120px);
-      height: clamp(90px, 25vw, 120px);
+      width: 100%;
+      height: 100%;
+      max-width: 190px;
+      max-height: 190px;
       object-fit: contain;
       image-rendering: pixelated;
-      filter: drop-shadow(0 12px 12px rgba(0,0,0,0.4));
+      filter: drop-shadow(0 14px 14px rgba(0,0,0,0.45));
       cursor: pointer;
+      transform-origin: bottom center;
+      transition: transform 0.2s ease;
     }
 
     .hopping { animation: happyHop 0.6s ease; }
     @keyframes happyHop {
       0% { transform: translateY(0) scale(1); }
-      30% { transform: translateY(-16px) scale(1.15); }
-      60% { transform: translateY(0) scale(0.95); }
+      30% { transform: translateY(-20px) scale(1.18); }
+      60% { transform: translateY(0) scale(0.94); }
       100% { transform: translateY(0) scale(1); }
     }
 
@@ -436,8 +450,8 @@
       text-align: center;
     }
     .evolve-sprite {
-      width: 140px;
-      height: 140px;
+      width: 150px;
+      height: 150px;
       object-fit: contain;
       image-rendering: pixelated;
       animation: evolveGlow 1.2s infinite alternate;
@@ -616,7 +630,7 @@
       justify-content: center; background: #232c3d; border-radius: 20px; border: 2px solid #3b485d; padding: 8px;
     }
     .flip-card-back { transform: rotateY(180deg); border-color: #f472b6; }
-    .flip-img { width: 100px; height: 100px; object-fit: contain; image-rendering: pixelated; }
+    .flip-img { width: 110px; height: 110px; object-fit: contain; image-rendering: pixelated; }
     .flip-img.locked { filter: brightness(0); opacity: 0.55; }
     .flip-gender-tag {
       position: absolute; top: 6px; left: 8px; font-size: 11px; font-weight: 900; padding: 2px 6px; border-radius: 6px;
@@ -933,16 +947,18 @@
         <button class="btn-eat-berries" onclick="onFeedAccumulatedBerries()">먹어치우기 😋</button>
       </div>
 
-      <!-- 중앙 서식지 & 3D 포켓몬 캐릭터 -->
+      <!-- 🌟 중앙 서식지 & 웅장한 캐릭터 스프라이트 영역 -->
       <div class="stage-area">
         <div class="speech-bubble" id="speechBubble">씨-익! 🍃</div>
-        <img 
-          id="pokemonImage" 
-          class="pokemon-sprite" 
-          src="./images/pokemon/showdown/1.gif" 
-          alt="포켓몬"
-          onclick="this.classList.remove('hopping'); void this.offsetWidth; this.classList.add('hopping');"
-        />
+        <div class="pokemon-sprite-container">
+          <img 
+            id="pokemonImage" 
+            class="pokemon-sprite" 
+            src="./images/pokemon/showdown/1.gif" 
+            alt="포켓몬"
+            onclick="triggerSpriteHopAnimation()"
+          />
+        </div>
       </div>
 
       <!-- ✨ 자동 진화 축하 연출 팝업 모달 -->
@@ -1245,7 +1261,6 @@
       }
     }
 
-    // 🌳 속성별 서식지 배경화면 상대경로 매핑
     const HABITAT_BACKGROUNDS = {
       "PogoGrasslandBg": "./images/backgrounds/PogoGrasslandBg.png",
       "PogoBeachBg": "./images/backgrounds/PogoBeachBg.png",
@@ -1341,6 +1356,25 @@
       return POKEDEX_DATA_151[id - 1] || null;
     }
 
+    // 🌟 포켓몬별 캔버스 여백 차이를 보정하는 지능형 스케일 팩터
+    function getPokemonScaleFactor(pokeId, isEgg) {
+      if (isEgg || pokeId === 0) return 1.0;
+      
+      // 캔버스 여백이 유난히 큰 소형/기본체 포켓몬들 (파이리, 꼬부기, 피카츄, 캐터피, 뿔충이, 구구, 꼬렛, 케이시 등)
+      const SMALL_PADDING_MONS = [4, 7, 10, 13, 16, 19, 21, 23, 25, 27, 29, 32, 35, 37, 39, 41, 43, 46, 48, 50, 52, 54, 56, 58, 60, 63, 66, 69, 72, 74, 77, 79, 81, 83, 84, 86, 88, 90, 92, 96, 98, 100, 102, 104, 109, 114, 116, 118, 120, 129, 132, 133, 138, 140, 147];
+      if (SMALL_PADDING_MONS.includes(Number(pokeId))) {
+        return 1.45; // 45% 스케일업으로 이상해씨와 동일한 박력 제공
+      }
+
+      // 대형/진화체 포켓몬들 (리자몽, 거북왕, 괴력몬, 갸라도스, 잠만보, 롱스톤 등)
+      const LARGE_MONS = [3, 6, 9, 65, 68, 95, 112, 130, 131, 143, 144, 145, 146, 149, 150];
+      if (LARGE_MONS.includes(Number(pokeId))) {
+        return 1.25;
+      }
+
+      return 1.3; // 기본 30% 스케일업
+    }
+
     function restoreLocalPokemonCache() {
       try {
         const saved = localStorage.getItem('poketasks_mon_state');
@@ -1367,13 +1401,11 @@
       } catch (e) {}
     }
 
-    // 육성 기록에 아카이빙 (ACTIVE, EVOLVED, GRADUATED, HATCHED 등)
     function recordCurrentPokemonToHistory(status = "ACTIVE") {
       if (appState.isEgg || !appState.pokemon || !appState.pokemon.id) return;
       const monId = appState.pokemon.id;
       
       if (status === "EVOLVED" || status === "GRADUATED") {
-        // 완료된 최종 상태는 새 행으로 추가
         appState.pokemonHistory.push({
           id: "HIST_" + Date.now(),
           status: status,
@@ -1387,7 +1419,6 @@
           dateStr: new Date().toISOString().replace('T', ' ').slice(0, 16)
         });
       } else {
-        // ACTIVE인 경우 기존 레코드 업데이트 또는 추가
         const exist = appState.pokemonHistory.find(h => h.pokemonId === monId && h.gender === appState.pokemon.gender && h.status === "ACTIVE");
         if (exist) {
           exist.finalLevel = Math.max(exist.finalLevel || 1, appState.userStats.level);
@@ -1489,6 +1520,13 @@
       });
     }
 
+    function triggerSpriteHopAnimation() {
+      const img = document.getElementById('pokemonImage');
+      img.classList.remove('hopping');
+      void img.offsetWidth;
+      img.classList.add('hopping');
+    }
+
     function initUI(data) {
       const bgKey = determineHabitatBgKey(data.isEgg ? "노말" : data.pokemon.type);
       const bgUrl = HABITAT_BACKGROUNDS[bgKey] || "./images/backgrounds/PogoGrasslandBg.png";
@@ -1509,7 +1547,11 @@
       const growthEl = document.getElementById('growthTag');
       if (growthEl) growthEl.innerText = growthKr[data.pokemon.growth] || "보통느림";
 
-      document.getElementById('pokemonImage').src = data.pokemon.idleGif;
+      // 🌟 포켓몬별 크기 정규화 스케일 적용
+      const pImg = document.getElementById('pokemonImage');
+      pImg.src = data.pokemon.idleGif;
+      const scaleFactor = getPokemonScaleFactor(data.pokemon.id, data.isEgg);
+      pImg.style.transform = `scale(${scaleFactor})`;
 
       const xpPercent = Math.min(100, Math.floor((data.userStats.currentXp / data.userStats.requiredXp) * 100));
       document.getElementById('xpValues').innerText = `${data.userStats.currentXp} / ${data.userStats.requiredXp}`;
@@ -1932,14 +1974,11 @@
       document.getElementById('questText').innerText = `${reqDone}/${reqTotal}`;
     }
 
-    // ========================================================
-    // 🌟 경험치 획득 및 실제 레벨업 / 자동 진화 판별 & 아카이빙 엔진
-    // ========================================================
     function processXpGainAndEvolve(earnedXp) {
       if (appState.isEgg) {
         appState.userStats.currentXp += earnedXp;
         if (appState.userStats.currentXp >= 50) {
-          executeCheatCustom(2); // 등급 확률 기반 알 부화!
+          executeCheatCustom(2);
         }
         return;
       }
@@ -1964,7 +2003,6 @@
       syncCheatToGasBackend(appState.pokemon.id, appState.isEgg, appState.userStats.level, appState.userStats.currentXp, false, appState.pokemon.gender, appState.pokemon.nature);
     }
 
-    // 진화 시 이전 단계 포켓몬 기록 영구 아카이빙
     function checkAutoEvolution(pokemonId, currentLevel) {
       const pInfo = getPokemonData(pokemonId);
       if (!pInfo || !pInfo.evolveLevel || !pInfo.evolvesTo) return;
@@ -1979,10 +2017,8 @@
           const gender = appState.pokemon.gender;
           const nature = appState.pokemon.nature;
 
-          // 1) 로컬에 EVOLVED 상태로 영구 기록
           recordCurrentPokemonToHistory("EVOLVED");
 
-          // 2) 스프레드시트 PokemonHistory에 EVOLVED 행 실시간 저장!
           fetch(GAS_API_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -1999,7 +2035,6 @@
             })
           }).catch(() => {});
 
-          // 3) 새로운 진화형으로 전환
           appState.pokemon.id = nextMon.id;
           appState.pokemon.name = nextMon.name;
           appState.pokemon.type = nextMon.type;
@@ -2036,10 +2071,7 @@
         q.isCompletedToday = true;
         q.consecutiveDays = (q.consecutiveDays || 0) + 1;
         
-        const img = document.getElementById('pokemonImage');
-        img.classList.remove('hopping');
-        void img.offsetWidth;
-        img.classList.add('hopping');
+        triggerSpriteHopAnimation();
 
         processXpGainAndEvolve(q.rewardXp);
 
@@ -2078,9 +2110,6 @@
       });
     }
 
-    // ========================================================
-    // 📖 포켓몬 도감 메인 그리드 및 해금 판정 시스템
-    // ========================================================
     function getUnlockedHistoryMap() {
       const map = {};
       
@@ -2142,9 +2171,6 @@
       if (countEl) countEl.innerText = `${unlockedCount} / 151`;
     }
 
-    // ========================================================
-    // 📖 도감 상세 전문 팝업 모달 & 3D 암수 플립 로직
-    // ========================================================
     function openPokedexDetailModal(pokeId) {
       const pInfo = getPokemonData(pokeId);
       if (!pInfo) return;
@@ -2259,7 +2285,6 @@
       document.getElementById('dexTabContent2').style.display = tabNum === 2 ? 'block' : 'none';
     }
 
-    // 육성 기록 2번 탭 렌더링 (진화 완료, 명예의 전당 졸업, 현재 육성 중 상태별 표시)
     function renderDexHistoryTab(pokeId, monRecord) {
       const container = document.getElementById('dexHistoryListContainer');
       container.innerHTML = '';
@@ -2486,10 +2511,8 @@
           const gender = appState.pokemon.gender;
           const nature = appState.pokemon.nature;
 
-          // 1) 로컬에 EVOLVED 상태로 영구 기록
           recordCurrentPokemonToHistory("EVOLVED");
 
-          // 2) 스프레드시트 PokemonHistory에 EVOLVED 행 실시간 영구 추가!
           fetch(GAS_API_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
