@@ -609,6 +609,7 @@
       gap: 4px;
       cursor: pointer;
       text-align: center;
+      min-height: 54px;
       transition: all 0.15s ease;
     }
     .cheat-btn:active {
@@ -617,8 +618,27 @@
       color: white;
       border-color: #60a5fa;
     }
+    .cheat-btn.empty {
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed rgba(255,255,255,0.15);
+      color: #64748b;
+      cursor: default;
+    }
+    .cheat-btn.empty:active { transform: none; background: rgba(255,255,255,0.03); }
+    .cheat-btn.danger {
+      background: #3b181e;
+      border-color: #ef4444;
+      color: #fca5a5;
+    }
+    .cheat-btn.danger:active { background: #ef4444; color: white; }
+    .cheat-btn.close {
+      background: #374151;
+      border-color: #6b7280;
+      color: #ffffff;
+    }
+    .cheat-btn.close:active { background: #4b5563; }
     .cheat-btn-icon { font-size: 16px; line-height: 1; }
-    .cheat-btn-label { font-size: 10px; line-height: 1.1; word-break: keep-all; }
+    .cheat-btn-label { font-size: 9.5px; line-height: 1.15; word-break: keep-all; font-weight: 800; }
 
     /* 📋 퀘스트 추가 & 수정 모달 */
     .modal-backdrop {
@@ -1010,50 +1030,50 @@
 
   </div>
 
-  <!-- 🕹️ 5x5 치트 콘솔 팝업 모달 -->
+  <!-- 🕹️ 5x5 치트 콘솔 팝업 모달 (사용자 지정 25개 버튼) -->
   <div class="modal-backdrop" id="cheatModal">
     <div class="cheat-modal-content">
       <div class="modal-header-row">
-        <div class="modal-title" style="color:#60a5fa;">🕹️ 포켓Tasks 치트 콘솔 (5x5)</div>
+        <div class="modal-title" style="color:#60a5fa;">🕹️ 치트 콘솔 (5x5)</div>
         <button class="icon-btn" onclick="closeCheatModal()">✕</button>
       </div>
-      <p style="font-size:11px; color:#94a3b8; margin-bottom:6px;">원하는 치트를 누르면 즉시 실행되고 팝업이 닫힙니다.</p>
+      <p style="font-size:11px; color:#94a3b8; margin-bottom:4px;">원하는 기능을 누르면 즉시 실행되고 창이 닫힙니다.</p>
       
       <div class="cheat-grid-5x5">
-        <!-- 1행: 스타팅 포켓몬 -->
-        <button class="cheat-btn" onclick="executeCheat('setmon 1')"><span class="cheat-btn-icon">🍃</span><span class="cheat-btn-label">이상해씨</span></button>
-        <button class="cheat-btn" onclick="executeCheat('setmon 2')"><span class="cheat-btn-icon">🌿</span><span class="cheat-btn-label">이상해풀</span></button>
-        <button class="cheat-btn" onclick="executeCheat('setmon 3')"><span class="cheat-btn-icon">🌺</span><span class="cheat-btn-label">이상해꽃</span></button>
-        <button class="cheat-btn" onclick="executeCheat('setmon 4')"><span class="cheat-btn-icon">🔥</span><span class="cheat-btn-label">파이리</span></button>
-        <button class="cheat-btn" onclick="executeCheat('setmon 5')"><span class="cheat-btn-icon">🦎</span><span class="cheat-btn-label">리자드</span></button>
+        <!-- 1행: 1 ~ 5 -->
+        <button class="cheat-btn" onclick="executeCheatCustom(1)"><span class="cheat-btn-icon">🥚</span><span class="cheat-btn-label">1. 알 받기</span></button>
+        <button class="cheat-btn" onclick="executeCheatCustom(2)"><span class="cheat-btn-icon">🐣</span><span class="cheat-btn-label">2. 알 즉시진화</span></button>
+        <button class="cheat-btn" onclick="executeCheatCustom(3)"><span class="cheat-btn-icon">🎲</span><span class="cheat-btn-label">3. 랜덤포켓몬</span></button>
+        <button class="cheat-btn" onclick="executeCheatCustom(4)"><span class="cheat-btn-icon">👑</span><span class="cheat-btn-label">4. 즉시레벨업</span></button>
+        <button class="cheat-btn" onclick="executeCheatCustom(5)"><span class="cheat-btn-icon">✨</span><span class="cheat-btn-label">5. 즉시진화</span></button>
 
-        <!-- 2행: 스타팅 & 전기 -->
-        <button class="cheat-btn" onclick="executeCheat('setmon 6')"><span class="cheat-btn-icon">🐉</span><span class="cheat-btn-label">리자몽</span></button>
-        <button class="cheat-btn" onclick="executeCheat('setmon 7')"><span class="cheat-btn-icon">💧</span><span class="cheat-btn-label">꼬부기</span></button>
-        <button class="cheat-btn" onclick="executeCheat('setmon 8')"><span class="cheat-btn-icon">🐢</span><span class="cheat-btn-label">어니부기</span></button>
-        <button class="cheat-btn" onclick="executeCheat('setmon 9')"><span class="cheat-btn-icon">🚀</span><span class="cheat-btn-label">거북왕</span></button>
-        <button class="cheat-btn" onclick="executeCheat('setmon 25')"><span class="cheat-btn-icon">⚡</span><span class="cheat-btn-label">피카츄</span></button>
+        <!-- 2행: 6 ~ 10 (공란) -->
+        <button class="cheat-btn empty"><span class="cheat-btn-label">6</span></button>
+        <button class="cheat-btn empty"><span class="cheat-btn-label">7</span></button>
+        <button class="cheat-btn empty"><span class="cheat-btn-label">8</span></button>
+        <button class="cheat-btn empty"><span class="cheat-btn-label">9</span></button>
+        <button class="cheat-btn empty"><span class="cheat-btn-label">10</span></button>
 
-        <!-- 3행: 인기 & 전설 포켓몬 -->
-        <button class="cheat-btn" onclick="executeCheat('setmon 26')"><span class="cheat-btn-icon">⚡</span><span class="cheat-btn-label">라이츄</span></button>
-        <button class="cheat-btn" onclick="executeCheat('setmon 94')"><span class="cheat-btn-icon">👻</span><span class="cheat-btn-label">팬텀</span></button>
-        <button class="cheat-btn" onclick="executeCheat('setmon 150')"><span class="cheat-btn-icon">🔮</span><span class="cheat-btn-label">뮤츠</span></button>
-        <button class="cheat-btn" onclick="executeCheat('setmon 151')"><span class="cheat-btn-icon">🦄</span><span class="cheat-btn-label">뮤</span></button>
-        <button class="cheat-btn" onclick="executeCheat('evolve')"><span class="cheat-btn-icon">✨</span><span class="cheat-btn-label">즉시진화</span></button>
+        <!-- 3행: 11 ~ 15 (공란) -->
+        <button class="cheat-btn empty"><span class="cheat-btn-label">11</span></button>
+        <button class="cheat-btn empty"><span class="cheat-btn-label">12</span></button>
+        <button class="cheat-btn empty"><span class="cheat-btn-label">13</span></button>
+        <button class="cheat-btn empty"><span class="cheat-btn-label">14</span></button>
+        <button class="cheat-btn empty"><span class="cheat-btn-label">15</span></button>
 
-        <!-- 4행: 경험치 & 육성 -->
-        <button class="cheat-btn" onclick="executeCheat('addxp 50')"><span class="cheat-btn-icon">🍒</span><span class="cheat-btn-label">+50 XP</span></button>
-        <button class="cheat-btn" onclick="executeCheat('addxp 100')"><span class="cheat-btn-icon">⭐</span><span class="cheat-btn-label">+100 XP</span></button>
-        <button class="cheat-btn" onclick="executeCheat('addxp 500')"><span class="cheat-btn-icon">🌟</span><span class="cheat-btn-label">+500 XP</span></button>
-        <button class="cheat-btn" onclick="executeCheat('lvup')"><span class="cheat-btn-icon">👑</span><span class="cheat-btn-label">즉시레벨업</span></button>
-        <button class="cheat-btn" onclick="executeCheat('egg')"><span class="cheat-btn-icon">🥚</span><span class="cheat-btn-label">알전환</span></button>
+        <!-- 4행: 16 ~ 20 (공란) -->
+        <button class="cheat-btn empty"><span class="cheat-btn-label">16</span></button>
+        <button class="cheat-btn empty"><span class="cheat-btn-label">17</span></button>
+        <button class="cheat-btn empty"><span class="cheat-btn-label">18</span></button>
+        <button class="cheat-btn empty"><span class="cheat-btn-label">19</span></button>
+        <button class="cheat-btn empty"><span class="cheat-btn-label">20</span></button>
 
-        <!-- 5행: 서식지 배경 강제 전환 -->
-        <button class="cheat-btn" onclick="executeCheat('bg Grassland')"><span class="cheat-btn-icon">🌲</span><span class="cheat-btn-label">숲 서식지</span></button>
-        <button class="cheat-btn" onclick="executeCheat('bg Beach')"><span class="cheat-btn-icon">🏖️</span><span class="cheat-btn-label">해변 서식지</span></button>
-        <button class="cheat-btn" onclick="executeCheat('bg Sky')"><span class="cheat-btn-icon">🌌</span><span class="cheat-btn-label">하늘 서식지</span></button>
-        <button class="cheat-btn" onclick="executeCheat('bg City')"><span class="cheat-btn-icon">🏙️</span><span class="cheat-btn-label">도시 서식지</span></button>
-        <button class="cheat-btn" onclick="executeCheat('bg Cave')"><span class="cheat-btn-icon">⛰️</span><span class="cheat-btn-label">동굴 서식지</span></button>
+        <!-- 5행: 21 ~ 25 -->
+        <button class="cheat-btn empty"><span class="cheat-btn-label">21</span></button>
+        <button class="cheat-btn empty"><span class="cheat-btn-label">22</span></button>
+        <button class="cheat-btn empty"><span class="cheat-btn-label">23</span></button>
+        <button class="cheat-btn danger" onclick="executeCheatCustom(24)"><span class="cheat-btn-icon">🧹</span><span class="cheat-btn-label">24. 기록초기화</span></button>
+        <button class="cheat-btn close" onclick="executeCheatCustom(25)"><span class="cheat-btn-icon">✕</span><span class="cheat-btn-label">25. 닫기</span></button>
       </div>
     </div>
   </div>
@@ -1227,6 +1247,85 @@
       "전기": "./images/types/13.png", "에스퍼": "./images/types/15.png", "얼음": "./images/types/14.png",
       "드래곤": "./images/types/16.png", "악": "./images/types/17.png", "페어리": "./images/types/18.png"
     };
+
+    // 1세대 151마리 포켓몬 명칭 & 대표 타입 목록
+    const POKEDEX_DATA_151 = [
+      {id:1, name:"이상해씨", type:"풀/독"}, {id:2, name:"이상해풀", type:"풀/독"}, {id:3, name:"이상해꽃", type:"풀/독"},
+      {id:4, name:"파이리", type:"불꽃"}, {id:5, name:"리자드", type:"불꽃"}, {id:6, name:"리자몽", type:"불꽃/비행"},
+      {id:7, name:"꼬부기", type:"물"}, {id:8, name:"어니부기", type:"물"}, {id:9, name:"거북왕", type:"물"},
+      {id:10, name:"캐터피", type:"벌레"}, {id:11, name:"단데기", type:"벌레"}, {id:12, name:"버터플", type:"벌레/비행"},
+      {id:13, name:"뿔충이", type:"벌레/독"}, {id:14, name:"딱충이", type:"벌레/독"}, {id:15, name:"독침붕", type:"벌레/독"},
+      {id:16, name:"구구", type:"노말/비행"}, {id:17, name:"피죤", type:"노말/비행"}, {id:18, name:"피죤투", type:"노말/비행"},
+      {id:19, name:"꼬렛", type:"노말"}, {id:20, name:"레트라", type:"노말"},
+      {id:21, name:"깨비참", type:"노말/비행"}, {id:22, name:"깨비드릴조", type:"노말/비행"},
+      {id:23, name:"아보", type:"독"}, {id:24, name:"아보크", type:"독"},
+      {id:25, name:"피카츄", type:"전기"}, {id:26, name:"라이츄", type:"전기"},
+      {id:27, name:"모래두지", type:"땅"}, {id:28, name:"고지", type:"땅"},
+      {id:29, name:"니드런♀", type:"독"}, {id:30, name:"니드리나", type:"독"}, {id:31, name:"니드퀸", type:"독/땅"},
+      {id:32, name:"니드런♂", type:"독"}, {id:33, name:"니드리노", type:"독"}, {id:34, name:"니드킹", type:"독/땅"},
+      {id:35, name:"삐삐", type:"페어리"}, {id:36, name:"픽시", type:"페어리"},
+      {id:37, name:"식스테일", type:"불꽃"}, {id:38, name:"나인테일", type:"불꽃"},
+      {id:39, name:"푸린", type:"노말/페어리"}, {id:40, name:"푸크린", type:"노말/페어리"},
+      {id:41, name:"주뱃", type:"독/비행"}, {id:42, name:"골뱃", type:"독/비행"},
+      {id:43, name:"뚜벅쵸", type:"풀/독"}, {id:44, name:"냄새꼬", type:"풀/독"}, {id:45, name:"라플레시아", type:"풀/독"},
+      {id:46, name:"파라스", type:"벌레/풀"}, {id:47, name:"파라섹트", type:"벌레/풀"},
+      {id:48, name:"콘팡", type:"벌레/독"}, {id:49, name:"도나리", type:"벌레/독"},
+      {id:50, name:"디그다", type:"땅"}, {id:51, name:"닥트리오", type:"땅"},
+      {id:52, name:"나옹", type:"노말"}, {id:53, name:"페르시온", type:"노말"},
+      {id:54, name:"고라파덕", type:"물"}, {id:55, name:"골덕", type:"물"},
+      {id:56, name:"망키", type:"격투"}, {id:57, name:"성원숭", type:"격투"},
+      {id:58, name:"가디", type:"불꽃"}, {id:59, name:"윈디", type:"불꽃"},
+      {id:60, name:"발챙이", type:"물"}, {id:61, name:"슈륙챙이", type:"물"}, {id:62, name:"강챙이", type:"물/격투"},
+      {id:63, name:"케이시", type:"에스퍼"}, {id:64, name:"윤겔라", type:"에스퍼"}, {id:65, name:"후딘", type:"에스퍼"},
+      {id:66, name:"알통몬", type:"격투"}, {id:67, name:"근육몬", type:"격투"}, {id:68, name:"괴력몬", type:"격투"},
+      {id:69, name:"모다피", type:"풀/독"}, {id:70, name:"우츠동", type:"풀/독"}, {id:71, name:"우츠보트", type:"풀/독"},
+      {id:72, name:"왕눈해", type:"물/독"}, {id:73, name:"독파리", type:"물/독"},
+      {id:74, name:"꼬마돌", type:"바위/땅"}, {id:75, name:"데구리", type:"바위/땅"}, {id:76, name:"딱구리", type:"바위/땅"},
+      {id:77, name:"포니타", type:"불꽃"}, {id:78, name:"날쌩마", type:"불꽃"},
+      {id:79, name:"야돈", type:"물/에스퍼"}, {id:80, name:"야도란", type:"물/에스퍼"},
+      {id:81, name:"코일", type:"전기/강철"}, {id:82, name:"레어코일", type:"전기/강철"},
+      {id:83, name:"파오리", type:"노말/비행"},
+      {id:84, name:"두두", type:"노말/비행"}, {id:85, name:"두트리오", type:"노말/비행"},
+      {id:86, name:"쥬쥬", type:"물"}, {id:87, name:"쥬레곤", type:"물/얼음"},
+      {id:88, name:"질퍽이", type:"독"}, {id:89, name:"질뻐기", type:"독"},
+      {id:90, name:"셀러", type:"물"}, {id:91, name:"파르셀", type:"물/얼음"},
+      {id:92, name:"고오스", type:"고스트/독"}, {id:93, name:"고우스트", type:"고스트/독"}, {id:94, name:"팬텀", type:"고스트/독"},
+      {id:95, name:"롱스톤", type:"바위/땅"},
+      {id:96, name:"슬리프", type:"에스퍼"}, {id:97, name:"슬리퍼", type:"에스퍼"},
+      {id:98, name:"크랩", type:"물"}, {id:99, name:"킹크랩", type:"물"},
+      {id:100, name:"찌리리공", type:"전기"}, {id:101, name:"붐볼", type:"전기"},
+      {id:102, name:"아라리", type:"풀/에스퍼"}, {id:103, name:"나시", type:"풀/에스퍼"},
+      {id:104, name:"탕구리", type:"땅"}, {id:105, name:"텅구리", type:"땅"},
+      {id:106, name:"시라소몬", type:"격투"}, {id:107, name:"홍수몬", type:"격투"},
+      {id:108, name:"내루미", type:"노말"},
+      {id:109, name:"또가스", type:"독"}, {id:110, name:"또도가스", type:"독"},
+      {id:111, name:"뿔카노", type:"땅/바위"}, {id:112, name:"코뿌리", type:"땅/바위"},
+      {id:113, name:"핑복", type:"노말"},
+      {id:114, name:"덩쿠리", type:"풀"},
+      {id:115, name:"캥카", type:"노말"},
+      {id:116, name:"쏘드라", type:"물"}, {id:117, name:"시드라", type:"물"},
+      {id:118, name:"콘치", type:"물"}, {id:119, name:"왕콘치", type:"물"},
+      {id:120, name:"별가사리", type:"물"}, {id:121, name:"아쿠스타", type:"물/에스퍼"},
+      {id:122, name:"마임맨", type:"에스퍼/페어리"},
+      {id:123, name:"스라크", type:"벌레/비행"},
+      {id:124, name:"루주라", type:"얼음/에스퍼"},
+      {id:125, name:"에레브", type:"전기"},
+      {id:126, name:"마그마", type:"불꽃"},
+      {id:127, name:"쁘사이저", type:"벌레"},
+      {id:128, name:"켄타로스", type:"노말"},
+      {id:129, name:"잉어킹", type:"물"}, {id:130, name:"갸라도스", type:"물/비행"},
+      {id:131, name:"라프라스", type:"물/얼음"},
+      {id:132, name:"메타몽", type:"노말"},
+      {id:133, name:"이브이", type:"노말"}, {id:134, name:"샤미드", type:"물"}, {id:135, name:"쥬피썬더", type:"전기"}, {id:136, name:"부스터", type:"불꽃"},
+      {id:137, name:"폴리곤", type:"노말"},
+      {id:138, name:"암나이트", type:"바위/물"}, {id:139, name:"암스타", type:"바위/물"},
+      {id:140, name:"투구", type:"바위/물"}, {id:141, name:"투구푸스", type:"바위/물"},
+      {id:142, name:"프테라", type:"바위/비행"},
+      {id:143, name:"잠만보", type:"노말"},
+      {id:144, name:"프리져", type:"얼음/비행"}, {id:145, name:"썬더", type:"전기/비행"}, {id:146, name:"파이어", type:"불꽃/비행"},
+      {id:147, name:"미뇽", type:"드래곤"}, {id:148, name:"신뇽", type:"드래곤"}, {id:149, name:"망나뇽", type:"드래곤/비행"},
+      {id:150, name:"뮤츠", type:"에스퍼"}, {id:151, name:"뮤", type:"에스퍼"}
+    ];
 
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxVbpj0MyIAMzd_c7PcWgx94yoNkFFlQ3kcjnk81BMv7TcRJH3KLNeHIB7lJBepOlAtjw/exec";
 
@@ -1788,11 +1887,12 @@
       for (let i = 1; i <= 151; i++) {
         const card = document.createElement('div');
         card.className = 'dex-card';
-        const isUnlocked = i === 1;
+        const isUnlocked = (appState.pokemon.id === i && !appState.isEgg) || i === 1;
+        const pokeInfo = POKEDEX_DATA_151[i - 1];
         card.innerHTML = `
           <img class="dex-sprite ${isUnlocked ? '' : 'locked'}" src="./images/pokemon/sprites/${i}.png" alt="No.${i}" loading="lazy" />
           <span class="dex-num">No.${String(i).padStart(3, '0')}</span>
-          <span class="dex-name">${isUnlocked ? '이상해씨' : '???'}</span>
+          <span class="dex-name">${isUnlocked ? pokeInfo.name : '???'}</span>
         `;
         grid.appendChild(card);
       }
@@ -1832,7 +1932,7 @@
     }
 
     // ========================================================
-    // 🕹️ 5x5 치트 콘솔 팝업 모달 관리
+    // 🕹️ 5x5 치트 콘솔 팝업 모달 관리 (사용자 지정 25개 버튼)
     // ========================================================
     function openCheatModal() {
       document.getElementById('cheatModal').classList.add('open');
@@ -1842,58 +1942,121 @@
       document.getElementById('cheatModal').classList.remove('open');
     }
 
-    function executeCheat(cmd) {
-      closeCheatModal(); // 기능 하나 누르면 팝업 즉시 자동 닫힘!
+    function executeCheatCustom(num) {
+      closeCheatModal(); // 실행 즉시 팝업창 자동 닫힘!
 
-      if (cmd.startsWith('setmon')) {
-        const id = parseInt(cmd.split(' ')[1]) || 1;
-        const names = {
-          1:"이상해씨", 2:"이상해풀", 3:"이상해꽃", 4:"파이리", 5:"리자드", 6:"리자몽",
-          7:"꼬부기", 8:"어니부기", 9:"거북왕", 25:"피카츄", 26:"라이츄", 94:"팬텀", 150:"뮤츠", 151:"뮤"
-        };
-        const types = {
-          1:"풀/독", 2:"풀/독", 3:"풀/독", 4:"불꽃", 5:"불꽃", 6:"불꽃/비행",
-          7:"물", 8:"물", 9:"물", 25:"전기", 26:"전기", 94:"고스트/독", 150:"에스퍼", 151:"에스퍼"
-        };
-        appState.pokemon = {
-          id: id,
-          name: names[id] || ("포켓몬 No." + id),
-          gender: "♂",
-          nature: "고집",
-          natureBuff: "+공격",
-          type: types[id] || "노말",
-          idleGif: `./images/pokemon/showdown/${id}.gif`
-        };
-        appState.isEgg = false;
-        initUI(appState);
-      } else if (cmd === 'evolve') {
-        if (appState.pokemon.id === 1) executeCheat('setmon 2');
-        else if (appState.pokemon.id === 2) executeCheat('setmon 3');
-        else if (appState.pokemon.id === 4) executeCheat('setmon 5');
-        else if (appState.pokemon.id === 5) executeCheat('setmon 6');
-        else if (appState.pokemon.id === 7) executeCheat('setmon 8');
-        else if (appState.pokemon.id === 8) executeCheat('setmon 9');
-        else if (appState.pokemon.id === 25) executeCheat('setmon 26');
-        else alert("✨ 현재 포켓몬은 최종 진화형입니다!");
-      } else if (cmd.startsWith('addxp')) {
-        const amount = parseInt(cmd.split(' ')[1]) || 50;
-        pendingBerryXp += amount;
-        onFeedAccumulatedBerries();
-      } else if (cmd === 'lvup') {
-        appState.userStats.level++;
-        initUI(appState);
-        alert("👑 즉시 레벨업! 현재 Lv." + appState.userStats.level);
-      } else if (cmd === 'egg') {
-        appState.isEgg = true;
-        appState.pokemon.name = "포켓몬 알";
-        appState.pokemon.type = "노말";
-        appState.pokemon.idleGif = "./images/items/poke-ball.png";
-        initUI(appState);
-      } else if (cmd.startsWith('bg')) {
-        const bgKey = "Pogo" + cmd.split(' ')[1] + "Bg";
-        const bgUrl = HABITAT_BACKGROUNDS[bgKey] || "./images/backgrounds/PogoGrasslandBg.png";
-        document.getElementById('habitatPane').style.backgroundImage = `url('${bgUrl}')`;
-        isCurrentHabitatForest = (bgKey === "PogoGrasslandBg");
+      switch (num) {
+        case 1: // 1. 현재 포켓몬 없애고 강제로 알 받기
+          appState.isEgg = true;
+          appState.pokemon = {
+            id: 0,
+            name: "포켓몬 알",
+            gender: " ",
+            nature: "순수",
+            natureBuff: "+잠재력",
+            type: "노말",
+            idleGif: "./images/items/poke-ball.png"
+          };
+          appState.userStats.currentXp = 0;
+          appState.userStats.level = 1;
+          initUI(appState);
+          alert("🥚 새로운 포켓몬 알을 받았습니다! 퀘스트를 완료하여 부화시켜 보세요!");
+          break;
+
+        case 2: // 2. 알 즉시 진화(부화)
+          if (!appState.isEgg) {
+            alert("💡 현재 알 상태가 아닙니다! 1번 치트로 알을 먼저 받아보세요.");
+            return;
+          }
+          // 스타팅 4종 중 랜덤 부화
+          const starters = [1, 4, 7, 25];
+          const hatchedId = starters[Math.floor(Math.random() * starters.length)];
+          const hatched = POKEDEX_DATA_151[hatchedId - 1];
+          appState.isEgg = false;
+          appState.pokemon = {
+            id: hatchedId,
+            name: hatched.name,
+            gender: Math.random() < 0.5 ? "♂" : "♀",
+            nature: "고집",
+            natureBuff: "+공격",
+            type: hatched.type,
+            idleGif: `./images/pokemon/showdown/${hatchedId}.gif`
+          };
+          initUI(appState);
+          alert("🐣 알이 깨어나고 " + hatched.name + "(이)가 태어났습니다! ✨");
+          break;
+
+        case 3: // 3. 즉시 랜덤 포켓몬으로 변경 (진화단계 무시 모든 151마리 포켓몬)
+          const randomId = Math.floor(Math.random() * 151) + 1;
+          const randomMon = POKEDEX_DATA_151[randomId - 1];
+          appState.isEgg = false;
+          appState.pokemon = {
+            id: randomId,
+            name: randomMon.name,
+            gender: Math.random() < 0.5 ? "♂" : "♀",
+            nature: "명랑",
+            natureBuff: "+스피드",
+            type: randomMon.type,
+            idleGif: `./images/pokemon/showdown/${randomId}.gif`
+          };
+          initUI(appState);
+          alert("🎲 [No." + randomId + " " + randomMon.name + "] 포켓몬으로 즉시 변경되었습니다!");
+          break;
+
+        case 4: // 4. 즉시 레벨업
+          appState.userStats.level++;
+          appState.userStats.currentXp = 0;
+          appState.userStats.requiredXp = Math.floor(appState.userStats.requiredXp * 1.5);
+          initUI(appState);
+          alert("👑 즉시 레벨업! 현재 Lv." + appState.userStats.level);
+          break;
+
+        case 5: // 5. 즉시 진화
+          if (appState.isEgg) {
+            executeCheatCustom(2);
+            return;
+          }
+          const currentId = appState.pokemon.id;
+          let nextId = currentId + 1;
+          if (currentId === 3 || currentId === 6 || currentId === 9 || currentId === 26 || currentId === 151) {
+            alert("✨ 현재 포켓몬은 최종 진화형입니다!");
+            return;
+          }
+          if (nextId <= 151) {
+            const nextMon = POKEDEX_DATA_151[nextId - 1];
+            appState.pokemon.id = nextId;
+            appState.pokemon.name = nextMon.name;
+            appState.pokemon.type = nextMon.type;
+            appState.pokemon.idleGif = `./images/pokemon/showdown/${nextId}.gif`;
+            initUI(appState);
+            alert("✨ 축하합니다! " + nextMon.name + "(으)로 진화했습니다! 🎉");
+          }
+          break;
+
+        case 24: // 24. 지금까지 기록 모두 초기화
+          if (confirm("⚠️ 정말 지금까지의 모든 기록(도감, 레벨, 경험치 등)을 초기화하시겠습니까?")) {
+            appState.userStats = { level: 1, currentXp: 0, requiredXp: 100, stageName: "1단계" };
+            appState.isEgg = false;
+            appState.pokemon = {
+              id: 1,
+              name: "이상해씨",
+              gender: "♂",
+              nature: "고집",
+              natureBuff: "+공격",
+              type: "풀/독",
+              idleGif: "./images/pokemon/showdown/1.gif"
+            };
+            initUI(appState);
+            alert("🧹 모든 육성 및 도감 기록이 초기화되었습니다!");
+          }
+          break;
+
+        case 25: // 25. 현재 기능 팝업창 닫기 X 버튼
+          closeCheatModal();
+          break;
+
+        default:
+          break;
       }
     }
 
