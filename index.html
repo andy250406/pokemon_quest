@@ -4755,7 +4755,7 @@
           <button class="btn-quest-edit" style="padding:6px 9px;" onclick="openEditQuestModal('${q.id}')">
             ✏️
           </button>
-          <button class="btn-quest-done ${q.isCompletedToday ? 'disabled' : ''}" onclick="completeQuestDirect('${q.id}', '${q.name}')">
+          <button class="btn-quest-done ${q.isCompletedToday ? 'disabled' : ''}" onclick="completeQuestDirect('${q.id}')">
             ${q.isCompletedToday ? '완료됨 ✓' : `+${q.rewardXp} XP`}
           </button>
         </div>
@@ -4764,32 +4764,37 @@
     }
 
 
-    async function completeQuestDirect(questId, questName) {
-      const q = appState.quests.find(x => x.id === questId);
-      if (q && !q.isCompletedToday) {
+    async function completeQuestDirect(questId) {
+      if (!questId) return;
+      const cleanId = String(questId).trim();
+      const q = appState.quests.find(x => String(x.id).trim() === cleanId);
+      if (!q) return;
+
+      if (!q.isCompletedToday) {
         q.isCompletedToday = true;
         q.consecutiveDays = (q.consecutiveDays || 0) + 1;
+        q.lastCompletedDate = new Date().toISOString().split('T')[0];
         
-        // 경험치바 하이라이트 & 경험치 지급
+        // 경험치바 1회 하이라이트 & 경험치 지급
         highlightXpBar();
-        processXpGainAndEvolve(q.rewardXp);
+        processXpGainAndEvolve(q.rewardXp || 20);
 
-        // 퀘스트 목록 즉각 재렌더링 (완료된 일회성 퀘스트는 목록에서 즉시 소멸)
+        // 퀘스트 목록 & 기록 탭 즉각 재렌더링 (완료된 일회성 퀘스트는 목록에서 즉시 소멸)
         renderQuestList(appState.quests);
+        renderStreakList(appState.quests);
 
-        logDebug(`퀘스트 완료: "${questName}" (+${q.rewardXp}XP)`, "info");
+        logDebug(`퀘스트 완료: "${q.name}" (+${q.rewardXp}XP)`, "info");
         try {
           fetch(GAS_API_URL, {
             method: "POST",
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "completeQuest", questId: questId })
-          });
+            body: JSON.stringify({ action: "completeQuest", questId: cleanId })
+          }).catch(() => {});
         } catch (e) {}
       }
     }
 
-
-    function renderStreakList(quests) {
+        function renderStreakList(quests) {
       const container = document.getElementById('streakListContainer');
       if (!container) return;
       container.innerHTML = '';
