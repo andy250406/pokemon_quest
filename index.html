@@ -4208,7 +4208,7 @@
 
     async function syncWithGasBackend() {
       const btn = document.getElementById('btnRefreshQuests');
-      if (btn) btn.innerText = "⏳ 동기화...";
+      if (btn) btn.innerText = "동기화 중...";
       logDebug("Google Tasks 백엔드 동기화 요청 전송...", "info");
       try {
         const res = await fetch(GAS_API_URL + "?action=getInitialData");
@@ -4246,12 +4246,12 @@
 
           initUI(appState);
           logDebug(`Google Tasks 동기화 성공 (퀘스트 ${appState.quests.length}개)`, "success");
-          if (btn) btn.innerText = "🔄 구글 동기화";
+          if (btn) btn.innerText = "동기화";
         } else {
-          if (btn) btn.innerText = "🔄 구글 동기화";
+          if (btn) btn.innerText = "동기화";
         }
       } catch (e) {
-        if (btn) btn.innerText = "🔄 구글 동기화";
+        if (btn) btn.innerText = "동기화";
       }
     }
 
@@ -4498,7 +4498,7 @@
         const response = await fetch(GAS_API_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "deleteQuest", questId: editingId })
+          body: JSON.stringify({ action: "deleteQuest", questId: editingId, questName: questName })
         });
         const result = await response.json();
 
