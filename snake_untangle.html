@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>스네이크 언탱글 (Snake Untangle) - 포켓Tasks</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #0b0f19;
+      color: #f1f5f9;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      padding: 8px 6px;
+    }
+
+    /* 🏷️ 상단 네비게이션 & 헤더 */
+    .top-nav {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      padding: 0 4px;
+    }
+    .btn-nav {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #cbd5e1;
+      padding: 5px 11px;
+      font-size: 11.5px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+    .btn-nav:active {
+      transform: scale(0.95);
+      background: rgba(255,255,255,0.15);
+    }
+    .btn-nav.btn-record {
+      background: linear-gradient(135deg, #eab308, #ca8a04);
+      color: #0f172a;
+      font-weight: 800;
+      border: none;
+    }
+
+    .header-title {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* 📊 실시간 진행 상황 바 */
+    .stats-bar {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      margin-bottom: 6px;
+      background: #141b2d;
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    }
+    .stat-item {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .stat-val {
+      color: #38bdf8;
+      font-weight: 800;
+    }
+    .stat-limit {
+      font-size: 10px;
+      color: #ef4444;
+      font-weight: 800;
+    }
+
+    /* 🕹️ 컨트롤러 (난이도 선택, 새 게임) */
+    .controls {
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 8px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      justify-content: center;
+    }
+    select, .btn-action {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #f1f5f9;
+      cursor: pointer;
+      font-weight: 700;
+      outline: none;
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+    }
+    select {
+      flex: 1;
+      max-width: 260px;
+    }
+    .btn-action.btn-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border: none;
+      color: white;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.4);
+    }
+
+    /* 🎨 캔버스 뷰포트 컨테이너 */
+    #canvas-container {
+      position: relative;
+      border: 2px solid #26334d;
+      border-radius: 12px;
+      background: #0f1523;
+      box-shadow: 0 14px 40px rgba(0,0,0,0.75);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      touch-action: none;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    /* ✨ 클리어 / 실패 모달 공통 */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(11, 15, 25, 0.92);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      z-index: 50;
+      padding: 16px;
+      text-align: center;
+    }
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .clear-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: #4ade80;
+      margin-bottom: 6px;
+      text-shadow: 0 0 16px rgba(74,222,128,0.5);
+    }
+    .fail-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: #f43f5e;
+      margin-bottom: 6px;
+      text-shadow: 0 0 16px rgba(244,63,94,0.5);
+    }
+
+    .modal-desc {
+      font-size: 12.5px;
+      color: #cbd5e1;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+    .xp-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #0f172a;
+      font-weight: 900;
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 10px rgba(245,158,11,0.4);
+    }
+
+    .modal-btns {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-modal-next {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .btn-modal-retry {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      border: none;
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    /* 🏆 기록 리스트 팝업 모달 */
+    .record-box {
+      width: 88%;
+      max-width: 320px;
+      background: #182235;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: left;
+    }
+    .record-box h3 {
+      font-size: 15px;
+      font-weight: 800;
+      color: #fbbf24;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .record-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 12px;
+    }
+    .record-row:last-child {
+      border-bottom: none;
+    }
+    .record-diff {
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+    .record-stat {
+      font-weight: 800;
+      color: #38bdf8;
+    }
+    .record-max {
+      font-size: 10.5px;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🏷️ 상단 네비게이션 -->
+  <div class="top-nav">
+    <button class="btn-nav" onclick="closeGameAndReturn()">
+      ← 포켓Tasks
+    </button>
+    <div class="header-title">
+      🧩 스네이크 언탱글
+    </div>
+    <button class="btn-nav btn-record" onclick="openRecordsModal()">
+      🏆 기록
+    </button>
+  </div>
+
+  <!-- 📊 실시간 진행 상황 바 -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <span>남은 수:</span>
+      <span class="stat-val" id="snakeCountText">0 / 0</span>
+    </div>
+    <div class="stat-item">
+      <span>연승:</span>
+      <span class="stat-val" id="currentStreakText">0연승</span>
+    </div>
+    <div class="stat-item">
+      <span>👆 이동:</span>
+      <span class="stat-val" id="moveCountText">0</span>
+      <span class="stat-limit" id="moveLimitText">(최대 0)</span>
+    </div>
+    <div class="stat-item">
+      <span>⏱️</span>
+      <span class="stat-val" id="timerText">00:00</span>
+    </div>
+  </div>
+
+  <!-- 🕹️ 컨트롤러 (난이도 선택 및 새 게임) -->
+  <div class="controls">
+    <select id="stageSelect" onchange="generateStage()">
+      <option value="16x24">🌱 입문 (16x24 / +10 XP)</option>
+      <option value="20x30" selected>⚔️ 보통 (20x30 / +20 XP)</option>
+      <option value="26x38">🔥 어려움 (26x38 / +30 XP)</option>
+      <option value="32x46">💀 지옥 (32x46 / +40 XP)</option>
+    </select>
+    <button class="btn-action btn-primary" onclick="generateStage()">🔄 새 퍼즐</button>
+  </div>
+
+  <!-- 🎨 게임 캔버스 컨테이너 -->
+  <div id="canvas-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- 🎉 스테이지 클리어 모달 -->
+    <div class="modal-overlay" id="clearModal">
+      <div class="clear-title" id="clearTitleText">🎉 CLEAR!</div>
+      <div class="modal-desc" id="clearDescText"></div>
+      <div class="xp-badge" id="clearXpBadge">+0 XP 획득!</div>
+      <div class="modal-btns">
+        <button class="btn-modal-next" onclick="generateStage()">다음 스테이지 🚀</button>
+      </div>
+    </div>
+
+    <!-- 💥 이동 횟수 초과 실패 모달 -->
+    <div class="modal-overlay" id="failModal">
+      <div class="fail-title">💥 탈출 실패!</div>
+      <div class="modal-desc" id="failDescText">
+        이동 횟수 제한을 초과하였습니다.<br>
+        현재 난이도의 연승 기록이 초기화됩니다.
+      </div>
+      <div class="modal-btns">
+        <button class="btn-modal-retry" onclick="generateStage()">다시 도전 🔄</button>
+      </div>
+    </div>
+
+    <!-- 🏆 난이도별 연속 기록 모달 -->
+    <div class="modal-overlay" id="recordsModal">
+      <div class="record-box">
+        <h3>
+          <span>🏆 난이도별 연승 기록</span>
+          <span style="cursor:pointer; font-size:16px;" onclick="closeRecordsModal()">✕</span>
+        </h3>
+        <div class="record-row">
+          <span class="record-diff">🌱 입문</span>
+          <div>
+            <span class="record-stat" id="recStreak_16x24">0</span> <span class="record-max" id="recMax_16x24">(최고 0)</span>
+          </div>
+        </div>
+        <div class="record-row">
+          <span class="record-diff">⚔️ 보통</span>
+          <div>
+            <span class="record-stat" id="recStreak_20x30">0</span> <span class="record-max" id="recMax_20x30">(최고 0)</span>
+          </div>
+        </div>
+        <div class="record-row">
+          <span class="record-diff">🔥 어려움</span>
+          <div>
+            <span class="record-stat" id="recStreak_26x38">0</span> <span class="record-max" id="recMax_26x38">(최고 0)</span>
+          </div>
+        </div>
+        <div class="record-row">
+          <span class="record-diff">💀 지옥</span>
+          <div>
+            <span class="record-stat" id="recStreak_32x46">0</span> <span class="record-max" id="recMax_32x46">(최고 0)</span>
+          </div>
+        </div>
+        <div style="margin-top:14px; text-align:center;">
+          <button class="btn-action" style="padding:6px 18px;" onclick="closeRecordsModal()">닫기</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let CELL = 20;
+    let COLS = 20;
+    let ROWS = 30;
+    let currentStageKey = "20x30";
+    let snakes = [];
+    let isAnimating = false;
+    let isGameOver = false;
+    let totalInitialSnakes = 0;
+    let moveCount = 0;
+    let maxAllowedMoves = 0;
+    let timerSeconds = 0;
+    let timerInterval = null;
+
+    // 🎯 난이도별 기본 설정
+    const STAGE_CONFIG = {
+      "16x24": { name: "입문", baseReward: 10 },
+      "20x30": { name: "보통", baseReward: 20 },
+      "26x38": { name: "어려움", baseReward: 30 },
+      "32x46": { name: "지옥", baseReward: 40 }
+    };
+
+    const DIRS = [
+      { dx: 0, dy: -1 }, // 0: 상
+      { dx: 1, dy: 0 },  // 1: 우
+      { dx: 0, dy: 1 },  // 2: 하
+      { dx: -1, dy: 0 }  // 3: 좌
+    ];
+
+    const PALETTE = [
+      '#FF4757', '#FFA502', '#2ED573', '#1E90FF', 
+      '#9B59B6', '#E84393', '#00CEC9', '#F1C40F', 
+      '#FF6B81', '#70A1FF', '#2BCBBA', '#FD9644',
+      '#A3CB38', '#12CBC4', '#ED4C67', '#F79F1F',
+      '#38bdf8', '#fb7185', '#a855f7', '#4ade80',
+      '#f43f5e', '#06b6d4', '#eab308', '#8b5cf6'
+    ];
+
+    // ========================================================
+    // 🏆 연승 기록 관리 (localStorage)
+    // ========================================================
+    function loadGameRecords() {
+      try {
+        const data = localStorage.getItem('snake_untangle_records_v1');
+        return data ? JSON.parse(data) : {};
+      } catch(e) {
+        return {};
+      }
+    }
+
+    function saveGameRecords(records) {
+      try {
+        localStorage.setItem('snake_untangle_records_v1', JSON.stringify(records));
+      } catch(e) {}
+    }
+
+    function getStageRecord(stageKey) {
+      const rec = loadGameRecords();
+      return rec[stageKey] || { currentStreak: 0, maxStreak: 0 };
+    }
+
+    function updateStreakOnClear(stageKey) {
+      const rec = loadGameRecords();
+      if (!rec[stageKey]) rec[stageKey] = { currentStreak: 0, maxStreak: 0 };
+      rec[stageKey].currentStreak = (rec[stageKey].currentStreak || 0) + 1;
+      if (rec[stageKey].currentStreak > (rec[stageKey].maxStreak || 0)) {
+        rec[stageKey].maxStreak = rec[stageKey].currentStreak;
+      }
+      saveGameRecords(rec);
+      return rec[stageKey];
+    }
+
+    function resetStreakOnFail(stageKey) {
+      const rec = loadGameRecords();
+      if (rec[stageKey]) {
+        rec[stageKey].currentStreak = 0;
+        saveGameRecords(rec);
+      }
+    }
+
+    function openRecordsModal() {
+      const rec = loadGameRecords();
+      ["16x24", "20x30", "26x38", "32x46"].forEach(key => {
+        const item = rec[key] || { currentStreak: 0, maxStreak: 0 };
+        document.getElementById(`recStreak_${key}`).innerText = `${item.currentStreak || 0}연승`;
+        document.getElementById(`recMax_${key}`).innerText = `(최고 ${item.maxStreak || 0}연승)`;
+      });
+      document.getElementById('recordsModal').classList.add('show');
+    }
+
+    function closeRecordsModal() {
+      document.getElementById('recordsModal').classList.remove('show');
+    }
+
+    // ========================================================
+    // ⏱️ 타이머 & UI 디스플레이
+    // ========================================================
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerSeconds = 0;
+      updateTimerDisplay();
+      timerInterval = setInterval(() => {
+        timerSeconds++;
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const min = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+      const sec = String(timerSeconds % 60).padStart(2, '0');
+      document.getElementById('timerText').innerText = `${min}:${sec}`;
+    }
+
+    function updateStatusDisplay() {
+      document.getElementById('snakeCountText').innerText = `${snakes.length} / ${totalInitialSnakes}`;
+      document.getElementById('moveCountText').innerText = `${moveCount}`;
+      document.getElementById('moveLimitText').innerText = `(한도 ${maxAllowedMoves})`;
+
+      const record = getStageRecord(currentStageKey);
+      document.getElementById('currentStreakText').innerText = `${record.currentStreak || 0}연승`;
+    }
+
+    // ========================================================
+    // 🔄 스테이지 생성 및 초기화
+    // ========================================================
+    function generateStage() {
+      if (isAnimating) return;
+      document.getElementById('clearModal').classList.remove('show');
+      document.getElementById('failModal').classList.remove('show');
+      document.getElementById('recordsModal').classList.remove('show');
+      isGameOver = false;
+
+      currentStageKey = document.getElementById('stageSelect').value;
+      const [w, h] = currentStageKey.split('x').map(Number);
+      COLS = w;
+      ROWS = h;
+
+      // 📱 모바일/PC 반응형 크기 계산
+      const availableW = Math.min(window.innerWidth * 0.94, 600);
+      const availableH = window.innerHeight * 0.70;
+      CELL = Math.max(9, Math.min(Math.floor(availableW / COLS), Math.floor(availableH / ROWS)));
+
+      canvas.width = COLS * CELL;
+      canvas.height = ROWS * CELL;
+
+      moveCount = 0;
+
+      let generated = null;
+      for (let attempt = 0; attempt < 25; attempt++) {
+        generated = generateFlawlessPureMaze(COLS, ROWS);
+        if (generated && generated.length > 0) break;
+      }
+
+      snakes = generated || [];
+      totalInitialSnakes = snakes.length;
+      maxAllowedMoves = totalInitialSnakes + 20; // 🌟 [실패 조건]: 스네이크 개수 + 20 초과 시 실패
+
+      updateStatusDisplay();
+      startTimer();
+      draw();
+    }
+
+    // ========================================================
+    // 🧠 100% 즉시 생성 보장 솔버 엔진
+    // ========================================================
+    function generateFlawlessPureMaze(width, height) {
+      const grid = Array.from({ length: height }, () => Array(width).fill(null));
+      const list = [];
+      let snakeId = 0;
+
+      function getEmptyCells() {
+        const empties = [];
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            if (grid[y][x] === null) empties.push({ x, y });
+          }
+        }
+        return empties;
+      }
+
+      let emptyCells = getEmptyCells();
+      let failedAttempts = 0;
+
+      while (emptyCells.length >= 12 && failedAttempts < 2500) {
+        const head = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        
+        const validDirs = [];
+        for (let d of DIRS) {
+          const nx = head.x - d.dx;
+          const ny = head.y - d.dy;
+          if (nx < 0 || nx >= width || ny < 0 || ny >= height || grid[ny][nx] !== null) continue;
+
+          let cx = head.x + d.dx;
+          let cy = head.y + d.dy;
+          let clear = true;
+          while (cx >= 0 && cx < width && cy >= 0 && cy < height) {
+            if (grid[cy][cx] !== null) {
+              clear = false;
+              break;
+            }
+            cx += d.dx;
+            cy += d.dy;
+          }
+          if (clear) validDirs.push(d);
+        }
+
+        if (validDirs.length === 0) {
+          failedAttempts++;
+          continue;
+        }
+
+        const headDir = validDirs[Math.floor(Math.random() * validDirs.length)];
+        const neck = { x: head.x - headDir.dx, y: head.y - headDir.dy };
+        const body = [head, neck];
+        let cx = neck.x;
+        let cy = neck.y;
+        let prevDir = headDir;
+
+        const forbiddenRay = new Set();
+        let rx = head.x + headDir.dx;
+        let ry = head.y + headDir.dy;
+        while (rx >= 0 && rx < width && ry >= 0 && ry < height) {
+          forbiddenRay.add(`${rx},${ry}`);
+          rx += headDir.dx;
+          ry += headDir.dy;
+        }
+
+        const targetLen = 14 + Math.floor(Math.random() * 20);
+
+        for (let l = 2; l < targetLen; l++) {
+          const neighbors = DIRS
+            .map(d => ({ x: cx + d.dx, y: cy + d.dy, dir: d }))
+            .filter(p => 
+              p.x >= 0 && p.x < width && 
+              p.y >= 0 && p.y < height && 
+              grid[p.y][p.x] === null && 
+              !forbiddenRay.has(`${p.x},${p.y}`) &&
+              !body.some(b => b.x === p.x && b.y === p.y)
+            );
+
+          if (neighbors.length === 0) break;
+
+          let chosen = null;
+          const turnNeighbors = neighbors.filter(n => n.dir.dx !== prevDir.dx || n.dir.dy !== prevDir.dy);
+          if (turnNeighbors.length > 0 && Math.random() < 0.70) {
+            chosen = turnNeighbors[Math.floor(Math.random() * turnNeighbors.length)];
+          } else {
+            chosen = neighbors[Math.floor(Math.random() * neighbors.length)];
+          }
+
+          body.push({ x: chosen.x, y: chosen.y });
+          cx = chosen.x;
+          cy = chosen.y;
+          prevDir = chosen.dir;
+        }
+
+        if (body.length >= 10) {
+          body.forEach(p => grid[p.y][p.x] = snakeId);
+          list.push({
+            id: snakeId,
+            body: body,
+            headDir: headDir,
+            forbiddenRay: forbiddenRay,
+            color: PALETTE[snakeId % PALETTE.length]
+          });
+          snakeId++;
+          failedAttempts = 0;
+          emptyCells = getEmptyCells();
+        } else {
+          failedAttempts++;
+        }
+      }
+
+      // 꼬리 확장
+      let growPass = 0;
+      while (growPass < 50) {
+        growPass++;
+        let grewAny = false;
+        const shuffled = [...list].sort(() => Math.random() - 0.5);
+        for (let s of shuffled) {
+          const tail = s.body[s.body.length - 1];
+          const adj = DIRS
+            .map(d => ({ x: tail.x + d.dx, y: tail.y + d.dy }))
+            .filter(p => 
+              p.x >= 0 && p.x < width && 
+              p.y >= 0 && p.y < height && 
+              grid[p.y][p.x] === null && 
+              !s.forbiddenRay.has(`${p.x},${p.y}`) &&
+              !s.body.some(b => b.x === p.x && b.y === p.y)
+            );
+
+          if (adj.length > 0) {
+            const nextPt = adj[Math.floor(Math.random() * adj.length)];
+            s.body.push(nextPt);
+            grid[nextPt.y][nextPt.x] = s.id;
+            grewAny = true;
+          }
+        }
+        if (!grewAny) break;
+      }
+
+      if (list.length < 5) return null;
+      for (let s of list) {
+        if (s.body.length < 10) return null;
+        let fx = s.body[0].x + s.headDir.dx;
+        let fy = s.body[0].y + s.headDir.dy;
+        while (fx >= 0 && fx < width && fy >= 0 && fy < height) {
+          if (s.body.some(p => p.x === fx && p.y === fy)) return null;
+          fx += s.headDir.dx;
+          fy += s.headDir.dy;
+        }
+      }
+
+      return list;
+    }
+
+    // ========================================================
+    // 🔍 실시간 충돌 시뮬레이션
+    // ========================================================
+    function simulateStepEscape(targetSnake, activeSnakes) {
+      let currentBody = targetSnake.body.map(p => ({ ...p }));
+      let steps = 0;
+      const { dx, dy } = targetSnake.headDir;
+
+      while (true) {
+        const nextHead = { x: currentBody[0].x + dx, y: currentBody[0].y + dy };
+
+        if (nextHead.x < 0 || nextHead.x >= COLS || nextHead.y < 0 || nextHead.y >= ROWS) {
+          return { canEscape: true, steps };
+        }
+
+        const bodyExcludingTail = currentBody.slice(0, -1);
+
+        if (bodyExcludingTail.some(p => p.x === nextHead.x && p.y === nextHead.y)) {
+          return { canEscape: false, steps };
+        }
+
+        let collideOther = false;
+        for (let other of activeSnakes) {
+          if (other.id === targetSnake.id) continue;
+          if (other.body.some(p => p.x === nextHead.x && p.y === nextHead.y)) {
+            collideOther = true;
+            break;
+          }
+        }
+        if (collideOther) {
+          return { canEscape: false, steps };
+        }
+
+        currentBody.unshift(nextHead);
+        currentBody.pop();
+        steps++;
+      }
+    }
+
+    // ========================================================
+    // 🎨 Canvas 렌더링 시스템 (슬림 몸통 + 큼직한 뾰족 머티리얼 머리)
+    // ========================================================
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 배경 그리드
+      ctx.strokeStyle = '#161c2a';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= COLS; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * CELL, 0); ctx.lineTo(i * CELL, canvas.height);
+        ctx.stroke();
+      }
+      for (let j = 0; j <= ROWS; j++) {
+        ctx.beginPath();
+        ctx.moveTo(0, j * CELL); ctx.lineTo(canvas.width, j * CELL);
+        ctx.stroke();
+      }
+
+      const bodyLineWidth = Math.max(2.5, CELL * 0.24);
+      const headBaseWidth = Math.max(8, CELL * 0.50);
+
+      snakes.forEach(snake => {
+        const pts = snake.renderBody || snake.body;
+        if (pts.length < 2) return;
+
+        const p0 = getCenter(pts[0]);
+
+        // 몸통 선
+        ctx.strokeStyle = snake.color;
+        ctx.lineWidth = bodyLineWidth;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        ctx.beginPath();
+        const pTail = getCenter(pts[pts.length - 1]);
+        ctx.moveTo(pTail.x, pTail.y);
+
+        for (let i = pts.length - 2; i >= 0; i--) {
+          const p = getCenter(pts[i]);
+          ctx.lineTo(p.x, p.y);
+        }
+        ctx.stroke();
+
+        // 꼬리 마감
+        ctx.fillStyle = snake.color;
+        ctx.beginPath();
+        ctx.arc(pTail.x, pTail.y, bodyLineWidth * 0.7, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 뾰족 머티리얼 머리
+        drawHighlightedMaterialArrowHead(p0, snake.headDir, snake.color, headBaseWidth, bodyLineWidth);
+      });
+    }
+
+    function getCenter(pt) {
+      return { x: pt.x * CELL + CELL / 2, y: pt.y * CELL + CELL / 2 };
+    }
+
+    function drawHighlightedMaterialArrowHead(center, dir, color, headWidth, bodyWidth) {
+      ctx.save();
+      ctx.translate(center.x, center.y);
+      ctx.rotate(Math.atan2(dir.dy, dir.dx));
+
+      const halfHeadW = headWidth / 2;
+      const halfBodyW = bodyWidth / 2;
+      const tipForward = halfHeadW * 1.6;
+      const neckBack = -halfHeadW * 0.65;
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(neckBack, -halfBodyW);
+      ctx.lineTo(neckBack * 0.3, -halfHeadW);
+      ctx.lineTo(tipForward * 0.35, -halfHeadW * 0.85);
+      ctx.lineTo(tipForward, 0);
+      ctx.lineTo(tipForward * 0.35, halfHeadW * 0.85);
+      ctx.lineTo(neckBack * 0.3, halfHeadW);
+      ctx.lineTo(neckBack, halfBodyW);
+      ctx.closePath();
+      ctx.fill();
+
+      if (CELL >= 11) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+        ctx.beginPath();
+        ctx.moveTo(tipForward * 0.75, 0);
+        ctx.lineTo(tipForward * 0.15, -halfHeadW * 0.4);
+        ctx.lineTo(tipForward * 0.32, 0);
+        ctx.lineTo(tipForward * 0.15, halfHeadW * 0.4);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+
+    // ========================================================
+    // 👆 터치 / 클릭 통합 인터랙션
+    // ========================================================
+    function handlePointerInteract(clientX, clientY) {
+      if (isAnimating || isGameOver) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const clickX = Math.floor((clientX - rect.left) / CELL);
+      const clickY = Math.floor((clientY - rect.top) / CELL);
+
+      if (clickX < 0 || clickX >= COLS || clickY < 0 || clickY >= ROWS) return;
+
+      const targetSnake = snakes.find(s => s.body.some(p => p.x === clickX && p.y === clickY));
+      if (!targetSnake) return;
+
+      moveCount++;
+      updateStatusDisplay();
+
+      // 💥 [실패 검사]: 스네이크 개수 + 20 초과 시 즉시 실패 처리
+      if (moveCount > maxAllowedMoves) {
+        handleGameFail();
+        return;
+      }
+
+      const simResult = simulateStepEscape(targetSnake, snakes);
+
+      if (simResult.canEscape) {
+        animateEscape(targetSnake);
+      } else {
+        animateBumpAndReturn(targetSnake, simResult.steps);
+      }
+    }
+
+    canvas.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      handlePointerInteract(e.clientX, e.clientY);
+    });
+
+    // ========================================================
+    // 🎬 탈출 애니메이션 & 클리어 판정
+    // ========================================================
+    function animateEscape(snake) {
+      isAnimating = true;
+      const speed = Math.max(12, 36 - Math.floor(COLS * 0.35));
+      
+      const stepTimer = setInterval(() => {
+        const nextHead = {
+          x: snake.body[0].x + snake.headDir.dx,
+          y: snake.body[0].y + snake.headDir.dy
+        };
+        snake.body.unshift(nextHead);
+        snake.body.pop();
+
+        const escaped = snake.body.every(p => p.x < 0 || p.x >= COLS || p.y < 0 || p.y >= ROWS);
+        if (escaped) {
+          clearInterval(stepTimer);
+          snakes = snakes.filter(s => s !== snake);
+          isAnimating = false;
+          updateStatusDisplay();
+
+          if (snakes.length === 0) {
+            handleGameClear();
+          }
+        }
+        draw();
+      }, speed);
+    }
+
+    // ========================================================
+    // 🎬 충돌 & 튕김 애니메이션
+    // ========================================================
+    function animateBumpAndReturn(snake, availableSteps) {
+      isAnimating = true;
+      const originalBody = snake.body.map(p => ({ ...p }));
+      const forwardFrames = [];
+      let currentPath = snake.body.map(p => ({ ...p }));
+
+      for (let s = 0; s < availableSteps; s++) {
+        const nHead = { x: currentPath[0].x + snake.headDir.dx, y: currentPath[0].y + snake.headDir.dy };
+        currentPath = [nHead, ...currentPath.slice(0, -1)];
+        forwardFrames.push(currentPath.map(p => ({ ...p })));
+      }
+
+      const bumpOffset = 0.32;
+      const bumpFrame = currentPath.map(p => ({
+        x: p.x + snake.headDir.dx * bumpOffset,
+        y: p.y + snake.headDir.dy * bumpOffset
+      }));
+
+      const sequence = [
+        ...forwardFrames,
+        bumpFrame,
+        ...forwardFrames.slice().reverse(),
+        originalBody
+      ];
+
+      let frameIdx = 0;
+      const speed = Math.max(16, 32 - Math.floor(COLS * 0.3));
+      const animInterval = setInterval(() => {
+        if (frameIdx < sequence.length) {
+          snake.renderBody = sequence[frameIdx];
+          draw();
+          frameIdx++;
+        } else {
+          clearInterval(animInterval);
+          delete snake.renderBody;
+          snake.body = originalBody;
+          isAnimating = false;
+          draw();
+        }
+      }, speed);
+    }
+
+    // ========================================================
+    // 🎉 스테이지 클리어 처리 (XP 계산 및 포켓Tasks 연동)
+    // ========================================================
+    function handleGameClear() {
+      if (timerInterval) clearInterval(timerInterval);
+      isGameOver = true;
+
+      const cfg = STAGE_CONFIG[currentStageKey] || { name: "보통", baseReward: 20 };
+      const baseReward = cfg.baseReward;
+      let bonusReward = 0;
+      let bonusDesc = "";
+
+      // 🌟 [보너스 XP 판정]:
+      // N + 5개 안으로 클리어 -> +30 XP
+      // N + 10개 안으로 클리어 -> +10 XP
+      if (moveCount <= totalInitialSnakes + 5) {
+        bonusReward = 30;
+        bonusDesc = "초정밀 탈출 보너스 (+30 XP)";
+      } else if (moveCount <= totalInitialSnakes + 10) {
+        bonusReward = 10;
+        bonusDesc = "정밀 탈출 보너스 (+10 XP)";
+      }
+
+      const totalReward = baseReward + bonusReward;
+      const updatedRec = updateStreakOnClear(currentStageKey);
+
+      // 클리어 모달 출력
+      const min = Math.floor(timerSeconds / 60);
+      const sec = timerSeconds % 60;
+      const timeFormatted = min > 0 ? `${min}분 ${sec}초` : `${sec}초`;
+
+      document.getElementById('clearTitleText').innerText = `🎉 ${cfg.name} 난이도에서 ${updatedRec.currentStreak}연승 Clear!`;
+      document.getElementById('clearDescText').innerHTML = `
+        소요 시간: <b>${timeFormatted}</b> • 이동 횟수: <b>${moveCount}회</b><br>
+        기본 보상: <b>+${baseReward} XP</b> ${bonusReward > 0 ? `<br>✨ ${bonusDesc}` : ''}
+      `;
+      document.getElementById('clearXpBadge').innerText = `총 +${totalReward} XP 획득! 🎁`;
+      document.getElementById('clearModal').classList.add('show');
+
+      // 🌟 [포켓Tasks 메인 웹앱으로 XP 지급 메시지 전송]
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: 'SNAKE_UNTANGLE_CLEAR',
+          stageKey: currentStageKey,
+          stageName: cfg.name,
+          streak: updatedRec.currentStreak,
+          earnedXp: totalReward,
+          moveCount: moveCount,
+          timeSeconds: timerSeconds
+        }, '*');
+      }
+    }
+
+    // ========================================================
+    // 💥 스테이지 실패 처리
+    // ========================================================
+    function handleGameFail() {
+      if (timerInterval) clearInterval(timerInterval);
+      isGameOver = true;
+      resetStreakOnFail(currentStageKey);
+      updateStatusDisplay();
+      document.getElementById('failModal').classList.add('show');
+    }
+
+    // ========================================================
+    // 🚪 포켓Tasks로 복귀
+    // ========================================================
+    function closeGameAndReturn() {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'CLOSE_GAME' }, '*');
+      } else {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = './index.html';
+        }
+      }
+    }
+
+    window.onload = generateStage;
+    window.onresize = () => {
+      if (!isAnimating) {
+        const availableW = Math.min(window.innerWidth * 0.94, 600);
+        const availableH = window.innerHeight * 0.70;
+        CELL = Math.max(9, Math.min(Math.floor(availableW / COLS), Math.floor(availableH / ROWS)));
+        canvas.width = COLS * CELL;
+        canvas.height = ROWS * CELL;
+        draw();
+      }
+    };
+  </script>
+</body>
+</html>

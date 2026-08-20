@@ -952,6 +952,11 @@
         <!-- 3. 120Hz 미니게임 아케이드 -->
         <div id="paneArcadeView" style="display:none;">
           <div class="arcade-grid">
+            <div class="game-launch-card" onclick="openArcadeGame('snake_untangle')" style="border: 1px solid rgba(56,189,248,0.4); background: linear-gradient(135deg, rgba(56,189,248,0.12), rgba(30,58,138,0.15)); box-shadow: 0 4px 12px rgba(56,189,248,0.2);">
+              <div class="game-icon">🧩</div>
+              <div class="game-title" style="color:#38bdf8; font-weight:800;">스네이크 언탱글</div>
+              <div class="game-reward">+10~70 XP 실타래 퍼즐</div>
+            </div>
             <div class="game-launch-card" onclick="alert('🍉 수박게임 준비 완료!')">
               <div class="game-icon">🍉</div>
               <div class="game-title">포켓몬 수박게임</div>
@@ -5216,5 +5221,11 @@
       }
     }
   </script>
+
+  <!-- 🎮 미니게임 풀스크린 Iframe 모달 -->
+  <div id="arcadeGameModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; height:100dvh; background:#0b0f19; z-index:99999; flex-direction:column;">
+    <iframe id="arcadeGameIframe" src="" style="width:100%; height:100%; border:none;" allow="autoplay"></iframe>
+  </div>
+
 </body>
 </html>
