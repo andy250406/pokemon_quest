@@ -4478,16 +4478,21 @@
     }
 
     async function submitDeleteQuest() {
-      const editingId = document.getElementById('editingQuestId').value;
+      const editingId = String(document.getElementById('editingQuestId').value || '').trim();
       if (!editingId) return;
 
       if (!confirm("정말 이 퀘스트를 삭제하시겠습니까?\nGoogle Tasks 목록에서도 함께 삭제됩니다.")) {
         return;
       }
 
-      const delBtn = document.getElementById('btnDeleteQuest');
-      delBtn.innerText = "⏳ 삭제 중...";
-      delBtn.disabled = true;
+      // 1) 🚀 즉시 낙관적 UI 삭제 (0.01초 만에 화면에서 즉각 제거)
+      const targetQuest = appState.quests.find(x => String(x.id).trim() === editingId);
+      const questName = targetQuest ? targetQuest.name : "퀘스트";
+      
+      appState.quests = appState.quests.filter(x => String(x.id).trim() !== editingId);
+      closeAddQuestModal();
+      renderQuestList(appState.quests);
+      renderStreakList(appState.quests);
 
       try {
         const response = await fetch(GAS_API_URL, {
@@ -4496,23 +4501,14 @@
           body: JSON.stringify({ action: "deleteQuest", questId: editingId })
         });
         const result = await response.json();
-        delBtn.innerText = "🗑️ 삭제";
-        delBtn.disabled = false;
 
-        if (result.success && result.data) {
+        if (result.success && result.data && result.data.quests) {
           appState.quests = result.data.quests;
-          initUI(appState);
-          closeAddQuestModal();
-          alert("🗑️ 퀘스트가 삭제되었습니다.");
-        } else {
-          closeAddQuestModal();
-          syncWithGasBackend();
+          renderQuestList(appState.quests);
+          renderStreakList(appState.quests);
         }
       } catch (err) {
-        delBtn.innerText = "🗑️ 삭제";
-        delBtn.disabled = false;
-        closeAddQuestModal();
-        syncWithGasBackend();
+        console.error("Delete sync error:", err);
       }
     }
 
@@ -4567,11 +4563,13 @@
       }
 
       const questIds = [];
-      checkedBoxes.forEach(cb => questIds.push(cb.getAttribute('data-id')));
+      checkedBoxes.forEach(cb => questIds.push(String(cb.getAttribute('data-id')).trim()));
 
-      const execBtn = document.getElementById('btnExecBatchDelete');
-      execBtn.innerText = "⏳ 일괄 삭제 중...";
-      execBtn.disabled = true;
+      // 1) 🚀 즉시 낙관적 UI 삭제 (화면에서 즉각 제거)
+      appState.quests = appState.quests.filter(x => !questIds.includes(String(x.id).trim()));
+      cancelBatchDeleteMode();
+      renderQuestList(appState.quests);
+      renderStreakList(appState.quests);
 
       try {
         const response = await fetch(GAS_API_URL, {
@@ -4580,27 +4578,19 @@
           body: JSON.stringify({ action: "batchDeleteQuests", questIds: questIds })
         });
         const result = await response.json();
-        execBtn.innerText = "❌ 삭제 실행";
-        execBtn.disabled = false;
 
-        cancelBatchDeleteMode();
-
-        if (result.success && result.data) {
+        if (result.success && result.data && result.data.quests) {
           appState.quests = result.data.quests;
-          initUI(appState);
-          alert(`🗑️ 선택한 ${count}개의 퀘스트가 Google Tasks와 앱에서 모두 삭제되었습니다!`);
-        } else {
-          syncWithGasBackend();
+          renderQuestList(appState.quests);
+          renderStreakList(appState.quests);
         }
       } catch (err) {
-        execBtn.innerText = "❌ 삭제 실행";
-        execBtn.disabled = false;
-        cancelBatchDeleteMode();
-        syncWithGasBackend();
+        console.error("Batch delete sync error:", err);
       }
     }
 
-    function switchWorkspaceTab(tab) {
+
+        function switchWorkspaceTab(tab) {
       const workPane = document.getElementById('workspacePane');
       workPane.classList.add('open');
 
