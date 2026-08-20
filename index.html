@@ -833,131 +833,114 @@
 
     
     /* ========================================================
-       ✨ 섭취(Feeding) & 레벨업(Level Up) 특수 시각 효과 CSS
+       ✨ 심플 섭취(Feeding) & 레벨업(Level Up) & 성격 팝오버 CSS
        ======================================================== */
-    /* 경험치바 부드러운 충전 & 글리머 빛줄기 */
+    /* 경험치바: 평소엔 정적, 경험치 획득 순간만 1회 부드러운 하이라이트 */
     .xp-bar-fill {
-      transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-      position: relative;
-      overflow: hidden;
+      transition: width 0.45s cubic-bezier(0.25, 1, 0.5, 1) !important;
     }
-    .xp-bar-fill.glowing {
-      box-shadow: 0 0 12px #38bdf8, 0 0 20px #60a5fa !important;
-    }
-    .xp-bar-fill::after {
-      content: '';
-      position: absolute;
-      top: 0; left: -100%; width: 100%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
-      animation: xpGlimmer 2s infinite;
-    }
-    @keyframes xpGlimmer {
-      0% { left: -100%; }
-      50%, 100% { left: 100%; }
+    .xp-bar-gain-shine {
+      box-shadow: 0 0 10px #38bdf8 !important;
+      filter: brightness(1.3);
+      transition: filter 0.3s ease, box-shadow 0.3s ease;
     }
 
-    /* 포켓몬 냠냠 먹는 모션 */
-    .pokemon-munching {
-      animation: pokeMunchAnim 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) !important;
-    }
-    @keyframes pokeMunchAnim {
-      0%, 100% { transform: scale(1); }
-      20% { transform: scale(1.18, 0.82) translateY(6px); }
-      40% { transform: scale(0.92, 1.15) translateY(-14px); }
-      60% { transform: scale(1.12, 0.88) translateY(4px); }
-      80% { transform: scale(0.96, 1.06) translateY(-6px); }
-    }
-
-    /* 섭취 시 날아가는 경험치 파티클 구슬 */
-    .flying-xp-orb {
+    /* 섭취 시 날아가는 서식지 아이템 이미지 2개 */
+    .flying-habitat-item {
       position: fixed;
       pointer-events: none;
       z-index: 9999;
-      font-size: 18px;
-      line-height: 1;
-      filter: drop-shadow(0 0 8px #fbbf24);
-      transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease;
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+      transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.55s ease;
     }
 
-    /* 포켓몬 머리 위 하트 & +XP 플로팅 텍스트 */
-    .feed-floating-heart {
+    /* 🌟 레벨업 시 머리 위로 살짝 떴다 사라지는 단 하나의 별 */
+    .mini-levelup-star {
       position: absolute;
       left: 50%;
-      bottom: 85%;
+      bottom: 80%;
       transform: translateX(-50%);
+      font-size: 22px;
       pointer-events: none;
       z-index: 30;
-      font-size: 13px;
-      font-weight: 900;
-      color: #fbbf24;
-      background: rgba(15, 23, 42, 0.88);
-      padding: 3px 9px;
-      border-radius: 12px;
-      border: 1px solid rgba(251, 191, 36, 0.5);
-      box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
-      white-space: nowrap;
-      animation: floatUpAndFade 1.2s ease-out forwards;
+      animation: singleStarFloat 0.85s ease-out forwards;
     }
-    @keyframes floatUpAndFade {
-      0% { transform: translate(-50%, 10px) scale(0.6); opacity: 0; }
-      25% { transform: translate(-50%, -10px) scale(1.15); opacity: 1; }
-      75% { transform: translate(-50%, -28px) scale(1); opacity: 1; }
-      100% { transform: translate(-50%, -45px) scale(0.85); opacity: 0; }
+    @keyframes singleStarFloat {
+      0% { transform: translate(-50%, 10px) scale(0.4); opacity: 0; }
+      30% { transform: translate(-50%, -12px) scale(1.2); opacity: 1; filter: drop-shadow(0 0 8px #fbbf24); }
+      70% { transform: translate(-50%, -24px) scale(1); opacity: 0.9; }
+      100% { transform: translate(-50%, -36px) scale(0.6); opacity: 0; }
     }
 
-    /* 🌟 레벨업 특수 오라 링 & 팝업 */
-    .level-up-aura-ring {
-      position: absolute;
-      left: 50%;
-      bottom: 10px;
-      width: 100px;
-      height: 30px;
-      transform: translateX(-50%);
-      border: 3px solid #fbbf24;
-      border-radius: 50%;
-      box-shadow: 0 0 20px #f59e0b, inset 0 0 15px #fbbf24;
-      pointer-events: none;
-      z-index: 15;
-      animation: auraRingExpand 1.1s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
-    }
-    @keyframes auraRingExpand {
-      0% { transform: translateX(-50%) translateY(0) scale(0.2); opacity: 1; }
-      50% { opacity: 0.9; }
-      100% { transform: translateX(-50%) translateY(-70px) scale(1.6); opacity: 0; }
-    }
-
-    .level-up-banner-tag {
-      position: absolute;
-      left: 50%;
-      bottom: 95%;
-      transform: translateX(-50%);
-      pointer-events: none;
-      z-index: 35;
-      font-size: 14px;
-      font-weight: 900;
-      color: #ffffff;
-      background: linear-gradient(135deg, #f59e0b, #ef4444);
-      padding: 4px 12px;
-      border-radius: 20px;
-      border: 1.5px solid #ffffff;
-      box-shadow: 0 4px 16px rgba(245, 158, 11, 0.6);
-      white-space: nowrap;
-      animation: levelUpBannerPop 1.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-    @keyframes levelUpBannerPop {
-      0% { transform: translate(-50%, 15px) scale(0.3); opacity: 0; }
-      20% { transform: translate(-50%, -8px) scale(1.25); opacity: 1; }
-      70% { transform: translate(-50%, -18px) scale(1); opacity: 1; }
-      100% { transform: translate(-50%, -35px) scale(0.9); opacity: 0; }
-    }
-
+    /* 상단 레벨 뱃지 심플 펄스 */
     .badge-level-up-pulse {
-      animation: badgeLevelPulse 0.8s ease forwards !important;
+      animation: simpleBadgePulse 0.6s ease forwards !important;
     }
-    @keyframes badgeLevelPulse {
-      0% { transform: scale(1); filter: brightness(1); }
-      35% { transform: scale(1.45); filter: brightness(1.6); background: #fbbf24 !important; color: #0f172a !important; box-shadow: 0 0 15px #f59e0b; }
-      100% { transform: scale(1); filter: brightness(1); }
+    @keyframes simpleBadgePulse {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.3); background: #38bdf8 !important; color: #0f172a !important; }
+      100% { transform: scale(1); }
+    }
+
+    /* 🏷️ 성격 & 성장속도 안내 팝오버 말풍선 */
+    .nature-tag {
+      cursor: pointer;
+      background: #f1f5f9;
+      color: #334155;
+      font-weight: 700;
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 6px;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .nature-tag:active {
+      transform: scale(0.95);
+      background: #e2e8f0;
+    }
+    .nature-popover {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: #1e293b;
+      color: #f1f5f9;
+      border: 1px solid #334155;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 11.5px;
+      line-height: 1.5;
+      width: 220px;
+      z-index: 100;
+      display: none;
+    }
+    .nature-popover.show {
+      display: block;
+      animation: popoverFadeIn 0.15s ease-out;
+    }
+    @keyframes popoverFadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .nature-popover-title {
+      font-weight: 800;
+      color: #38bdf8;
+      margin-bottom: 4px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .nature-popover-row {
+      margin-bottom: 3px;
+      color: #cbd5e1;
+    }
+    .nature-popover-row b {
+      color: #f8fafc;
     }
 
     /* 🎮 미니게임 아케이드 */
@@ -1216,11 +1199,25 @@
             <span class="pokemon-name" id="pokeName">이상해씨 <span class="gender-symbol male" id="genderSymbol">♂</span></span>
           </div>
           
-          <div class="type-nature-row">
+          <div class="type-nature-row" style="position:relative;">
             <div class="type-icons-row" id="typeIconsRow"></div>
             <div style="display:flex; align-items:center; gap:4px;">
-              <span class="growth-tag" id="growthTag">보통느림</span>
-              <span class="nature-tag" id="natureTag">고집 (+공격)</span>
+              <span class="growth-tag" id="growthTag" style="display:none;">보통느림</span>
+              <span class="nature-tag" id="natureTag" onclick="toggleNaturePopover(event)">고집 ℹ️</span>
+            </div>
+
+            <!-- ℹ️ 성격 & 성장속도 클릭 팝오버 창 -->
+            <div class="nature-popover" id="naturePopover" onclick="event.stopPropagation()">
+              <div class="nature-popover-title">
+                <span id="popoverNatureName">고집 성격</span>
+                <span style="font-size:10px; color:#94a3b8; cursor:pointer;" onclick="hideNaturePopover()">닫기 ✕</span>
+              </div>
+              <div class="nature-popover-row" id="popoverNatureDesc">
+                • <b>성격 효과</b>: 공격 +10%, 특수공격 -10%
+              </div>
+              <div class="nature-popover-row" id="popoverGrowthDesc">
+                • <b>성장 속도</b>: 보통느림 (표준 경험치)
+              </div>
             </div>
           </div>
 
@@ -3982,7 +3979,7 @@
       
       const genderClass = data.pokemon.gender === '♀' ? 'female' : (data.pokemon.gender === '♂' ? 'male' : 'none');
       document.getElementById('pokeName').innerHTML = `${data.pokemon.name} <span class="gender-symbol ${genderClass}">${data.pokemon.gender || ''}</span>`;
-      document.getElementById('natureTag').innerText = `${data.pokemon.nature} (${data.pokemon.natureBuff})`;
+      document.getElementById('natureTag').innerText = (data.pokemon.nature || '고집') + ' ℹ️';
       
       const growthKr = { "FAST":"빠름", "MEDIUM_FAST":"보통빠름", "MEDIUM_SLOW":"보통느림", "SLOW":"느림" };
       const growthEl = document.getElementById('growthTag');
@@ -5052,7 +5049,7 @@
 
 
     // ========================================================
-    // 🍒 섭취(Feeding) & 레벨업(Level Up) 시각 효과 엔진
+    // 🍒 심플 섭취(Feeding 2아이템 비행) & 미니 별 레벨업 & 성격 팝오버
     // ========================================================
     function onFeedAccumulatedBerries() {
       if (pendingBerryXp <= 0) return;
@@ -5062,14 +5059,15 @@
       const basketWidget = document.getElementById('berryBasketWidget');
       if (basketWidget) basketWidget.classList.remove('show');
 
-      // 🌟 [1. 파티클 비행 & 포켓몬 냠냠 이펙트 발동]
-      triggerFeedAbsorbAnimation(earned, () => {
-        // 파티클이 포켓몬에 도달한 후 경험치 적용 및 레벨업 검사
+      // 🌟 [현재 서식지 아이템 랜덤 2개만 날아가서 흡수]
+      triggerSimpleItemFlyAnimation(() => {
+        // 경험치바 1회 하이라이트 & 경험치 적용
+        highlightXpBar();
         processXpGainAndEvolve(earned);
       });
     }
 
-    function triggerFeedAbsorbAnimation(earnedXp, onCompleteCallback) {
+    function triggerSimpleItemFlyAnimation(onCompleteCallback) {
       const basket = document.getElementById('berryBasketWidget');
       const targetSprite = document.getElementById('characterSprite') || document.querySelector('.pokemon-sprite-container');
       
@@ -5091,109 +5089,148 @@
         startY = basketRect.top + basketRect.height / 2;
       }
 
-      // 5~7개의 반짝이는 파티클 구슬 연속 발사
-      const particleIcons = ['✨', '💎', '🍒', '⭐', '✨', '💖'];
-      const particleCount = 6;
+      // 현재 배경 서식지 아이템 풀에서 2개 랜덤 추출
+      const pool = HABITAT_ITEM_POOLS[currentHabitatBgKey] || HABITAT_ITEM_POOLS["PogoGrasslandBg"];
+      const item1 = pool[Math.floor(Math.random() * pool.length)];
+      const item2 = pool[Math.floor(Math.random() * pool.length)];
+      const itemsToFly = [item1, item2];
 
-      for (let i = 0; i < particleCount; i++) {
+      itemsToFly.forEach((src, idx) => {
         setTimeout(() => {
-          const p = document.createElement('div');
-          p.className = 'flying-xp-orb';
-          p.innerText = particleIcons[i % particleIcons.length];
-          p.style.left = startX + 'px';
-          p.style.top = startY + 'px';
-          document.body.appendChild(p);
+          const img = document.createElement('img');
+          img.className = 'flying-habitat-item';
+          img.src = src;
+          img.style.left = startX + 'px';
+          img.style.top = startY + 'px';
+          document.body.appendChild(img);
 
-          // 포물선 궤적 비행
           requestAnimationFrame(() => {
-            const spreadX = (Math.random() - 0.5) * 40;
-            const spreadY = (Math.random() - 0.5) * 40;
+            const spreadX = (idx === 0 ? -15 : 15);
+            const spreadY = (idx === 0 ? -10 : 10);
             const deltaX = targetX - startX + spreadX;
             const deltaY = targetY - startY + spreadY;
 
-            p.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(1.4)`;
-            p.style.opacity = '0.9';
+            img.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(1.1)`;
+            img.style.opacity = '0.95';
 
             setTimeout(() => {
-              p.style.opacity = '0';
-              p.style.transform += ' scale(0.3)';
+              img.style.opacity = '0';
+              img.style.transform += ' scale(0.2)';
               setTimeout(() => {
-                if (p.parentNode) p.parentNode.removeChild(p);
-              }, 200);
-            }, 550);
+                if (img.parentNode) img.parentNode.removeChild(img);
+              }, 150);
+            }, 450);
           });
-        }, i * 70);
-      }
+        }, idx * 120);
+      });
 
-      // 파티클 도달 시점(약 450ms 후): 포켓몬 냠냠 모션 & 머리 위 하트/XP 팝업
+      // 비행 완료 시점 콜백
       setTimeout(() => {
-        // 1) 포켓몬 냠냠 튀어오름
-        if (targetSprite) {
-          targetSprite.classList.remove('pokemon-munching');
-          void targetSprite.offsetWidth; // 리플로우
-          targetSprite.classList.add('pokemon-munching');
-          setTimeout(() => targetSprite.classList.remove('pokemon-munching'), 650);
-        }
-
-        // 2) 머리 위 하트 텍스트 팝업
-        const stageArea = document.getElementById('stageArea');
-        if (stageArea) {
-          const heartTag = document.createElement('div');
-          heartTag.className = 'feed-floating-heart';
-          heartTag.innerHTML = `💖 +${earnedXp} XP 😋`;
-          stageArea.appendChild(heartTag);
-          setTimeout(() => {
-            if (heartTag.parentNode) heartTag.parentNode.removeChild(heartTag);
-          }, 1300);
-        }
-
-        // 3) 경험치바 글로우 효과
-        const xpFill = document.getElementById('xpBarFill');
-        if (xpFill) {
-          xpFill.classList.add('glowing');
-          setTimeout(() => xpFill.classList.remove('glowing'), 800);
-        }
-
         if (onCompleteCallback) onCompleteCallback();
-      }, 480);
+      }, 550);
     }
 
-    // 🌟 [레벨업 미니 애니메이션 연출]
+    function highlightXpBar() {
+      const xpFill = document.getElementById('xpBarFill');
+      if (xpFill) {
+        xpFill.classList.add('xp-bar-gain-shine');
+        setTimeout(() => xpFill.classList.remove('xp-bar-gain-shine'), 500);
+      }
+    }
+
+    // 🌟 [레벨업 시 포켓몬 머리 위로 별 하나만 살짝 떠올랐다 사라짐]
     function triggerMiniLevelUpEffect(newLevel) {
       const stageArea = document.getElementById('stageArea');
-      const targetSprite = document.getElementById('characterSprite');
       const lvBadge = document.getElementById('lvBadge');
 
-      // 1) 상단 레벨 뱃지 펄스
+      // 상단 레벨 뱃지 펄스
       if (lvBadge) {
         lvBadge.classList.remove('badge-level-up-pulse');
         void lvBadge.offsetWidth;
         lvBadge.classList.add('badge-level-up-pulse');
-        setTimeout(() => lvBadge.classList.remove('badge-level-up-pulse'), 900);
+        setTimeout(() => lvBadge.classList.remove('badge-level-up-pulse'), 700);
       }
 
+      // 머리 위 별 하나 (⭐)
       if (stageArea) {
-        // 2) 황금 오라 링
-        const ring = document.createElement('div');
-        ring.className = 'level-up-aura-ring';
-        stageArea.appendChild(ring);
+        const star = document.createElement('div');
+        star.className = 'mini-levelup-star';
+        star.innerText = '⭐';
+        stageArea.appendChild(star);
         setTimeout(() => {
-          if (ring.parentNode) ring.parentNode.removeChild(ring);
-        }, 1200);
-
-        // 3) 머리 위 LEVEL UP! 미니 배너
-        const banner = document.createElement('div');
-        banner.className = 'level-up-banner-tag';
-        banner.innerHTML = `⭐ LEVEL UP! Lv.${newLevel} ⭐`;
-        stageArea.appendChild(banner);
-        setTimeout(() => {
-          if (banner.parentNode) banner.parentNode.removeChild(banner);
-        }, 1700);
+          if (star.parentNode) star.parentNode.removeChild(star);
+        }, 900);
       }
 
-      // 4) 포켓몬 기쁨의 점프
-      triggerSpriteHopAnimation();
+      highlightXpBar();
     }
+
+    // 🌟 [성격 & 성장속도 팝오버 열기/닫기]
+    const NATURE_DESCRIPTIONS = {
+      "고집": "공격 +10%, 특수공격 -10%",
+      "조심": "특수공격 +10%, 공격 -10%",
+      "명랑": "스피드 +10%, 특수공격 -10%",
+      "겁쟁이": "스피드 +10%, 공격 -10%",
+      "장난꾸러기": "방어 +10%, 특수공격 -10%",
+      "신중": "특수방어 +10%, 특수공격 -10%",
+      "대담": "방어 +10%, 공격 -10%",
+      "차분": "특수방어 +10%, 공격 -10%",
+      "외로움": "공격 +10%, 방어 -10%",
+      "용감": "공격 +10%, 스피드 -10%",
+      "의젓": "특수공격 +10%, 방어 -10%",
+      "냉정": "특수공격 +10%, 스피드 -10%",
+      "성급": "스피드 +10%, 방어 -10%",
+      "천진난만": "스피드 +10%, 특수방어 -10%",
+      "노력": "능력치 변화 없음 (균형형)",
+      "온순": "능력치 변화 없음 (균형형)",
+      "수줍음": "능력치 변화 없음 (균형형)",
+      "변덕": "능력치 변화 없음 (균형형)",
+      "성실": "능력치 변화 없음 (균형형)"
+    };
+
+    const GROWTH_DESCRIPTIONS = {
+      "FAST": "빠름 (레벨업 요구 경험치 적음)",
+      "MEDIUM_FAST": "보통빠름 (표준보다 약간 빠름)",
+      "MEDIUM_SLOW": "보통느림 (표준 경험치 테이블)",
+      "SLOW": "느림 (대기만성형, 레벨업 요구량 높음)"
+    };
+
+    function toggleNaturePopover(event) {
+      if (event) event.stopPropagation();
+      const pop = document.getElementById('naturePopover');
+      if (!pop) return;
+
+      const isVisible = pop.classList.contains('show');
+      if (isVisible) {
+        pop.classList.remove('show');
+      } else {
+        const mon = appState.pokemon || {};
+        const natureName = mon.nature || '고집';
+        const growthType = mon.growth || 'MEDIUM_SLOW';
+
+        document.getElementById('popoverNatureName').innerText = `${natureName} 성격`;
+        document.getElementById('popoverNatureDesc').innerHTML = `• <b>성격 효과</b>: ${NATURE_DESCRIPTIONS[natureName] || mon.natureBuff || '능력치 균형'}`;
+        document.getElementById('popoverGrowthDesc').innerHTML = `• <b>성장 속도</b>: ${GROWTH_DESCRIPTIONS[growthType] || '보통느림'}`;
+
+        pop.classList.add('show');
+      }
+    }
+
+    function hideNaturePopover() {
+      const pop = document.getElementById('naturePopover');
+      if (pop) pop.classList.remove('show');
+    }
+
+    // 바깥 화면 터치/클릭 시 팝오버 닫기
+    document.addEventListener('click', function(e) {
+      const pop = document.getElementById('naturePopover');
+      const tag = document.getElementById('natureTag');
+      if (pop && pop.classList.contains('show')) {
+        if (!pop.contains(e.target) && e.target !== tag) {
+          pop.classList.remove('show');
+        }
+      }
+    });
 
 
     // ========================================================
