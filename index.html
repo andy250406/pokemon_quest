@@ -1094,6 +1094,54 @@
       border: 1px solid rgba(148, 163, 184, 0.25);
     }
 
+    
+    /* 🎮 3열 컴팩트 미니게임 그리드 */
+    .arcade-grid-3col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .mini-game-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px 6px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .mini-game-card:hover {
+      border-color: #64748b;
+      transform: translateY(-2px);
+    }
+    .mini-game-card.highlight {
+      border: 1px solid rgba(56,189,248,0.5);
+      background: linear-gradient(135deg, rgba(56,189,248,0.15), rgba(30,58,138,0.25));
+      box-shadow: 0 2px 10px rgba(56,189,248,0.2);
+    }
+    .mini-game-icon {
+      font-size: 24px;
+      line-height: 1;
+    }
+    .mini-game-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+    .mini-game-card.highlight .mini-game-title {
+      color: #38bdf8;
+    }
+
     /* 🎮 미니게임 아케이드 */
     .arcade-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .game-launch-card {
@@ -1229,11 +1277,11 @@
         <div id="paneQuestView">
           <div class="quest-toolbar">
             <div class="quest-toolbar-left">
-              <button id="btnRefreshQuests" class="btn-quest-done" style="background:#374151;" onclick="syncWithGasBackend()">🔄 구글 동기화</button>
-              <button class="btn-quest-add" id="btnAddQuest" onclick="openAddQuestModal()">➕ 추가</button>
+              <button id="btnRefreshQuests" class="btn-quest-done" style="background:#374151; padding:7px 12px;" onclick="syncWithGasBackend()">동기화</button>
+              <button class="btn-quest-add" id="btnAddQuest" style="padding:7px 12px;" onclick="openAddQuestModal()">➕</button>
             </div>
             <div class="quest-toolbar-right">
-              <button class="btn-quest-batch-del" id="btnToggleBatchDelete" onclick="toggleBatchDeleteMode()">🗑️ 선택 삭제</button>
+              <button class="btn-quest-batch-del" id="btnToggleBatchDelete" style="padding:7px 12px;" onclick="toggleBatchDeleteMode()">삭제</button>
               <button class="btn-quest-batch-exec" id="btnExecBatchDelete" onclick="executeBatchDelete()">❌ 삭제 실행 (0)</button>
               <button class="btn-quest-batch-cancel" id="btnCancelBatchDelete" onclick="cancelBatchDeleteMode()">취소</button>
             </div>
@@ -1248,41 +1296,30 @@
 
         <!-- 3. 120Hz 미니게임 아케이드 -->
         <div id="paneArcadeView" style="display:none;">
-          <div class="arcade-grid">
-            <div class="game-launch-card" onclick="openArcadeGame('snake_untangle')" style="border: 1px solid rgba(56,189,248,0.4); background: linear-gradient(135deg, rgba(56,189,248,0.12), rgba(30,58,138,0.15)); box-shadow: 0 4px 12px rgba(56,189,248,0.2);">
-              <div class="game-icon">🧩</div>
-              <div class="game-title" style="color:#38bdf8; font-weight:800;">스네이크 언탱글</div>
-              <div class="game-reward">+10~70 XP 실타래 퍼즐</div>
+          <div class="arcade-grid-3col">
+            <div class="mini-game-card highlight" onclick="openArcadeGame('snake_untangle')">
+              <div class="mini-game-icon">🧩</div>
+              <div class="mini-game-title">Snake Point</div>
             </div>
-            <div class="game-launch-card" onclick="alert('🍉 수박게임 준비 완료!')">
-              <div class="game-icon">🍉</div>
-              <div class="game-title">포켓몬 수박게임</div>
-              <div class="game-reward">+XP 물리 합성</div>
+            <div class="mini-game-card" onclick="alert('🍉 Watermelon 준비 완료!')">
+              <div class="mini-game-icon">🍉</div>
+              <div class="mini-game-title">Watermelon</div>
             </div>
-            <div class="game-launch-card" onclick="alert('🖼️ 네모로직 준비 완료!')">
-              <div class="game-icon">🖼️</div>
-              <div class="game-title">네모로직 (피크로스)</div>
-              <div class="game-reward">+30 XP 도감해금</div>
+            <div class="mini-game-card" onclick="alert('🔢 2048 준비 완료!')">
+              <div class="mini-game-icon">🔢</div>
+              <div class="mini-game-title">2048</div>
             </div>
-            <div class="game-launch-card" onclick="alert('🔢 2048 게임 준비 완료!')">
-              <div class="game-icon">🔢</div>
-              <div class="game-title">포켓몬 레벨 2048</div>
-              <div class="game-reward">+XP 레벨업</div>
+            <div class="mini-game-card" onclick="alert('🧩 Sudoku 준비 완료!')">
+              <div class="mini-game-icon">🧩</div>
+              <div class="mini-game-title">Sudoku</div>
             </div>
-            <div class="game-launch-card" onclick="alert('🧩 스도쿠 준비 완료!')">
-              <div class="game-icon">🧩</div>
-              <div class="game-title">포켓몬 스도쿠</div>
-              <div class="game-reward">+50 XP 두뇌트레이닝</div>
+            <div class="mini-game-card" onclick="alert('💣 Minesweeper 준비 완료!')">
+              <div class="mini-game-icon">💣</div>
+              <div class="mini-game-title">Minesweeper</div>
             </div>
-            <div class="game-launch-card" onclick="alert('💣 지뢰찾기 준비 완료!')">
-              <div class="game-icon">💣</div>
-              <div class="game-title">찌리리공 지뢰찾기</div>
-              <div class="game-reward">+40 XP 탐지</div>
-            </div>
-            <div class="game-launch-card" onclick="alert('🃏 솔리테어 준비 완료!')">
-              <div class="game-icon">🃏</div>
-              <div class="game-title">스파이더 솔리테어</div>
-              <div class="game-reward">+15 XP 카드놀이</div>
+            <div class="mini-game-card" onclick="alert('🃏 Spider Solitaire 준비 완료!')">
+              <div class="mini-game-icon">🃏</div>
+              <div class="mini-game-title">Spider Solitaire</div>
             </div>
           </div>
         </div>
@@ -1354,7 +1391,7 @@
             <div class="type-icons-row" id="typeIconsRow"></div>
             <div style="display:flex; align-items:center; gap:4px;">
               <span class="growth-tag" id="growthTag" style="display:none;">보통느림</span>
-              <span class="nature-tag" id="natureTag" onclick="toggleNaturePopover(event)">고집 ℹ️</span>
+              <span class="nature-tag" id="natureTag" onclick="toggleNaturePopover(event)">고집</span>
             </div>
 
             <!-- ℹ️ 성격 & 성장속도 클릭 팝오버 창 -->
@@ -1382,7 +1419,7 @@
         </div>
 
         <div class="quest-badge" id="questBadge" onclick="switchWorkspaceTab('QUEST')">
-          📝 필수 <span id="questText">0/0</span>
+          필수 <span id="questText">0/0</span>
         </div>
       </div>
 
@@ -4130,7 +4167,7 @@
       
       const genderClass = data.pokemon.gender === '♀' ? 'female' : (data.pokemon.gender === '♂' ? 'male' : 'none');
       document.getElementById('pokeName').innerHTML = `${data.pokemon.name} <span class="gender-symbol ${genderClass}">${data.pokemon.gender || ''}</span>`;
-      document.getElementById('natureTag').innerText = (data.pokemon.nature || '고집') + ' ℹ️';
+      document.getElementById('natureTag').innerText = (data.pokemon.nature || '고집');
       
       const growthKr = { "FAST":"빠름", "MEDIUM_FAST":"보통빠름", "MEDIUM_SLOW":"보통느림", "SLOW":"느림" };
       const growthEl = document.getElementById('growthTag');
@@ -4575,8 +4612,8 @@
 
       const title = document.getElementById('paneTitleText');
       if (tab === 'QUEST') { title.innerText = "📋 퀘스트 목록"; document.getElementById('paneQuestView').style.display = 'block'; }
-      else if (tab === 'STREAK') { title.innerText = "📊 퀘스트 실천 및 기록"; document.getElementById('paneStreakView').style.display = 'block'; renderStreakList(appState.quests); }
-      else if (tab === 'ARCADE') { title.innerText = "🎮 120Hz 미니게임 아케이드"; document.getElementById('paneArcadeView').style.display = 'block'; }
+      else if (tab === 'STREAK') { title.innerText = "퀘스트 기록"; document.getElementById('paneStreakView').style.display = 'block'; renderStreakList(appState.quests); }
+      else if (tab === 'ARCADE') { title.innerText = "미니게임"; document.getElementById('paneArcadeView').style.display = 'block'; }
       else if (tab === 'DEX') {
         title.innerText = "📖 포켓몬 도감 (1세대 151)";
         document.getElementById('panePokedexView').style.display = 'block';
@@ -4595,6 +4632,7 @@
 
     function renderQuestList(quests) {
       const container = document.getElementById('questListContainer');
+      if (!container) return;
       container.innerHTML = '';
       let reqDone = 0, reqTotal = 0;
 
@@ -4603,148 +4641,138 @@
           <div style="text-align:center; padding:30px 10px; color:#8892a0;">
             <div style="font-size:32px; margin-bottom:8px;">📝</div>
             <div style="font-size:14px; font-weight:800; color:white; margin-bottom:4px;">등록된 퀘스트가 없습니다</div>
-            <div style="font-size:12px;">상단 [➕ 추가]를 눌러 첫 할 일을 등록해 보세요!</div>
+            <div style="font-size:12px;">상단 [➕]를 눌러 첫 할 일을 등록해 보세요!</div>
           </div>
         `;
         document.getElementById('questText').innerText = "0/0";
         return;
       }
 
+      // 필수 퀘스트 카운트
       quests.forEach(q => {
         if (q.isRequired) {
           reqTotal++;
           if (q.isCompletedToday) reqDone++;
         }
-        const card = document.createElement('div');
-        card.className = 'quest-card';
-        
-        const descHtml = q.description ? `<div class="quest-desc">📝 ${q.description}</div>` : '';
-        const dueMeta = q.dueDate ? `📅 ${q.dueDate}` : '';
-        const timeMeta = q.notifyTime ? `⏰ ${q.notifyTime}` : '';
-
-        card.innerHTML = `
-          <div class="quest-card-left">
-            <input type="checkbox" class="quest-batch-cb" data-id="${q.id}" onchange="onQuestCheckboxChange()" style="${isBatchDeleteMode ? 'display:inline-block;' : 'display:none;'}">
-            <div class="quest-info">
-              <div class="quest-title">
-                ${q.name}
-                ${q.isRequired ? '<span class="req-tag">필수</span>' : ''}
-                <span class="rec-tag">${q.days || '매일'}</span>
-              </div>
-              <div class="quest-meta">
-                ${dueMeta ? `<span>${dueMeta}</span> • ` : ''}
-                <span>${timeMeta || '상시'}</span> • 
-                <span>🔥 ${q.consecutiveDays || 0}일 연속</span>
-              </div>
-              ${descHtml}
-            </div>
-          </div>
-          <div class="quest-card-btns" style="${isBatchDeleteMode ? 'display:none;' : 'display:flex;'}">
-            <button class="btn-quest-edit" onclick="openEditQuestModal('${q.id}')">
-              ✏️ 수정
-            </button>
-            <button class="btn-quest-done ${q.isCompletedToday ? 'disabled' : ''}" onclick="completeQuestDirect('${q.id}', '${q.name}')">
-              ${q.isCompletedToday ? '완료됨 ✓' : `+${q.rewardXp} XP`}
-            </button>
-          </div>
-        `;
-        container.appendChild(card);
       });
       document.getElementById('questText').innerText = `${reqDone}/${reqTotal}`;
-    }
 
-    function processXpGainAndEvolve(earnedXp) {
-      if (appState.isEgg) {
-        appState.userStats.currentXp += earnedXp;
-        if (appState.userStats.currentXp >= 50) {
-          executeCheatCustom(2);
+      // 1) 🔁 반복 퀘스트 분리
+      const recurringQuests = quests.filter(q => {
+        const rec = (q.recurrence || '').toUpperCase().trim();
+        return rec && rec !== 'NONE' && rec !== '일회성';
+      });
+
+      // 🔁 반복 퀘스트 정렬: 실시간 가까운 알림 시간순 (시간 미지정은 뒤로)
+      recurringQuests.sort((a, b) => {
+        const timeA = a.notifyTime || '99:99';
+        const timeB = b.notifyTime || '99:99';
+        return timeA.localeCompare(timeB);
+      });
+
+      // 2) ⚡ 일회성 퀘스트 분리 (완료된 일회성 퀘스트는 목록에서 완전히 제외!)
+      const singleQuests = quests.filter(q => {
+        const rec = (q.recurrence || '').toUpperCase().trim();
+        const isSingle = (!rec || rec === 'NONE' || rec === '일회성');
+        return isSingle && !q.isCompletedToday;
+      });
+
+      // ⚡ 일회성 퀘스트 정렬: 날짜 설정된 것은 가까운 시간순, 미설정은 예전에 만들어둔 순(ID/생성순)
+      singleQuests.sort((a, b) => {
+        const dateA = a.dueDate || '9999-99-99';
+        const dateB = b.dueDate || '9999-99-99';
+        if (dateA !== dateB) {
+          return dateA.localeCompare(dateB);
         }
-        return;
-      }
-
-      appState.userStats.currentXp += earnedXp;
-      const growth = appState.pokemon?.growth || "MEDIUM_SLOW";
-      let leveledUp = false;
-
-      while (appState.userStats.currentXp >= appState.userStats.requiredXp) {
-        appState.userStats.currentXp -= appState.userStats.requiredXp;
-        appState.userStats.level++;
-        appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, growth);
-        leveledUp = true;
-      }
-
-      if (leveledUp) {
-        // 🌟 레벨업 미니 애니메이션 & 축하 이펙트 발동!
-        triggerMiniLevelUpEffect(appState.userStats.level);
-        checkAutoEvolution(appState.pokemon.id, appState.userStats.level);
-      }
-
-      recordCurrentPokemonToHistory("ACTIVE");
-      initUI(appState);
-      syncCheatToGasBackend(appState.pokemon.id, appState.isEgg, appState.userStats.level, appState.userStats.currentXp, false, appState.pokemon.gender, appState.pokemon.nature);
-    }
-
-    function checkAutoEvolution(pokemonId, currentLevel) {
-      const pInfo = getPokemonData(pokemonId);
-      if (!pInfo || !pInfo.evolveLevel || !pInfo.evolvesTo) return;
-
-      if (currentLevel >= pInfo.evolveLevel) {
-        const nextMon = getPokemonData(pInfo.evolvesTo);
-        if (nextMon) {
-          const prevId = appState.pokemon.id;
-          const prevName = appState.pokemon.name;
-          const finalLv = appState.userStats.level;
-          const finalXp = appState.userStats.currentXp;
-          const gender = appState.pokemon.gender;
-          const nature = appState.pokemon.nature;
-
-          recordCurrentPokemonToHistory("EVOLVED");
-
-          fetch(GAS_API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({
-              action: "recordEvolution",
-              prevPokemonId: prevId,
-              prevName: prevName,
-              finalLevel: finalLv,
-              finalXp: finalXp,
-              gender: gender,
-              nature: nature,
-              nextPokemonId: nextMon.id,
-              nextName: nextMon.name
-            })
-          }).catch(() => {});
-
-          appState.pokemon.id = nextMon.id;
-          appState.pokemon.name = nextMon.name;
-          appState.pokemon.type = nextMon.type;
-          appState.pokemon.growth = nextMon.growth;
-          appState.pokemon.idleGif = `./images/pokemon/showdown/${nextMon.id}.gif`;
-
-          appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, nextMon.growth);
-          recordCurrentPokemonToHistory("ACTIVE");
-
-          triggerEvolutionOverlay(pInfo.name, nextMon.name, nextMon.id, pInfo.evolveLevel, "EVOLVE");
+        const timeA = a.notifyTime || '99:99';
+        const timeB = b.notifyTime || '99:99';
+        if (timeA !== timeB) {
+          return timeA.localeCompare(timeB);
         }
-      }
-    }
+        return (a.id || '').localeCompare(b.id || '');
+      });
 
-    function triggerEvolutionOverlay(oldName, newName, newId, evolveLv, type = "EVOLVE") {
-      document.getElementById('evolveSpriteImg').src = `./images/pokemon/showdown/${newId}.gif`;
-      if (type === "HATCH") {
-        document.getElementById('evolveTitleText').innerText = "🐣 알이 부화했습니다! 🐣";
-        document.getElementById('evolveDescText').innerHTML = `<b>${oldName}</b>에서<br><b>${newName}</b>(이)가 태어났습니다! ✨`;
+      // --- [1단: 상단 반복성 퀘스트] ---
+      const recSection = document.createElement('div');
+      recSection.className = 'quest-group-section';
+      recSection.innerHTML = `
+        <div style="font-size:12px; font-weight:800; color:#94a3b8; margin:4px 0 8px 2px; display:flex; justify-content:space-between;">
+          <span>🔁 반복 퀘스트</span>
+          <span style="color:#38bdf8;">${recurringQuests.length}개</span>
+        </div>
+      `;
+
+      if (recurringQuests.length === 0) {
+        recSection.innerHTML += `<div style="font-size:11px; color:#64748b; padding:10px; background:#18202f; border-radius:8px; margin-bottom:8px; text-align:center;">등록된 반복 퀘스트가 없습니다.</div>`;
       } else {
-        document.getElementById('evolveTitleText').innerText = "✨ 축하합니다! 포켓몬 진화! ✨";
-        document.getElementById('evolveDescText').innerHTML = `Lv.${evolveLv}에 도달하여 <b>${oldName}</b>(이)가<br><b>${newName}</b>(으)로 진화했습니다! 🎉`;
+        recurringQuests.forEach(q => {
+          const card = createQuestCardElement(q);
+          recSection.appendChild(card);
+        });
       }
-      document.getElementById('evolveOverlay').classList.add('active');
+      container.appendChild(recSection);
+
+      // --- [구분선] ---
+      const divLine = document.createElement('div');
+      divLine.style.cssText = "height:1px; background:rgba(255,255,255,0.08); margin:14px 0 10px 0;";
+      container.appendChild(divLine);
+
+      // --- [2단: 하단 일회성 퀘스트] ---
+      const singleSection = document.createElement('div');
+      singleSection.className = 'quest-group-section';
+      singleSection.innerHTML = `
+        <div style="font-size:12px; font-weight:800; color:#94a3b8; margin:4px 0 8px 2px; display:flex; justify-content:space-between;">
+          <span>⚡ 일회성 퀘스트</span>
+          <span style="color:#38bdf8;">${singleQuests.length}개</span>
+        </div>
+      `;
+
+      if (singleQuests.length === 0) {
+        singleSection.innerHTML += `<div style="font-size:11px; color:#64748b; padding:10px; background:#18202f; border-radius:8px; margin-bottom:8px; text-align:center;">진행 중인 일회성 퀘스트가 없습니다.</div>`;
+      } else {
+        singleQuests.forEach(q => {
+          const card = createQuestCardElement(q);
+          singleSection.appendChild(card);
+        });
+      }
+      container.appendChild(singleSection);
     }
 
-    function closeEvolveOverlay() {
-      document.getElementById('evolveOverlay').classList.remove('active');
+    function createQuestCardElement(q) {
+      const card = document.createElement('div');
+      card.className = `quest-card ${q.isCompletedToday ? 'completed' : ''}`;
+      
+      const dueMeta = q.dueDate ? q.dueDate : '';
+      const timeMeta = q.notifyTime ? `${q.notifyTime}` : '';
+      const descHtml = q.description ? `<div class="quest-desc">${q.description}</div>` : '';
+
+      card.innerHTML = `
+        <div class="quest-left">
+          <input type="checkbox" class="quest-batch-cb" data-id="${q.id}" style="${isBatchDeleteMode ? 'display:inline-block;' : 'display:none;'}" onchange="onQuestCheckboxChange()">
+          <div class="quest-info">
+            <div class="quest-title">
+              ${q.name}
+              ${q.isRequired ? '<span class="req-tag">필수</span>' : ''}
+            </div>
+            <div class="quest-meta">
+              ${dueMeta ? `<span>${dueMeta}</span> • ` : ''}
+              <span>${timeMeta || '상시'}</span>
+            </div>
+            ${descHtml}
+          </div>
+        </div>
+        <div class="quest-card-btns" style="${isBatchDeleteMode ? 'display:none;' : 'display:flex;'}">
+          <button class="btn-quest-edit" style="padding:6px 9px;" onclick="openEditQuestModal('${q.id}')">
+            ✏️
+          </button>
+          <button class="btn-quest-done ${q.isCompletedToday ? 'disabled' : ''}" onclick="completeQuestDirect('${q.id}', '${q.name}')">
+            ${q.isCompletedToday ? '완료됨 ✓' : `+${q.rewardXp} XP`}
+          </button>
+        </div>
+      `;
+      return card;
     }
+
 
     async function completeQuestDirect(questId, questName) {
       const q = appState.quests.find(x => x.id === questId);
@@ -4752,9 +4780,12 @@
         q.isCompletedToday = true;
         q.consecutiveDays = (q.consecutiveDays || 0) + 1;
         
-        triggerSpriteHopAnimation();
-
+        // 경험치바 하이라이트 & 경험치 지급
+        highlightXpBar();
         processXpGainAndEvolve(q.rewardXp);
+
+        // 퀘스트 목록 즉각 재렌더링 (완료된 일회성 퀘스트는 목록에서 즉시 소멸)
+        renderQuestList(appState.quests);
 
         logDebug(`퀘스트 완료: "${questName}" (+${q.rewardXp}XP)`, "info");
         try {
@@ -4767,9 +4798,7 @@
       }
     }
 
-    // ========================================================
-    // 📊 퀘스트 기록 2단 분리 렌더러 (상단: 반복 연속 실천 / 하단: 일회성 기록)
-    // ========================================================
+
     function renderStreakList(quests) {
       const container = document.getElementById('streakListContainer');
       if (!container) return;
@@ -4792,14 +4821,15 @@
         return rec && rec !== 'NONE' && rec !== '일회성';
       });
 
-      // 2) ⚡ 일회성 할 일 분리
-      const singleQuests = quests.filter(q => {
+      // 2) ⚡ 일회성 할 일 분리 (이미 완료된 기록만 표시!)
+      const completedSingleQuests = quests.filter(q => {
         const rec = (q.recurrence || '').toUpperCase().trim();
-        return !rec || rec === 'NONE' || rec === '일회성';
+        const isSingle = (!rec || rec === 'NONE' || rec === '일회성');
+        return isSingle && Boolean(q.isCompletedToday || q.lastCompletedDate);
       });
 
       // ----------------------------------------------------
-      // [1단 - 상단] 🔁 반복 퀘스트 연속 실천 기록 섹션
+      // [1단 - 상단] 반복 퀘스트 기록
       // ----------------------------------------------------
       const topSection = document.createElement('div');
       topSection.className = 'streak-section';
@@ -4807,20 +4837,19 @@
       let topHtml = `
         <div class="streak-section-header">
           <div class="streak-section-title">
-            <span>🔁 반복 퀘스트 연속 실천 기록</span>
+            <span>반복 퀘스트 기록</span>
           </div>
           <span class="streak-section-count">${recurringQuests.length}개</span>
         </div>
         <div class="streak-section-desc">
-          지속적으로 실천 중인 습관 퀘스트들의 연속 달성 일수와 기록입니다.
+          지속적으로 실천 중인 습관 퀘스트들의 연속 달성 기록입니다.
         </div>
       `;
 
       if (recurringQuests.length === 0) {
         topHtml += `
           <div style="background:#1e293b; border:1px dashed #334155; border-radius:10px; padding:16px; text-align:center; color:#94a3b8; font-size:12px;">
-            등록된 반복 퀘스트가 없습니다.<br>
-            <span style="font-size:11px; color:#64748b;">[➕ 추가]의 2번 탭에서 매일/요일별 습관을 등록해 보세요.</span>
+            등록된 반복 퀘스트가 없습니다.
           </div>
         `;
       } else {
@@ -4831,7 +4860,7 @@
             const daysPart = rec.includes(':') ? rec.split(':')[1] : rec;
             const dayMapKr = { "MON":"월", "TUE":"화", "WED":"수", "THU":"목", "FRI":"금", "SAT":"토", "SUN":"일" };
             const days = daysPart.split(',').map(d => dayMapKr[d.trim().toUpperCase()] || d).join(',');
-            recKr = `${days}요일`;
+            recKr = `${days}`;
           } else if (rec === 'MONTHLY') recKr = "매월";
           else if (rec === 'HOURLY') recKr = "시간별";
 
@@ -4839,11 +4868,11 @@
             <div class="streak-card">
               <div class="streak-card-top">
                 <div class="streak-card-title">
+                  <span style="color:#38bdf8; font-weight:800;">[${recKr}]</span>
                   <span>${q.name}</span>
-                  <span class="rec-tag" style="font-size:10px;">${recKr}</span>
                   ${q.isRequired ? '<span class="req-tag" style="font-size:10px;">필수</span>' : ''}
                 </div>
-                <span class="streak-badge">🔥 ${q.consecutiveDays || 0}일 연속 실천</span>
+                <span class="streak-badge">🔥 ${q.consecutiveDays || 0}일째</span>
               </div>
               <div class="streak-card-stats">
                 <span>마지막 실천: <b>${q.lastCompletedDate || (q.isCompletedToday ? '오늘 완료' : '미실천')}</b></span>
@@ -4864,7 +4893,7 @@
       container.appendChild(divider);
 
       // ----------------------------------------------------
-      // [2단 - 하단] ⚡ 일회성 할일 / 단발성 퀘스트 기록 섹션
+      // [2단 - 하단] 일회성 퀘스트 기록 (완료된 기록만 표시)
       // ----------------------------------------------------
       const bottomSection = document.createElement('div');
       bottomSection.className = 'streak-section';
@@ -4872,24 +4901,23 @@
       let bottomHtml = `
         <div class="streak-section-header">
           <div class="streak-section-title">
-            <span style="color:#cbd5e1;">⚡ 일회성 할일 / 단발성 퀘스트 기록</span>
+            <span style="color:#cbd5e1;">일회성 퀘스트 기록</span>
           </div>
-          <span class="streak-section-count" style="color:#94a3b8; background:rgba(148,163,184,0.1); border-color:rgba(148,163,184,0.2);">${singleQuests.length}개</span>
+          <span class="streak-section-count" style="color:#94a3b8; background:rgba(148,163,184,0.1); border-color:rgba(148,163,184,0.2);">${completedSingleQuests.length}개</span>
         </div>
         <div class="streak-section-desc">
-          단발성으로 등록되거나 완료된 일회성 할 일들의 기록 아카이브입니다.
+          완료된 일회성 할 일들의 히스토리 기록입니다.
         </div>
       `;
 
-      if (singleQuests.length === 0) {
+      if (completedSingleQuests.length === 0) {
         bottomHtml += `
           <div style="background:#18202f; border:1px dashed #283548; border-radius:10px; padding:16px; text-align:center; color:#64748b; font-size:12px;">
-            기록된 일회성 할 일이 없습니다.
+            완료된 일회성 할 일 기록이 없습니다.
           </div>
         `;
       } else {
-        singleQuests.forEach(q => {
-          const isDone = Boolean(q.isCompletedToday);
+        completedSingleQuests.forEach(q => {
           bottomHtml += `
             <div class="single-todo-card">
               <div class="single-todo-left">
@@ -4898,14 +4926,13 @@
                   ${q.isRequired ? '<span class="req-tag" style="font-size:9.5px;">필수</span>' : ''}
                 </div>
                 <div class="single-todo-meta">
-                  <span>📅 ${q.dueDate || '상시'}</span> • 
-                  <span>⏰ ${q.notifyTime || '시간 미지정'}</span> • 
+                  <span>📅 ${q.lastCompletedDate || q.dueDate || '완료'}</span> • 
                   <span style="color:#38bdf8;">+${q.rewardXp || 20} XP</span>
                   ${q.description ? ` • <span style="color:#94a3b8;">${q.description.slice(0, 30)}</span>` : ''}
                 </div>
               </div>
-              <div class="single-todo-status ${isDone ? 'done' : 'pending'}">
-                ${isDone ? '완료됨 ✓' : '진행 중'}
+              <div class="single-todo-status done">
+                완료됨 ✓
               </div>
             </div>
           `;
@@ -4917,7 +4944,7 @@
     }
 
 
-        function getUnlockedHistoryMap() {
+    function getUnlockedHistoryMap() {
       const map = {};
       
       if (!appState.isEgg && appState.pokemon && appState.pokemon.id) {
@@ -4988,10 +5015,11 @@
       const monRecord = unlockedMap[pokeId] || null;
       const isUnlocked = Boolean(monRecord);
 
-      document.getElementById('dexDetailTitle').innerText = `No.${String(pokeId).padStart(3, '0')} ${isUnlocked ? pInfo.name : '???'}`;
+      const titleEl = document.getElementById('dexDetailTitle');
+      if (titleEl) titleEl.innerText = `No.${String(pokeId).padStart(3, '0')} ${isUnlocked ? pInfo.name : '???'}`;
 
       const inner = document.getElementById('dexCardInner');
-      inner.classList.remove('flipped');
+      if (inner) inner.classList.remove('flipped');
 
       const frontTag = document.getElementById('frontGenderTag');
       const backTag = document.getElementById('backGenderTag');
@@ -4999,83 +5027,99 @@
       const backImg = document.getElementById('backSpriteImg');
       const hintText = document.getElementById('flipHintText');
 
-      if (pInfo.genderType === 'GENDERLESS') {
-        frontTag.className = 'flip-gender-tag none';
-        frontTag.innerText = '⚪ 무성';
-        backTag.className = 'flip-gender-tag none';
-        backTag.innerText = '⚪ 무성';
-        hintText.innerText = '성별이 없는 무성 포켓몬입니다.';
-      } else if (pInfo.genderType === 'MALE_ONLY') {
-        frontTag.className = 'flip-gender-tag male';
-        frontTag.innerText = '♂ 수컷 전용';
-        backTag.className = 'flip-gender-tag male';
-        backTag.innerText = '♂ 수컷 전용';
-        hintText.innerText = '수컷만 존재하는 포켓몬입니다.';
-      } else if (pInfo.genderType === 'FEMALE_ONLY') {
-        frontTag.className = 'flip-gender-tag female';
-        frontTag.innerText = '♀ 암컷 전용';
-        backTag.className = 'flip-gender-tag female';
-        backTag.innerText = '♀ 암컷 전용';
-        hintText.innerText = '암컷만 존재하는 포켓몬입니다.';
-      } else {
-        frontTag.className = 'flip-gender-tag male';
-        frontTag.innerText = '♂ 수컷' + (monRecord?.male ? ' ✓' : ' (미해금)');
-        backTag.className = 'flip-gender-tag female';
-        backTag.innerText = '♀ 암컷' + (monRecord?.female ? ' ✓' : ' (미해금)');
-        hintText.innerText = '👆 카드를 탭하여 수컷 ↔ 암컷 모습을 전환하세요!';
+      if (frontTag && backTag && hintText) {
+        if (pInfo.genderType === 'GENDERLESS') {
+          frontTag.className = 'flip-gender-tag none';
+          frontTag.innerText = '⚪ 무성';
+          backTag.className = 'flip-gender-tag none';
+          backTag.innerText = '⚪ 무성';
+          hintText.innerText = '성별이 없는 무성 포켓몬입니다.';
+        } else if (pInfo.genderType === 'MALE_ONLY') {
+          frontTag.className = 'flip-gender-tag male';
+          frontTag.innerText = '♂ 수컷 전용';
+          backTag.className = 'flip-gender-tag male';
+          backTag.innerText = '♂ 수컷 전용';
+          hintText.innerText = '수컷만 존재하는 포켓몬입니다.';
+        } else if (pInfo.genderType === 'FEMALE_ONLY') {
+          frontTag.className = 'flip-gender-tag female';
+          frontTag.innerText = '♀ 암컷 전용';
+          backTag.className = 'flip-gender-tag female';
+          backTag.innerText = '♀ 암컷 전용';
+          hintText.innerText = '암컷만 존재하는 포켓몬입니다.';
+        } else {
+          frontTag.className = 'flip-gender-tag male';
+          frontTag.innerText = '♂ 수컷' + (monRecord?.male ? ' ✓' : ' (미해금)');
+          backTag.className = 'flip-gender-tag female';
+          backTag.innerText = '♀ 암컷' + (monRecord?.female ? ' ✓' : ' (미해금)');
+          hintText.innerText = '👆 카드를 탭하여 수컷 ↔ 암컷 모습을 전환하세요!';
+        }
       }
 
       const femaleGifPath = pInfo.hasGenderDiff ? `./images/pokemon/showdown/female/${pokeId}.gif` : `./images/pokemon/showdown/${pokeId}.gif`;
       const maleGifPath = `./images/pokemon/showdown/${pokeId}.gif`;
 
-      frontImg.src = maleGifPath;
-      backImg.src = femaleGifPath;
+      if (frontImg && backImg) {
+        frontImg.src = maleGifPath;
+        backImg.src = femaleGifPath;
 
-      if (!isUnlocked) {
-        frontImg.classList.add('locked');
-        backImg.classList.add('locked');
-      } else {
-        if (pInfo.genderType === 'GENDERLESS' || monRecord.male || monRecord.genderless) {
-          frontImg.classList.remove('locked');
-        } else {
+        if (!isUnlocked) {
           frontImg.classList.add('locked');
-        }
-
-        if (pInfo.genderType === 'FEMALE_ONLY' || monRecord.female) {
-          backImg.classList.remove('locked');
-        } else {
           backImg.classList.add('locked');
+        } else {
+          if (pInfo.genderType === 'GENDERLESS' || monRecord?.male || monRecord?.genderless) {
+            frontImg.classList.remove('locked');
+          } else {
+            frontImg.classList.add('locked');
+          }
+
+          if (pInfo.genderType === 'FEMALE_ONLY' || monRecord?.female) {
+            backImg.classList.remove('locked');
+          } else {
+            backImg.classList.add('locked');
+          }
         }
       }
 
-      document.getElementById('dexGenusText').innerText = isUnlocked ? `${pInfo.genus} 포켓몬` : '미지의 포켓몬';
-      document.getElementById('dexFlavorText').innerText = isUnlocked ? pInfo.description : '아직 키워보지 않아 도감 정보가 기록되지 않았습니다. 퀘스트를 달성하여 새로운 알이나 진화로 만나보세요!';
-      document.getElementById('dexTypeText').innerText = pInfo.type;
+      const genusEl = document.getElementById('dexGenusText');
+      if (genusEl) genusEl.innerText = isUnlocked ? `${pInfo.genus} 포켓몬` : '미지의 포켓몬';
+
+      const flavorEl = document.getElementById('dexFlavorText');
+      if (flavorEl) flavorEl.innerText = isUnlocked ? pInfo.description : '아직 키워보지 않아 도감 정보가 기록되지 않았습니다. 퀘스트를 달성하여 새로운 알이나 진화로 만나보세요!';
+
+      const typeEl = document.getElementById('dexTypeText');
+      if (typeEl) typeEl.innerText = pInfo.type;
       
       const altKrMap = { "하": "지상 (하)", "중": "중간 부유 (중)", "상": "고공 비행 (상)" };
       const altEl = document.getElementById('dexAltitudeText');
       if (altEl) altEl.innerText = altKrMap[pInfo.altitude] || "지상 (하)";
 
       const growthKr = { "FAST":"빠름", "MEDIUM_FAST":"보통빠름", "MEDIUM_SLOW":"보통느림", "SLOW":"느림" };
-      document.getElementById('dexGrowthText').innerText = growthKr[pInfo.growth] || "보통느림";
+      const growthEl = document.getElementById('dexGrowthText');
+      if (growthEl) growthEl.innerText = growthKr[pInfo.growth] || "보통느림";
       
       const genderRatioKr = { "BOTH":"암수 모두 존재 (50:50)", "GENDERLESS":"성별 없음 (무성)", "MALE_ONLY":"100% 수컷", "FEMALE_ONLY":"100% 암컷" };
-      document.getElementById('dexGenderRatioText').innerText = genderRatioKr[pInfo.genderType] || "암수 모두 존재";
+      const genderRatioEl = document.getElementById('dexGenderRatioText');
+      if (genderRatioEl) genderRatioEl.innerText = genderRatioKr[pInfo.genderType] || "암수 모두 존재";
 
-      if (pInfo.evolveLevel && pInfo.evolvesTo) {
-        const nextMon = getPokemonData(pInfo.evolvesTo);
-        document.getElementById('dexEvolveConditionText').innerText = `Lv.${pInfo.evolveLevel}에 ${nextMon ? nextMon.name : '진화형'}(으)로 진화`;
-      } else {
-        document.getElementById('dexEvolveConditionText').innerText = '최종 진화형 포켓몬';
+      const condEl = document.getElementById('dexEvolveConditionText');
+      if (condEl) {
+        if (pInfo.evolveLevel && pInfo.evolvesTo) {
+          const nextMon = getPokemonData(pInfo.evolvesTo);
+          condEl.innerText = `Lv.${pInfo.evolveLevel}에 ${nextMon ? nextMon.name : '진화형'}(으)로 진화`;
+        } else {
+          condEl.innerText = '최종 진화형 포켓몬';
+        }
       }
 
       renderDexHistoryTab(pokeId, monRecord);
       switchDexModalTab(1);
 
-      document.getElementById('pokedexDetailModal').classList.add('open');
+      const modal = document.getElementById('pokedexDetailModal');
+      if (modal) modal.classList.add('open');
     }
 
-    function toggleDexCardFlip() {
+
+        function toggleDexCardFlip() {
       if (!currentViewingDexMon) return;
       if (currentViewingDexMon.genderType === 'GENDERLESS' || currentViewingDexMon.genderType === 'MALE_ONLY' || currentViewingDexMon.genderType === 'FEMALE_ONLY') {
         return;
