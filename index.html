@@ -943,6 +943,157 @@
       color: #f8fafc;
     }
 
+    
+    /* ========================================================
+       📊 퀘스트 기록 2단 분리 (상단: 반복 연속 / 하단: 일회성) CSS
+       ======================================================== */
+    .streak-section {
+      margin-bottom: 20px;
+    }
+    .streak-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1.5px solid rgba(255, 255, 255, 0.1);
+    }
+    .streak-section-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .streak-section-count {
+      font-size: 11px;
+      font-weight: 700;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      padding: 2px 7px;
+      border-radius: 10px;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+    .streak-section-desc {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .streak-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+      margin: 24px 0 20px 0;
+    }
+
+    /* 상단 반복 퀘스트 카드 */
+    .streak-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .streak-card:hover {
+      border-color: #475569;
+      transform: translateY(-1px);
+    }
+    .streak-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+    .streak-card-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .streak-badge {
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(249, 115, 22, 0.35);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .streak-card-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      color: #94a3b8;
+    }
+    .streak-card-stats span b {
+      color: #38bdf8;
+    }
+
+    /* 하단 일회성 할일 카드 */
+    .single-todo-card {
+      background: #18202f;
+      border: 1px solid #283548;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.15s ease;
+    }
+    .single-todo-left {
+      flex: 1;
+      min-width: 0;
+    }
+    .single-todo-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #e2e8f0;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .single-todo-meta {
+      font-size: 11px;
+      color: #64748b;
+    }
+    .single-todo-status {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .single-todo-status.done {
+      background: rgba(74, 222, 128, 0.12);
+      color: #4ade80;
+      border: 1px solid rgba(74, 222, 128, 0.3);
+    }
+    .single-todo-status.pending {
+      background: rgba(148, 163, 184, 0.12);
+      color: #94a3b8;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
     /* 🎮 미니게임 아케이드 */
     .arcade-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .game-launch-card {
@@ -4424,7 +4575,7 @@
 
       const title = document.getElementById('paneTitleText');
       if (tab === 'QUEST') { title.innerText = "📋 퀘스트 목록"; document.getElementById('paneQuestView').style.display = 'block'; }
-      else if (tab === 'STREAK') { title.innerText = "📊 연속 실천 기록 (Streak)"; document.getElementById('paneStreakView').style.display = 'block'; }
+      else if (tab === 'STREAK') { title.innerText = "📊 퀘스트 실천 및 기록"; document.getElementById('paneStreakView').style.display = 'block'; renderStreakList(appState.quests); }
       else if (tab === 'ARCADE') { title.innerText = "🎮 120Hz 미니게임 아케이드"; document.getElementById('paneArcadeView').style.display = 'block'; }
       else if (tab === 'DEX') {
         title.innerText = "📖 포켓몬 도감 (1세대 151)";
@@ -4616,31 +4767,157 @@
       }
     }
 
+    // ========================================================
+    // 📊 퀘스트 기록 2단 분리 렌더러 (상단: 반복 연속 실천 / 하단: 일회성 기록)
+    // ========================================================
     function renderStreakList(quests) {
       const container = document.getElementById('streakListContainer');
+      if (!container) return;
       container.innerHTML = '';
+
       if (!quests || quests.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:20px; color:#8892a0;">기록이 없습니다.</div>`;
-        return;
-      }
-      quests.forEach(q => {
-        const card = document.createElement('div');
-        card.className = 'streak-card';
-        card.innerHTML = `
-          <div class="streak-card-top">
-            <span style="font-size:15px; font-weight:800; color:white;">${q.name}</span>
-            <span class="streak-badge">🔥 ${q.consecutiveDays || 0}일 연속 달성</span>
-          </div>
-          <div style="font-size:12px; color:#90a4ae; display:flex; justify-content:space-between;">
-            <span>마지막 실천:</span>
-            <span style="color:#64b5f6; font-weight:700;">${q.lastCompletedDate || '오늘 실천'}</span>
+        container.innerHTML = `
+          <div style="text-align:center; padding:30px 10px; color:#8892a0;">
+            <div style="font-size:32px; margin-bottom:8px;">📊</div>
+            <div style="font-size:14px; font-weight:800; color:white; margin-bottom:4px;">기록된 퀘스트가 없습니다</div>
+            <div style="font-size:12px;">퀘스트를 등록하고 완료하여 연속 실천 기록을 쌓아보세요!</div>
           </div>
         `;
-        container.appendChild(card);
+        return;
+      }
+
+      // 1) 🔁 반복 퀘스트 분리
+      const recurringQuests = quests.filter(q => {
+        const rec = (q.recurrence || '').toUpperCase().trim();
+        return rec && rec !== 'NONE' && rec !== '일회성';
       });
+
+      // 2) ⚡ 일회성 할 일 분리
+      const singleQuests = quests.filter(q => {
+        const rec = (q.recurrence || '').toUpperCase().trim();
+        return !rec || rec === 'NONE' || rec === '일회성';
+      });
+
+      // ----------------------------------------------------
+      // [1단 - 상단] 🔁 반복 퀘스트 연속 실천 기록 섹션
+      // ----------------------------------------------------
+      const topSection = document.createElement('div');
+      topSection.className = 'streak-section';
+      
+      let topHtml = `
+        <div class="streak-section-header">
+          <div class="streak-section-title">
+            <span>🔁 반복 퀘스트 연속 실천 기록</span>
+          </div>
+          <span class="streak-section-count">${recurringQuests.length}개</span>
+        </div>
+        <div class="streak-section-desc">
+          지속적으로 실천 중인 습관 퀘스트들의 연속 달성 일수와 기록입니다.
+        </div>
+      `;
+
+      if (recurringQuests.length === 0) {
+        topHtml += `
+          <div style="background:#1e293b; border:1px dashed #334155; border-radius:10px; padding:16px; text-align:center; color:#94a3b8; font-size:12px;">
+            등록된 반복 퀘스트가 없습니다.<br>
+            <span style="font-size:11px; color:#64748b;">[➕ 추가]의 2번 탭에서 매일/요일별 습관을 등록해 보세요.</span>
+          </div>
+        `;
+      } else {
+        recurringQuests.forEach(q => {
+          let recKr = "매일";
+          const rec = q.recurrence || 'DAILY';
+          if (rec.startsWith('WEEKLY') || rec.includes(',')) {
+            const daysPart = rec.includes(':') ? rec.split(':')[1] : rec;
+            const dayMapKr = { "MON":"월", "TUE":"화", "WED":"수", "THU":"목", "FRI":"금", "SAT":"토", "SUN":"일" };
+            const days = daysPart.split(',').map(d => dayMapKr[d.trim().toUpperCase()] || d).join(',');
+            recKr = `${days}요일`;
+          } else if (rec === 'MONTHLY') recKr = "매월";
+          else if (rec === 'HOURLY') recKr = "시간별";
+
+          topHtml += `
+            <div class="streak-card">
+              <div class="streak-card-top">
+                <div class="streak-card-title">
+                  <span>${q.name}</span>
+                  <span class="rec-tag" style="font-size:10px;">${recKr}</span>
+                  ${q.isRequired ? '<span class="req-tag" style="font-size:10px;">필수</span>' : ''}
+                </div>
+                <span class="streak-badge">🔥 ${q.consecutiveDays || 0}일 연속 실천</span>
+              </div>
+              <div class="streak-card-stats">
+                <span>마지막 실천: <b>${q.lastCompletedDate || (q.isCompletedToday ? '오늘 완료' : '미실천')}</b></span>
+                <span>보상 경험치: <b>+${q.rewardXp || 20} XP</b></span>
+              </div>
+            </div>
+          `;
+        });
+      }
+      topSection.innerHTML = topHtml;
+      container.appendChild(topSection);
+
+      // ----------------------------------------------------
+      // [구분선 (Divider)]
+      // ----------------------------------------------------
+      const divider = document.createElement('div');
+      divider.className = 'streak-divider';
+      container.appendChild(divider);
+
+      // ----------------------------------------------------
+      // [2단 - 하단] ⚡ 일회성 할일 / 단발성 퀘스트 기록 섹션
+      // ----------------------------------------------------
+      const bottomSection = document.createElement('div');
+      bottomSection.className = 'streak-section';
+
+      let bottomHtml = `
+        <div class="streak-section-header">
+          <div class="streak-section-title">
+            <span style="color:#cbd5e1;">⚡ 일회성 할일 / 단발성 퀘스트 기록</span>
+          </div>
+          <span class="streak-section-count" style="color:#94a3b8; background:rgba(148,163,184,0.1); border-color:rgba(148,163,184,0.2);">${singleQuests.length}개</span>
+        </div>
+        <div class="streak-section-desc">
+          단발성으로 등록되거나 완료된 일회성 할 일들의 기록 아카이브입니다.
+        </div>
+      `;
+
+      if (singleQuests.length === 0) {
+        bottomHtml += `
+          <div style="background:#18202f; border:1px dashed #283548; border-radius:10px; padding:16px; text-align:center; color:#64748b; font-size:12px;">
+            기록된 일회성 할 일이 없습니다.
+          </div>
+        `;
+      } else {
+        singleQuests.forEach(q => {
+          const isDone = Boolean(q.isCompletedToday);
+          bottomHtml += `
+            <div class="single-todo-card">
+              <div class="single-todo-left">
+                <div class="single-todo-title">
+                  <span>${q.name}</span>
+                  ${q.isRequired ? '<span class="req-tag" style="font-size:9.5px;">필수</span>' : ''}
+                </div>
+                <div class="single-todo-meta">
+                  <span>📅 ${q.dueDate || '상시'}</span> • 
+                  <span>⏰ ${q.notifyTime || '시간 미지정'}</span> • 
+                  <span style="color:#38bdf8;">+${q.rewardXp || 20} XP</span>
+                  ${q.description ? ` • <span style="color:#94a3b8;">${q.description.slice(0, 30)}</span>` : ''}
+                </div>
+              </div>
+              <div class="single-todo-status ${isDone ? 'done' : 'pending'}">
+                ${isDone ? '완료됨 ✓' : '진행 중'}
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      bottomSection.innerHTML = bottomHtml;
+      container.appendChild(bottomSection);
     }
 
-    function getUnlockedHistoryMap() {
+
+        function getUnlockedHistoryMap() {
       const map = {};
       
       if (!appState.isEgg && appState.pokemon && appState.pokemon.id) {
