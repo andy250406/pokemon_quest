@@ -797,6 +797,40 @@
     .history-card-title { font-size: 13px; font-weight: 800; color: white; display: flex; justify-content: space-between; margin-bottom: 4px; }
     .history-card-meta { font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; }
 
+    
+    /* 📋 퀘스트 등록 모달 2개 탭 스타일 */
+    .quest-modal-tab-header {
+      display: flex;
+      gap: 6px;
+      margin: 10px 0 14px 0;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .quest-modal-tab-btn {
+      flex: 1;
+      padding: 8px 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+      background: transparent;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .quest-modal-tab-btn.active {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #ffffff;
+      font-weight: 800;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+    }
+
     /* 🎮 미니게임 아케이드 */
     .arcade-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .game-launch-card {
@@ -1254,61 +1288,96 @@
     </div>
   </div>
 
-  <!-- 📋 퀘스트 추가 & 수정 모달 -->
+  <!-- 📋 퀘스트 추가 & 수정 모달 (2개 탭 분리: 빠른할일 / 반복습관) -->
   <div class="modal-backdrop" id="addQuestModal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
       <div class="modal-header-row">
         <div class="modal-title" id="modalTitleText">🌱 새로운 퀘스트 추가</div>
         <button class="icon-btn" onclick="closeAddQuestModal()">✕</button>
       </div>
 
       <input type="hidden" id="editingQuestId" value="">
+      <input type="hidden" id="activeQuestModalTab" value="1">
 
+      <!-- 📋 상단 2개 탭 바 -->
+      <div class="quest-modal-tab-header">
+        <button type="button" class="quest-modal-tab-btn active" id="btnQuestTab1" onclick="switchQuestModalTab(1)">
+          ⚡ 1. 빠른 할일 / 메모
+        </button>
+        <button type="button" class="quest-modal-tab-btn" id="btnQuestTab2" onclick="switchQuestModalTab(2)">
+          🔁 2. 반복 습관 / 일정
+        </button>
+      </div>
+
+      <!-- 공통: 제목 및 메모 -->
       <div class="form-group">
-        <label class="form-label">제목 (할 일 이름) *</label>
+        <label class="form-label" id="lblQuestName">제목 (할 일 이름) *</label>
         <input type="text" id="inputQuestName" class="form-input" placeholder="예: 토익 영단어 30개 외우기">
       </div>
 
       <div class="form-group">
-        <label class="form-label">상세 내용 / 메모</label>
-        <textarea id="inputQuestDesc" class="form-textarea" placeholder="세부 내용이나 메모를 입력하세요 (선택)"></textarea>
+        <label class="form-label">상세 내용 / 메모 (선택)</label>
+        <textarea id="inputQuestDesc" class="form-textarea" placeholder="세부 메모나 링크를 자유롭게 적어보세요"></textarea>
       </div>
 
-      <div class="form-row-2">
+      <!-- ⚡ 1번 탭 전용 섹션 (단발성, 날짜/시간 미필수, 반복 없음) -->
+      <div id="questTab1Section">
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">날짜 (선택)</label>
+            <input type="date" id="inputQuestDateTab1" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">알림 시간 (선택)</label>
+            <input type="time" id="inputQuestTimeTab1" class="form-input">
+          </div>
+        </div>
+        <p style="font-size:11px; color:#94a3b8; margin:-4px 0 10px 2px;">
+          💡 날짜/시간을 비워두면 오늘 상시 일회성 할 일로 등록됩니다.
+        </p>
+      </div>
+
+      <!-- 🔁 2번 탭 전용 섹션 (반복 설정 + 시간 선택) -->
+      <div id="questTab2Section" style="display:none;">
         <div class="form-group">
-          <label class="form-label">날짜 (실행일)</label>
-          <input type="date" id="inputQuestDate" class="form-input">
+          <label class="form-label">반복 주기 *</label>
+          <select id="selectQuestRecurrence" class="form-input" onchange="onRecurrenceChange()">
+            <option value="DAILY">🔁 매일 반복</option>
+            <option value="WEEKLY">📅 요일별 선택 (다중 선택)</option>
+            <option value="MONTHLY">🗓️ 매월 반복</option>
+            <option value="HOURLY">⏱️ 시간별 반복</option>
+          </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">알림 시간</label>
-          <input type="time" id="inputQuestTime" class="form-input">
+
+        <div class="form-group" id="daySelectGroup" style="display:none;">
+          <label class="form-label">반복 요일 선택</label>
+          <div class="day-selector-bar">
+            <div class="day-btn" data-day="MON" onclick="toggleDayBtn(this)">월</div>
+            <div class="day-btn" data-day="TUE" onclick="toggleDayBtn(this)">화</div>
+            <div class="day-btn" data-day="WED" onclick="toggleDayBtn(this)">수</div>
+            <div class="day-btn" data-day="THU" onclick="toggleDayBtn(this)">목</div>
+            <div class="day-btn" data-day="FRI" onclick="toggleDayBtn(this)">금</div>
+            <div class="day-btn" data-day="SAT" onclick="toggleDayBtn(this)">토</div>
+            <div class="day-btn" data-day="SUN" onclick="toggleDayBtn(this)">일</div>
+          </div>
         </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">시작 날짜</label>
+            <input type="date" id="inputQuestDateTab2" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">알림 시간 (선택)</label>
+            <input type="time" id="inputQuestTimeTab2" class="form-input">
+          </div>
+        </div>
+        <p style="font-size:11px; color:#94a3b8; margin:-4px 0 10px 2px;">
+          💡 알림 시간은 필수가 아닙니다. 비워두시면 해당 날짜 종일 수행 퀘스트로 등록됩니다.
+        </p>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">반복 주기</label>
-        <select id="selectQuestRecurrence" class="form-input" onchange="onRecurrenceChange()">
-          <option value="DAILY">🔁 매일 반복</option>
-          <option value="WEEKLY">📅 요일별 선택 (다중 선택)</option>
-          <option value="MONTHLY">🗓️ 매월 반복</option>
-          <option value="HOURLY">⏱️ 시간별 반복</option>
-          <option value="NONE">❌ 반복 안 함 (일회성)</option>
-        </select>
-      </div>
-
-      <div class="form-group" id="daySelectGroup" style="display:none;">
-        <label class="form-label">반복 요일 선택</label>
-        <div class="day-selector-bar">
-          <div class="day-btn" data-day="MON" onclick="toggleDayBtn(this)">월</div>
-          <div class="day-btn" data-day="TUE" onclick="toggleDayBtn(this)">화</div>
-          <div class="day-btn" data-day="WED" onclick="toggleDayBtn(this)">수</div>
-          <div class="day-btn" data-day="THU" onclick="toggleDayBtn(this)">목</div>
-          <div class="day-btn" data-day="FRI" onclick="toggleDayBtn(this)">금</div>
-          <div class="day-btn" data-day="SAT" onclick="toggleDayBtn(this)">토</div>
-          <div class="day-btn" data-day="SUN" onclick="toggleDayBtn(this)">일</div>
-        </div>
-      </div>
-
+      <!-- 공통: 보상 XP & 필수 여부 -->
       <div class="form-group">
         <label class="form-label">보상 경험치 (XP)</label>
         <input type="number" id="inputQuestXp" class="form-input" value="20" min="5" max="100">
@@ -3882,6 +3951,42 @@
       }
     }
 
+    // ========================================================
+    // 📋 퀘스트 추가 & 수정 모달 2개 탭 관리 시스템
+    // ========================================================
+    function switchQuestModalTab(tabNum) {
+      document.getElementById('activeQuestModalTab').value = String(tabNum);
+      const btn1 = document.getElementById('btnQuestTab1');
+      const btn2 = document.getElementById('btnQuestTab2');
+      const sec1 = document.getElementById('questTab1Section');
+      const sec2 = document.getElementById('questTab2Section');
+      const lblName = document.getElementById('lblQuestName');
+
+      if (tabNum === 1) {
+        btn1.classList.add('active');
+        btn2.classList.remove('active');
+        sec1.style.display = 'block';
+        sec2.style.display = 'none';
+        if (lblName) lblName.innerText = '제목 (할 일 이름) *';
+      } else {
+        btn2.classList.add('active');
+        btn1.classList.remove('active');
+        sec2.style.display = 'block';
+        sec1.style.display = 'none';
+        if (lblName) lblName.innerText = '제목 (반복 퀘스트/습관 이름) *';
+      }
+    }
+
+    function onRecurrenceChange() {
+      const rec = document.getElementById('selectQuestRecurrence').value;
+      const dayGroup = document.getElementById('daySelectGroup');
+      if (rec === 'WEEKLY') {
+        dayGroup.style.display = 'block';
+      } else {
+        dayGroup.style.display = 'none';
+      }
+    }
+
     function toggleDayBtn(el) {
       el.classList.toggle('active');
     }
@@ -3894,14 +3999,21 @@
 
       document.getElementById('inputQuestName').value = '';
       document.getElementById('inputQuestDesc').value = '';
+      
       const todayIso = new Date().toISOString().split('T')[0];
-      document.getElementById('inputQuestDate').value = todayIso;
-      document.getElementById('inputQuestTime').value = '';
+      document.getElementById('inputQuestDateTab1').value = todayIso;
+      document.getElementById('inputQuestTimeTab1').value = '';
+      document.getElementById('inputQuestDateTab2').value = todayIso;
+      document.getElementById('inputQuestTimeTab2').value = '';
+
       document.getElementById('inputQuestXp').value = 20;
       document.getElementById('inputQuestRequired').checked = false;
       document.getElementById('selectQuestRecurrence').value = 'DAILY';
       document.getElementById('daySelectGroup').style.display = 'none';
       document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+
+      // 기본 1번 탭(빠른 할일 / 메모)으로 시작
+      switchQuestModalTab(1);
 
       document.getElementById('addQuestModal').classList.add('open');
       document.getElementById('inputQuestName').focus();
@@ -3918,29 +4030,43 @@
 
       document.getElementById('inputQuestName').value = q.name || '';
       document.getElementById('inputQuestDesc').value = q.description || '';
-      document.getElementById('inputQuestDate').value = q.dueDate || new Date().toISOString().split('T')[0];
-      document.getElementById('inputQuestTime').value = q.notifyTime || '';
+      
+      const todayIso = new Date().toISOString().split('T')[0];
+      const dueDateVal = q.dueDate || todayIso;
+      const notifyTimeVal = q.notifyTime || '';
+
+      document.getElementById('inputQuestDateTab1').value = dueDateVal;
+      document.getElementById('inputQuestTimeTab1').value = notifyTimeVal;
+      document.getElementById('inputQuestDateTab2').value = dueDateVal;
+      document.getElementById('inputQuestTimeTab2').value = notifyTimeVal;
+
       document.getElementById('inputQuestXp').value = q.rewardXp || 20;
       document.getElementById('inputQuestRequired').checked = Boolean(q.isRequired);
 
-      const rec = q.recurrence || 'DAILY';
+      const rec = q.recurrence || 'NONE';
       document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
 
-      if (rec.startsWith('WEEKLY') || rec.includes(',')) {
-        document.getElementById('selectQuestRecurrence').value = 'WEEKLY';
-        document.getElementById('daySelectGroup').style.display = 'block';
-        const daysPart = rec.includes(':') ? rec.split(':')[1] : rec;
-        const days = daysPart.split(',').map(d => d.trim().toUpperCase());
-        days.forEach(d => {
-          const btn = document.querySelector(`.day-btn[data-day="${d}"]`);
-          if (btn) btn.classList.add('active');
-        });
-      } else if (rec === 'MONTHLY' || rec === 'HOURLY' || rec === 'NONE' || rec === 'DAILY') {
-        document.getElementById('selectQuestRecurrence').value = rec;
-        document.getElementById('daySelectGroup').style.display = 'none';
+      // 1번 탭(일회성) vs 2번 탭(반복) 판별
+      if (rec === 'NONE' || rec === '' || rec === '일회성') {
+        switchQuestModalTab(1);
       } else {
-        document.getElementById('selectQuestRecurrence').value = 'DAILY';
-        document.getElementById('daySelectGroup').style.display = 'none';
+        switchQuestModalTab(2);
+        if (rec.startsWith('WEEKLY') || rec.includes(',')) {
+          document.getElementById('selectQuestRecurrence').value = 'WEEKLY';
+          document.getElementById('daySelectGroup').style.display = 'block';
+          const daysPart = rec.includes(':') ? rec.split(':')[1] : rec;
+          const days = daysPart.split(',').map(d => d.trim().toUpperCase());
+          days.forEach(d => {
+            const btn = document.querySelector(`.day-btn[data-day="${d}"]`);
+            if (btn) btn.classList.add('active');
+          });
+        } else if (rec === 'MONTHLY' || rec === 'HOURLY' || rec === 'DAILY') {
+          document.getElementById('selectQuestRecurrence').value = rec;
+          document.getElementById('daySelectGroup').style.display = 'none';
+        } else {
+          document.getElementById('selectQuestRecurrence').value = 'DAILY';
+          document.getElementById('daySelectGroup').style.display = 'none';
+        }
       }
 
       document.getElementById('addQuestModal').classList.add('open');
@@ -3954,22 +4080,38 @@
     async function submitQuestForm() {
       const editingId = document.getElementById('editingQuestId').value;
       const isEditing = Boolean(editingId);
+      const activeTab = document.getElementById('activeQuestModalTab').value;
 
       const name = document.getElementById('inputQuestName').value.trim();
       const desc = document.getElementById('inputQuestDesc').value.trim();
-      const dueDate = document.getElementById('inputQuestDate').value.trim();
-      const time = document.getElementById('inputQuestTime').value.trim();
       const xp = parseInt(document.getElementById('inputQuestXp').value) || 20;
       const isReq = document.getElementById('inputQuestRequired').checked;
-      
-      let recType = document.getElementById('selectQuestRecurrence').value;
-      if (recType === 'WEEKLY') {
-        const selectedDays = [];
-        document.querySelectorAll('.day-btn.active').forEach(b => selectedDays.push(b.getAttribute('data-day')));
-        if (selectedDays.length > 0) {
-          recType = "WEEKLY:" + selectedDays.join(',');
-        } else {
-          recType = "WEEKLY:MON,TUE,WED,THU,FRI";
+      const todayIso = new Date().toISOString().split('T')[0];
+
+      let dueDate = "";
+      let time = "";
+      let recType = "NONE";
+
+      // ⚡ 1번 탭: 빠른 할일 / 단발성 메모 (날짜/시간 미필수, 반복 설정 없음)
+      if (activeTab === "1") {
+        dueDate = document.getElementById('inputQuestDateTab1').value.trim() || todayIso;
+        time = document.getElementById('inputQuestTimeTab1').value.trim(); // 선택 사항
+        recType = "NONE"; // 1번 탭은 반복 없음(일회성) 고정
+      } 
+      // 🔁 2번 탭: 반복 습관 / 일정 (반복 주기 지정, 시간은 선택 사항)
+      else {
+        dueDate = document.getElementById('inputQuestDateTab2').value.trim() || todayIso;
+        time = document.getElementById('inputQuestTimeTab2').value.trim(); // 선택 사항 (시간 필수 아님)
+        recType = document.getElementById('selectQuestRecurrence').value;
+
+        if (recType === 'WEEKLY') {
+          const selectedDays = [];
+          document.querySelectorAll('.day-btn.active').forEach(b => selectedDays.push(b.getAttribute('data-day')));
+          if (selectedDays.length > 0) {
+            recType = "WEEKLY:" + selectedDays.join(',');
+          } else {
+            recType = "WEEKLY:MON,TUE,WED,THU,FRI";
+          }
         }
       }
 
