@@ -4100,24 +4100,91 @@
     window.onload = function() {
       logDebug("🌱 포켓Tasks 웹 앱 로드 시작", "info");
       
-      restoreLocalPokemonCache();
+      // 🚀 1단계 (0.01초): 로컬 캐시로 즉시 렌더링 (체감 로딩 0초!)
+      const hasCache = restoreLocalFullCache();
 
       const growth = appState.pokemon?.growth || "MEDIUM_SLOW";
       appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, growth);
 
       const todayIso = new Date().toISOString().split('T')[0];
-      const dateInput = document.getElementById('inputQuestDate');
+      const dateInput = document.getElementById('inputQuestDateTab1');
       if (dateInput) dateInput.value = todayIso;
 
-      recordCurrentPokemonToHistory("ACTIVE");
-
       initUI(appState);
-      syncWithGasBackend();
+
+      // 🚀 2단계 (백그라운드 비동기): 스프레드시트에서 0.2초 초고속 최신화 (SWR)
+      fetchLatestDataFromSheet();
+
       initOneSignal();
-      setTimeout(runDiagnostics, 1200);
+      setTimeout(runDiagnostics, 1500);
     };
 
-    function determineHabitatBgKey(pokemonType) {
+    async function fetchLatestDataFromSheet() {
+      try {
+        const res = await fetch(GAS_API_URL + "?action=getInitialData");
+        const json = await res.json();
+        if (json.success && json.data) {
+          applyBackendDataToAppState(json.data);
+          saveLocalFullCache();
+          initUI(appState);
+          logDebug(`⚡ 시트 데이터 고속 최신화 완료 (퀘스트 ${appState.quests.length}개)`, "success");
+        }
+      } catch (err) {
+        logDebug("시트 데이터 최신화 알림: 로컬 캐시 유지 중", "info");
+      }
+    }
+
+    function applyBackendDataToAppState(data) {
+      if (data.quests && Array.isArray(data.quests)) {
+        appState.quests = data.quests;
+      }
+      if (data.pokemonHistory && Array.isArray(data.pokemonHistory)) {
+        appState.pokemonHistory = data.pokemonHistory;
+      }
+      if (data.pokemon) {
+        const pInfo = getPokemonData(data.pokemon.id);
+        const gender = data.pokemon.gender || (pInfo?.genderType === 'GENDERLESS' ? ' ' : '♂');
+        appState.pokemon = {
+          id: data.pokemon.id,
+          name: data.pokemon.name,
+          gender: gender,
+          nature: data.pokemon.nature || "고집",
+          natureBuff: data.pokemon.natureBuff || "+공격",
+          type: pInfo ? pInfo.type : data.pokemon.type,
+          growth: pInfo ? pInfo.growth : "MEDIUM_SLOW",
+          idleGif: `./images/pokemon/showdown/${data.pokemon.id}.gif`
+        };
+        appState.isEgg = Boolean(data.isEgg);
+      }
+      if (data.userStats) {
+        appState.userStats.level = data.userStats.level;
+        appState.userStats.currentXp = data.userStats.currentXp;
+        appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, appState.pokemon.growth);
+      }
+    }
+
+    async function syncWithGasBackend() {
+      const btn = document.getElementById('btnRefreshQuests');
+      if (btn) btn.innerText = "동기화 중...";
+      logDebug("Google Tasks 강제 정밀 동기화 요청 전송...", "info");
+      try {
+        const res = await fetch(GAS_API_URL + "?action=forceSyncGoogleTasks");
+        const json = await res.json();
+        if (json.success && json.data) {
+          applyBackendDataToAppState(json.data);
+          saveLocalFullCache();
+          initUI(appState);
+          logDebug(`Google Tasks 정밀 동기화 성공 (퀘스트 ${appState.quests.length}개)`, "success");
+          if (btn) btn.innerText = "동기화";
+        } else {
+          if (btn) btn.innerText = "동기화";
+        }
+      } catch (e) {
+        if (btn) btn.innerText = "동기화";
+      }
+    }
+
+        function determineHabitatBgKey(pokemonType) {
       const t = pokemonType || "";
       if (t.includes("풀") || t.includes("벌레")) return "PogoGrasslandBg";
       if (t.includes("비행") || t.includes("드래곤")) return "PogoSkyBg";
