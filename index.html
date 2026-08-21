@@ -4797,26 +4797,57 @@
       const card = document.createElement('div');
       card.className = `quest-card ${q.isCompletedToday ? 'completed' : ''}`;
       
-      const dueMeta = q.dueDate ? q.dueDate : '';
-      const timeMeta = q.notifyTime ? `${q.notifyTime}` : '';
-      const descHtml = q.description ? `<div class="quest-desc">${q.description}</div>` : '';
+      // 1) [1번째 줄] 날짜 • 요일 • 시간 (크기 0.8)
+      const metaParts = [];
+      if (q.dueDate) {
+        metaParts.push(q.dueDate);
+        try {
+          const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+          const dParts = q.dueDate.split('-');
+          if (dParts.length === 3) {
+            const dObj = new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
+            metaParts.push(dayNames[dObj.getDay()]);
+          }
+        } catch(e) {}
+      }
+      if (q.notifyTime) {
+        metaParts.push(q.notifyTime);
+      }
+      const topMetaText = metaParts.join('  •  ');
+
+      // 2) [2번째 줄] [반복주기] 퀘스트 제목 (크기 1.0 기준)
+      let recLabel = "일회성";
+      const rec = (q.recurrence || "").toUpperCase().trim();
+      if (rec === "DAILY" || rec === "매일") {
+        recLabel = "매일";
+      } else if (rec.startsWith("WEEKLY") || rec.includes(",")) {
+        const daysPart = rec.includes(":") ? rec.split(":")[1] : rec;
+        const dayMapKr = { "MON":"월", "TUE":"화", "WED":"수", "THU":"목", "FRI":"금", "SAT":"토", "SUN":"일" };
+        const krDays = daysPart.split(",").map(d => dayMapKr[d.trim().toUpperCase()] || d).join(",");
+        recLabel = `매주(${krDays})`;
+      } else if (rec === "MONTHLY" || rec === "매월") {
+        recLabel = "매월";
+      } else if (rec === "HOURLY" || rec === "시간별") {
+        recLabel = "시간별";
+      } else if (q.days && q.days !== "일회성") {
+        recLabel = q.days;
+      }
+
+      // 3) [3번째 줄] 상세 설명/메모 (크기 0.5~0.75)
+      const descHtml = q.description ? `<div class="quest-desc" style="font-size:10.5px; color:#94a3b8; line-height:1.35; margin-top:3px; word-break:break-word;">${q.description}</div>` : '';
 
       card.innerHTML = `
-        <div class="quest-left">
+        <div class="quest-card-left" style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
           <input type="checkbox" class="quest-batch-cb" data-id="${q.id}" style="${isBatchDeleteMode ? 'display:inline-block;' : 'display:none;'}" onchange="onQuestCheckboxChange()">
-          <div class="quest-info">
-            <div class="quest-title">
-              ${q.name}
-              ${q.isRequired ? '<span class="req-tag">필수</span>' : ''}
-            </div>
-            <div class="quest-meta">
-              ${dueMeta ? `<span>${dueMeta}</span> • ` : ''}
-              <span>${timeMeta || '상시'}</span>
+          <div class="quest-info" style="flex:1; min-width:0;">
+            ${topMetaText ? `<div class="quest-top-meta" style="font-size:11.2px; font-weight:600; color:#8892a0; margin-bottom:3px; letter-spacing:0.2px;">${topMetaText}</div>` : ''}
+            <div class="quest-title" style="font-size:14px; font-weight:800; color:#ffffff; line-height:1.35; margin-bottom:2px; word-break:break-word;">
+              <span style="color:#38bdf8; font-weight:800; margin-right:4px;">[${recLabel}]</span>${q.name}${q.isRequired ? ' <span class="req-tag" style="background:#FF9800; color:white; font-size:10px; font-weight:900; padding:1px 5px; border-radius:4px; margin-left:4px;">필수</span>' : ''}
             </div>
             ${descHtml}
           </div>
         </div>
-        <div class="quest-card-btns" style="${isBatchDeleteMode ? 'display:none;' : 'display:flex;'}">
+        <div class="quest-card-btns" style="${isBatchDeleteMode ? 'display:none;' : 'display:flex; align-items:center; gap:6px; flex-shrink:0;'}">
           <button class="btn-quest-edit" style="padding:6px 9px;" onclick="openEditQuestModal('${q.id}')">
             ✏️
           </button>
