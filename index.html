@@ -4831,17 +4831,102 @@
       container.appendChild(singleSection);
     }
 
+    // ========================================================
+    // 🔁 반복 퀘스트 일정 계산 & 활성화 상태 머신 & 연속 기록 판정
+    // ========================================================
+    function calculateNextDueDateClient(recurrence, currentDueDateStr) {
+      const now = new Date();
+      const baseDate = currentDueDateStr ? new Date(currentDueDateStr + 'T00:00:00') : now;
+      const rec = String(recurrence || "DAILY").toUpperCase().trim();
+
+      if (rec === "DAILY" || rec === "매일") {
+        const next = new Date(baseDate);
+        next.setDate(next.getDate() + 1);
+        return next.toISOString().split('T')[0];
+      }
+
+      if (rec.startsWith("WEEKLY") || rec.startsWith("DAYS:") || rec.includes(",")) {
+        const daysPart = rec.includes(":") ? rec.split(":")[1] : rec;
+        const targetDays = daysPart.split(",").map(d => d.trim().toUpperCase());
+        const dayMap = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+        
+        for (let i = 1; i <= 7; i++) {
+          const candidate = new Date(now);
+          candidate.setDate(candidate.getDate() + i);
+          const dayCode = dayMap[candidate.getDay()];
+          if (targetDays.includes(dayCode)) {
+            return candidate.toISOString().split('T')[0];
+          }
+        }
+        const next = new Date(now);
+        next.setDate(next.getDate() + 7);
+        return next.toISOString().split('T')[0];
+      }
+
+      if (rec === "MONTHLY" || rec === "매월") {
+        const next = new Date(baseDate);
+        next.setMonth(next.getMonth() + 1);
+        return next.toISOString().split('T')[0];
+      }
+
+      return currentDueDateStr || now.toISOString().split('T')[0];
+    }
+
+    // 🕒 퀘스트의 실시간 수행 가능 여부 및 연속 기록(Streak) 판정
+    function evaluateQuestTimingState(q) {
+      const now = new Date();
+      const todayStr = now.toISOString().split('T')[0];
+      const currentHours = String(now.getHours()).padStart(2, '0');
+      const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+      const currentTime = `${currentHours}:${currentMinutes}`;
+
+      const isRecurring = q.recurrence && q.recurrence !== "NONE" && q.recurrence !== "일회성";
+
+      // 1) 과거 미완료 퀘스트 검사: 전날 24시까지 미완료인 경우 연속 기록 0일로 리셋
+      if (isRecurring && q.dueDate && q.dueDate < todayStr && q.lastCompletedDate !== todayStr) {
+        q.consecutiveDays = 0;
+        q.dueDate = todayStr;
+      }
+
+      // 2) 오늘 이미 완료했는지 검사
+      const isDoneToday = (q.lastCompletedDate === todayStr) || Boolean(q.isCompletedToday);
+
+      // 3) 설정된 시간(notifyTime) 도래 여부 검사 (없으면 자정 00:00부터 활성화)
+      let isTimeUnlocked = true;
+      if (q.notifyTime && q.notifyTime.includes(':')) {
+        isTimeUnlocked = (currentTime >= q.notifyTime);
+      }
+
+      // 4) 오늘 수행 가능한가? (오늘 날짜이거나 이전 날짜이면서, 알림 시간이 되었고, 아직 완료 안 함)
+      const isDueForToday = (!q.dueDate || q.dueDate <= todayStr);
+      const isActionableNow = isDueForToday && isTimeUnlocked && !isDoneToday;
+
+      // 5) 아직 알림 시간 전이어서 대기 중인가? (오늘 날짜인데 시간이 아직 안 됨)
+      const isWaitingForTime = isDueForToday && !isTimeUnlocked && !isDoneToday;
+
+      return {
+        isDoneToday,
+        isActionableNow,
+        isWaitingForTime,
+        displayDueDate: q.dueDate || todayStr,
+        notifyTime: q.notifyTime || ""
+      };
+    }
+
     function createQuestCardElement(q) {
       const card = document.createElement('div');
-      card.className = `quest-card ${q.isCompletedToday ? 'completed' : ''}`;
+      const timing = evaluateQuestTimingState(q);
+      card.className = `quest-card ${timing.isDoneToday ? 'completed' : ''}`;
       
       // 1) [1번째 줄] 날짜 • 요일 • 시간 (크기 0.8)
+      // 완료된 반복 퀘스트는 바로 다음 퀘스트의 일정으로 표시
       const metaParts = [];
-      if (q.dueDate) {
-        metaParts.push(q.dueDate);
+      const targetDateStr = timing.displayDueDate;
+      if (targetDateStr) {
+        metaParts.push(targetDateStr);
         try {
           const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-          const dParts = q.dueDate.split('-');
+          const dParts = targetDateStr.split('-');
           if (dParts.length === 3) {
             const dObj = new Date(parseInt(dParts[0]), parseInt(dParts[1]) - 1, parseInt(dParts[2]));
             metaParts.push(dayNames[dObj.getDay()]);
@@ -4874,6 +4959,18 @@
       // 3) [3번째 줄] 상세 설명/메모 (크기 0.5~0.75)
       const descHtml = q.description ? `<div class="quest-desc" style="font-size:10.5px; color:#94a3b8; line-height:1.35; margin-top:3px; word-break:break-word;">${q.description}</div>` : '';
 
+      // 우측 완료 버튼 상태 구성
+      let btnHtml = '';
+      if (timing.isDoneToday) {
+        btnHtml = `<button class="btn-quest-done disabled" style="opacity:0.6; cursor:not-allowed;" title="다음 예정일까지 완료됨">완료됨 ✓</button>`;
+      } else if (timing.isActionableNow) {
+        btnHtml = `<button class="btn-quest-done" onclick="completeQuestDirect('${q.id}')">+${q.rewardXp} XP</button>`;
+      } else if (timing.isWaitingForTime) {
+        btnHtml = `<button class="btn-quest-done disabled" style="background:#334155; color:#94a3b8; border:1px solid #475569;" onclick="alert('⏰ [${q.name}]\\n해당 퀘스트는 설정된 시간(${q.notifyTime})부터 오늘 24:00까지 수행 가능합니다!')">${q.notifyTime || '00:00'} 대기</button>`;
+      } else {
+        btnHtml = `<button class="btn-quest-done disabled" style="background:#1e293b; color:#64748b;" onclick="alert('📅 해당 퀘스트는 ${q.dueDate} ${q.notifyTime || ''}에 활성화됩니다!')">대기 중</button>`;
+      }
+
       card.innerHTML = `
         <div class="quest-card-left" style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
           <input type="checkbox" class="quest-batch-cb" data-id="${q.id}" style="${isBatchDeleteMode ? 'display:inline-block;' : 'display:none;'}" onchange="onQuestCheckboxChange()">
@@ -4889,14 +4986,11 @@
           <button class="btn-quest-edit" style="padding:6px 9px;" onclick="openEditQuestModal('${q.id}')">
             ✏️
           </button>
-          <button class="btn-quest-done ${q.isCompletedToday ? 'disabled' : ''}" onclick="completeQuestDirect('${q.id}')">
-            ${q.isCompletedToday ? '완료됨 ✓' : `+${q.rewardXp} XP`}
-          </button>
+          ${btnHtml}
         </div>
       `;
       return card;
     }
-
 
     async function completeQuestDirect(questId) {
       if (!questId) return;
@@ -4904,28 +4998,46 @@
       const q = appState.quests.find(x => String(x.id).trim() === cleanId);
       if (!q) return;
 
-      if (!q.isCompletedToday) {
-        q.isCompletedToday = true;
-        q.consecutiveDays = (q.consecutiveDays || 0) + 1;
-        q.lastCompletedDate = new Date().toISOString().split('T')[0];
-        
-        // 경험치바 1회 하이라이트 & 경험치 지급
-        highlightXpBar();
-        processXpGainAndEvolve(q.rewardXp || 20);
-
-        // 퀘스트 목록 & 기록 탭 즉각 재렌더링 (완료된 일회성 퀘스트는 목록에서 즉시 소멸)
-        renderQuestList(appState.quests);
-        renderStreakList(appState.quests);
-
-        logDebug(`퀘스트 완료: "${q.name}" (+${q.rewardXp}XP)`, "info");
-        try {
-          fetch(GAS_API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ action: "completeQuest", questId: cleanId })
-          }).catch(() => {});
-        } catch (e) {}
+      const timing = evaluateQuestTimingState(q);
+      if (!timing.isActionableNow) {
+        if (timing.isDoneToday) {
+          alert("오늘 이미 완료한 퀘스트입니다! 다음 예정일에 다시 활성화됩니다.");
+        } else if (timing.isWaitingForTime) {
+          alert(`⏰ 해당 퀘스트는 설정된 시간(${q.notifyTime})부터 오늘 24:00까지 수행 가능합니다!`);
+        }
+        return;
       }
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const isRecurring = q.recurrence && q.recurrence !== "NONE" && q.recurrence !== "일회성";
+
+      // 1) 당일 완료 처리 및 연속 일수 +1
+      q.isCompletedToday = true;
+      q.lastCompletedDate = todayStr;
+      q.consecutiveDays = (q.consecutiveDays || 0) + 1;
+
+      // 2) 반복 퀘스트인 경우 상단 날짜를 바로 다음 실행일정으로 최신화!
+      if (isRecurring) {
+        q.dueDate = calculateNextDueDateClient(q.recurrence, todayStr);
+      }
+      
+      // 3) 경험치바 1회 하이라이트 & 경험치 지급
+      highlightXpBar();
+      processXpGainAndEvolve(q.rewardXp || 20);
+
+      // 4) 퀘스트 목록 & 기록 탭 즉각 재렌더링
+      renderQuestList(appState.quests);
+      renderStreakList(appState.quests);
+      saveLocalFullCache();
+
+      logDebug(`퀘스트 완료: "${q.name}" (+${q.rewardXp}XP, ${q.consecutiveDays}일 연속)`, "info");
+      try {
+        fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "completeQuest", questId: cleanId })
+        }).catch(() => {});
+      } catch (e) {}
     }
 
         function renderStreakList(quests) {
