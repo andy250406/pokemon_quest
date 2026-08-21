@@ -74,12 +74,12 @@
     /* 🏷️ 상단 네비게이션 & 헤더 */
     .top-nav {
       width: 100%;
-      max-width: 600px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 6px;
-      padding: 0 4px;
+      padding: 0 2px;
+      box-sizing: border-box;
     }
     .btn-nav {
       background: rgba(255,255,255,0.08);
@@ -101,11 +101,11 @@
       background: rgba(255,255,255,0.15);
     }
     .btn-nav.icon-only {
-      width: 34px;
-      height: 34px;
+      width: 32px;
+      height: 32px;
       padding: 0;
       border-radius: 50%;
-      font-size: 16px;
+      font-size: 15px;
     }
     .btn-nav.btn-record {
       background: linear-gradient(135deg, #eab308, #ca8a04);
@@ -116,7 +116,7 @@
     }
 
     .header-title {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 900;
       letter-spacing: -0.3px;
       color: #ffffff;
@@ -125,22 +125,22 @@
       gap: 6px;
     }
 
-    /* 📊 실시간 진행 상황 바 */
+    /* 📊 실시간 진행 상황 바 (가로 너비 보드와 일체화) */
     .stats-bar {
       width: 100%;
-      max-width: 600px;
       display: flex;
       align-items: center;
-      justify-content: space-around;
+      justify-content: space-between;
       margin-bottom: 6px;
       background: #141b2d;
-      padding: 6px 10px;
+      padding: 7px 14px;
       border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.08);
       box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+      box-sizing: border-box;
     }
     .stat-item {
-      font-size: 11.5px;
+      font-size: 12px;
       font-weight: 700;
       color: #94a3b8;
       display: flex;
@@ -157,15 +157,15 @@
       font-weight: 800;
     }
 
-    /* 🕹️ 컨트롤러 (난이도 선택, 새 게임) */
+    /* 🕹️ 컨트롤러 (난이도 선택 및 새로고침 버튼) */
     .controls {
       width: 100%;
-      max-width: 600px;
       margin-bottom: 8px;
       display: flex;
       gap: 6px;
       align-items: center;
-      justify-content: center;
+      justify-content: space-between;
+      box-sizing: border-box;
     }
     select, .btn-action {
       padding: 6px 12px;
@@ -182,13 +182,26 @@
     }
     select {
       flex: 1;
-      max-width: 260px;
     }
     .btn-action.btn-primary {
       background: linear-gradient(135deg, #2563eb, #1d4ed8);
       border: none;
       color: white;
       box-shadow: 0 2px 8px rgba(37,99,235,0.4);
+    }
+    .btn-action.btn-refresh-only {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .btn-action.btn-refresh-only:active {
+      transform: scale(0.92);
     }
 
     /* 🎨 캔버스 뷰포트 컨테이너 */
@@ -372,13 +385,9 @@
       <span class="stat-val" id="moveCountText">0</span>
       <span class="stat-limit" id="moveLimitText">(최대 0)</span>
     </div>
-    <div class="stat-item">
-      <span>⏱️</span>
-      <span class="stat-val" id="timerText">00:00</span>
-    </div>
   </div>
 
-  <!-- 🕹️ 컨트롤러 (난이도 선택 및 새 게임) -->
+  <!-- 🕹️ 컨트롤러 (난이도 선택 및 새 퍼즐 새로고침) -->
   <div class="controls">
     <select id="stageSelect" onchange="generateStage()">
       <option value="16x24">🌱 입문 (16x24 / +10 XP)</option>
@@ -386,7 +395,7 @@
       <option value="26x38">🔥 어려움 (26x38 / +30 XP)</option>
       <option value="32x46">💀 지옥 (32x46 / +40 XP)</option>
     </select>
-    <button class="btn-action btn-primary" onclick="generateStage()">🔄 새 퍼즐</button>
+    <button class="btn-action btn-primary btn-refresh-only" onclick="generateStage()" title="새 퍼즐 새로고침">🔄</button>
   </div>
 
   <!-- 🎨 게임 캔버스 컨테이너 -->
@@ -553,25 +562,6 @@
       document.getElementById('recordsModal').classList.remove('show');
     }
 
-    // ========================================================
-    // ⏱️ 타이머 & UI 디스플레이
-    // ========================================================
-    function startTimer() {
-      if (timerInterval) clearInterval(timerInterval);
-      timerSeconds = 0;
-      updateTimerDisplay();
-      timerInterval = setInterval(() => {
-        timerSeconds++;
-        updateTimerDisplay();
-      }, 1000);
-    }
-
-    function updateTimerDisplay() {
-      const min = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
-      const sec = String(timerSeconds % 60).padStart(2, '0');
-      document.getElementById('timerText').innerText = `${min}:${sec}`;
-    }
-
     function updateStatusDisplay() {
       document.getElementById('snakeCountText').innerText = `${snakes.length} / ${totalInitialSnakes}`;
       document.getElementById('moveCountText').innerText = `${moveCount}`;
@@ -579,6 +569,20 @@
 
       const record = getStageRecord(currentStageKey);
       document.getElementById('currentStreakText').innerText = `${record.currentStreak || 0}연승`;
+    }
+
+    // 📐 게임 보드 캔버스와 상단 헤더/통계/컨트롤의 가로 너비 100% 일체화
+    function syncBoardWidths() {
+      const boardW = canvas.width + 4; // 테두리 4px 포함
+      const topNav = document.querySelector('.top-nav');
+      const statsBar = document.querySelector('.stats-bar');
+      const controls = document.querySelector('.controls');
+      const canvasContainer = document.getElementById('canvas-container');
+
+      if (topNav) topNav.style.width = boardW + 'px';
+      if (statsBar) statsBar.style.width = boardW + 'px';
+      if (controls) controls.style.width = boardW + 'px';
+      if (canvasContainer) canvasContainer.style.width = boardW + 'px';
     }
 
     // ========================================================
@@ -603,6 +607,7 @@
 
       canvas.width = COLS * CELL;
       canvas.height = ROWS * CELL;
+      syncBoardWidths();
 
       moveCount = 0;
 
@@ -617,7 +622,6 @@
       maxAllowedMoves = totalInitialSnakes + 20; // 🌟 [실패 조건]: 스네이크 개수 + 20 초과 시 실패
 
       updateStatusDisplay();
-      startTimer();
       draw();
     }
 
@@ -1050,13 +1054,9 @@
       const updatedRec = updateStreakOnClear(currentStageKey);
 
       // 클리어 모달 출력
-      const min = Math.floor(timerSeconds / 60);
-      const sec = timerSeconds % 60;
-      const timeFormatted = min > 0 ? `${min}분 ${sec}초` : `${sec}초`;
-
       document.getElementById('clearTitleText').innerText = `🎉 ${cfg.name} 난이도에서 ${updatedRec.currentStreak}연승 Clear!`;
       document.getElementById('clearDescText').innerHTML = `
-        소요 시간: <b>${timeFormatted}</b> • 이동 횟수: <b>${moveCount}회</b><br>
+        이동 횟수: <b>${moveCount}회</b><br>
         기본 보상: <b>+${baseReward} XP</b> ${bonusReward > 0 ? `<br>✨ ${bonusDesc}` : ''}
       `;
       document.getElementById('clearXpBadge').innerText = `총 +${totalReward} XP 획득! 🎁`;
@@ -1108,6 +1108,7 @@
         CELL = Math.max(9, Math.min(Math.floor(availableW / COLS), Math.floor(availableH / ROWS)));
         canvas.width = COLS * CELL;
         canvas.height = ROWS * CELL;
+        syncBoardWidths();
         draw();
       }
     };
