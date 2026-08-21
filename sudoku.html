@@ -630,9 +630,9 @@
     let sessionTotalEarnedXp = 0; // 🌟 포켓Tasks 메인 화면 전달용 누적 XP
 
     const STAGE_CONFIG = {
-      "hard": { name: "어려움", holes: 48, baseReward: 30 },
-      "hell": { name: "지옥", holes: 58, baseReward: 50 },
-      "xmode": { name: "X모드", holes: 50, baseReward: 50 }
+      "hard": { name: "어려움", holes: 46, passes: 1, baseReward: 30 },
+      "hell": { name: "지옥", holes: 64, passes: 2, baseReward: 50 },
+      "xmode": { name: "X모드", holes: 54, passes: 2, baseReward: 50 }
     };
 
     // ========================================================
@@ -840,30 +840,35 @@
       solutionBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
       solveBoard(solutionBoard, isXModeActive);
 
-      // 2) 🌟 유일해를 100% 보장하며 구멍 뚫기
+      // 2) 🌟 유일해를 100% 보장하며 멀티패스 굴착 (지옥 난이도는 유일해 한계치까지 극한 굴착)
       initialBoard = solutionBoard.map(row => [...row]);
       
-      const positions = [];
-      for (let r = 0; r < 9; r++) {
-        for (let c = 0; c < 9; c++) positions.push({ r, c });
-      }
-      positions.sort(() => Math.random() - 0.5);
-
       let holesDug = 0;
       const maxTargetHoles = cfg.holes;
+      const passes = cfg.passes || 1;
 
-      for (let pos of positions) {
-        if (holesDug >= maxTargetHoles) break;
+      for (let p = 0; p < passes; p++) {
+        const positions = [];
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            if (initialBoard[r][c] !== 0) positions.push({ r, c });
+          }
+        }
+        positions.sort(() => Math.random() - 0.5);
 
-        const backup = initialBoard[pos.r][pos.c];
-        initialBoard[pos.r][pos.c] = 0;
+        for (let pos of positions) {
+          if (holesDug >= maxTargetHoles) break;
 
-        // 🌟 유일해(해가 정확히 1개)가 깨지지 않는지 검증!
-        if (countSolutions(initialBoard, isXModeActive, 2) === 1) {
-          holesDug++;
-        } else {
-          // 유일해가 깨지면(찍기/불량 퍼즐이 되면) 즉시 복원!
-          initialBoard[pos.r][pos.c] = backup;
+          const backup = initialBoard[pos.r][pos.c];
+          initialBoard[pos.r][pos.c] = 0;
+
+          // 🌟 유일해(해가 정확히 1개)가 깨지지 않는지 검증!
+          if (countSolutions(initialBoard, isXModeActive, 2) === 1) {
+            holesDug++;
+          } else {
+            // 유일해가 깨지면(찍기/불량 퍼즐이 되면) 즉시 복원!
+            initialBoard[pos.r][pos.c] = backup;
+          }
         }
       }
 
