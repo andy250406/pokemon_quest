@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Sudoku - 포켓Tasks</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #060913; /* 🌌 아주 어두운 프리미엄 다크 네이비 */
+      background-image: radial-gradient(circle at 50% 50%, #0d1527 0%, #060913 100%);
+      color: #f1f5f9;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow: hidden;
+      padding: 0;
+      margin: 0;
+    }
+
+    /* 🎮 메인 게임 프레임 (16:10 비율 최적화 크기 제한 및 프리미엄 라운드 섀도우) */
+    .game-screen {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      max-width: 500px;
+      max-height: 840px;
+      background: #101622;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 10px;
+      border-radius: 28px;
+      box-shadow: 0 25px 65px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* 💻 PC / 태블릿 가로 와이드 화면 */
+    @media (min-width: 840px) {
+      .game-screen {
+        max-width: 560px !important;
+        max-height: 840px !important;
+        border-radius: 28px !important;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.09) !important;
+      }
+    }
+
+    /* 📱 스마트폰 전용 풀스크린 (화면 폭이 작을 때는 여백 없이 꽉 채움) */
+    @media (max-width: 520px) {
+      body {
+        background: #101622;
+      }
+      .game-screen {
+        max-width: 100vw !important;
+        max-height: 100dvh !important;
+        height: 100dvh !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        padding: 8px 6px;
+      }
+    }
+
+    /* 🏷️ 상단 네비게이션 & 헤더 (가로 너비 일체화) */
+    .top-nav {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      padding: 0 2px;
+      box-sizing: border-box;
+    }
+    .btn-nav {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #cbd5e1;
+      padding: 5px 11px;
+      font-size: 11.5px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+    .btn-nav:active {
+      transform: scale(0.95);
+      background: rgba(255,255,255,0.15);
+    }
+    .btn-nav.icon-only {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border-radius: 50%;
+      font-size: 15px;
+    }
+    .btn-nav.btn-record {
+      background: linear-gradient(135deg, #eab308, #ca8a04);
+      color: #0f172a;
+      font-weight: 800;
+      border: none;
+      box-shadow: 0 2px 8px rgba(234, 179, 8, 0.35);
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: -0.3px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 📊 실시간 진행 상황 바 (가로 너비 보드와 일체화) */
+    .stats-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      background: #141b2d;
+      padding: 7px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+      box-sizing: border-box;
+    }
+    .stat-item {
+      font-size: 12px;
+      font-weight: 700;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .stat-val {
+      color: #38bdf8;
+      font-weight: 800;
+    }
+
+    /* 🕹️ 컨트롤러 (난이도 선택 및 새로고침 버튼) */
+    .controls {
+      width: 100%;
+      margin-bottom: 8px;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      justify-content: space-between;
+      box-sizing: border-box;
+    }
+    select, .btn-action {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #1e293b;
+      color: #f1f5f9;
+      cursor: pointer;
+      font-weight: 700;
+      outline: none;
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+    }
+    select {
+      flex: 1;
+    }
+    .btn-action.btn-primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border: none;
+      color: white;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.4);
+    }
+    .btn-action.btn-refresh-only {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .btn-action.btn-refresh-only:active {
+      transform: scale(0.92);
+    }
+
+    /* 🎨 스도쿠 보드 컨테이너 (CSS Grid 100% 렌더링 보장) */
+    #sudoku-board-container {
+      position: relative;
+      width: 100%;
+      max-width: 380px;
+      aspect-ratio: 1 / 1;
+      background: #0b0f19;
+      border: 3px solid #38bdf8;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      grid-template-rows: repeat(9, 1fr);
+      overflow: hidden;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+    }
+
+    .sudoku-cell {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(14px, 4.5vw, 20px);
+      font-weight: 800;
+      color: #f1f5f9;
+      background: #141b2d;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      cursor: pointer;
+      transition: background 0.1s ease, transform 0.1s ease;
+    }
+    /* 3x3 서브박스 두꺼운 경계선 */
+    .sudoku-cell:nth-child(3n) {
+      border-right: 2px solid #38bdf8;
+    }
+    .sudoku-cell:nth-child(9n) {
+      border-right: none;
+    }
+    .sudoku-cell.row-bottom-box {
+      border-bottom: 2px solid #38bdf8;
+    }
+
+    /* 셀 상태 스타일 */
+    .sudoku-cell.fixed {
+      color: #94a3b8;
+      font-weight: 900;
+      background: #101626;
+    }
+    .sudoku-cell.user-input {
+      color: #38bdf8;
+      font-weight: 900;
+    }
+    .sudoku-cell.x-mode-diag {
+      background: #1e1b4b; /* X모드 대각선 보라빛 하이라이트 */
+    }
+    .sudoku-cell.crosshair {
+      background: #1e293b !important;
+    }
+    .sudoku-cell.same-number {
+      background: #0284c7 !important;
+      color: #ffffff !important;
+    }
+    .sudoku-cell.selected {
+      background: #facc15 !important;
+      color: #0f172a !important;
+      transform: scale(1.05);
+      z-index: 5;
+      box-shadow: 0 0 10px rgba(250,204,21,0.6);
+      border-radius: 4px;
+    }
+
+    /* ✏️ 3x3 메모 그리드 */
+    .notes-grid {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      padding: 1px;
+      pointer-events: none;
+    }
+    .note-num {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(7px, 2vw, 9px);
+      font-weight: 700;
+      color: #cbd5e1;
+      line-height: 1;
+    }
+
+    /* ⌨️ 하단 스마트 키패드 */
+    #keypad-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-sizing: border-box;
+    }
+    .keypad-row {
+      display: flex;
+      gap: 6px;
+      width: 100%;
+    }
+    .key-btn {
+      flex: 1;
+      height: clamp(38px, 6.2dvh, 46px);
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      color: #f1f5f9;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      transition: all 0.12s ease;
+    }
+    .key-btn:active {
+      transform: scale(0.92);
+      background: #334155;
+    }
+    .key-btn.key-selected {
+      background: #38bdf8 !important;
+      color: #0f172a !important;
+      border-color: #7dd3fc !important;
+      box-shadow: 0 0 10px rgba(56,189,248,0.5);
+      transform: scale(0.96);
+    }
+    .key-btn.btn-memo.active {
+      background: #facc15 !important;
+      color: #0f172a !important;
+      border-color: #fde047 !important;
+      box-shadow: 0 0 10px rgba(250,204,21,0.5);
+    }
+    .key-btn.btn-delete {
+      background: #3f1822;
+      border-color: #881337;
+      color: #f43f5e;
+    }
+
+    /* ✨ 클리어 / 실패 모달 공통 */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(11, 15, 25, 0.92);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 20px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      z-index: 50;
+      padding: 16px;
+      text-align: center;
+    }
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .clear-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: #4ade80;
+      margin-bottom: 6px;
+      text-shadow: 0 0 16px rgba(74,222,128,0.5);
+    }
+    .modal-desc {
+      font-size: 12.5px;
+      color: #cbd5e1;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+    .xp-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #0f172a;
+      font-weight: 900;
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 10px rgba(245,158,11,0.4);
+    }
+    .btn-modal-next {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      padding: 9px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    /* 🏆 기록 리스트 팝업 모달 */
+    .record-box {
+      width: 88%;
+      max-width: 320px;
+      background: #182235;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: left;
+    }
+    .record-box h3 {
+      font-size: 15px;
+      font-weight: 800;
+      color: #fbbf24;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .record-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 12px;
+    }
+    .record-row:last-child { border-bottom: none; }
+    .record-diff { font-weight: 700; color: #e2e8f0; }
+    .record-stat { font-weight: 800; color: #38bdf8; }
+    .record-max { font-size: 10.5px; color: #94a3b8; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="game-screen" id="gameScreen">
+
+    <!-- 🏷️ 상단 네비게이션 -->
+    <div class="top-nav">
+      <button class="btn-nav icon-only" onclick="closeGameAndReturn()" title="포켓Tasks로 복귀" style="font-size:18px; font-weight:900;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </button>
+      <div class="header-title">
+        🧩 Sudoku
+      </div>
+      <button class="btn-nav btn-record icon-only" onclick="openRecordsModal()" title="난이도별 연승 기록">
+        🏆
+      </button>
+    </div>
+
+    <!-- 📊 실시간 진행 상황 바 -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span>남은 빈칸:</span>
+        <span class="stat-val" id="emptyCountText">0개</span>
+      </div>
+      <div class="stat-item">
+        <span>연승:</span>
+        <span class="stat-val" id="currentStreakText">0연승</span>
+      </div>
+      <div class="stat-item">
+        <span>모드:</span>
+        <span class="stat-val" id="diffLabelText">보통</span>
+      </div>
+    </div>
+
+    <!-- 🕹️ 컨트롤러 (난이도 선택 및 새 퍼즐 새로고침) -->
+    <div class="controls">
+      <select id="stageSelect" onchange="generateStage()">
+        <option value="easy">🌱 입문 (Easy / +10 XP)</option>
+        <option value="normal" selected>⚔️ 보통 (Normal / +20 XP)</option>
+        <option value="hard">🔥 어려움 (Hard / +30 XP)</option>
+        <option value="xmode">🔮 X모드 대각선 (+30 XP)</option>
+      </select>
+      <button class="btn-action btn-primary btn-refresh-only" onclick="generateStage()" title="새 퍼즐 새로고침">🔄</button>
+    </div>
+
+    <!-- 🎨 스도쿠 9x9 그리드 보드 -->
+    <div id="sudoku-board-container"></div>
+
+    <!-- ⌨️ 하단 스마트 키패드 -->
+    <div id="keypad-container">
+      <div class="keypad-row">
+        <button id="btn-key-1" class="key-btn" onclick="inputNumber(1)">1</button>
+        <button id="btn-key-2" class="key-btn" onclick="inputNumber(2)">2</button>
+        <button id="btn-key-3" class="key-btn" onclick="inputNumber(3)">3</button>
+        <button id="btn-key-4" class="key-btn" onclick="inputNumber(4)">4</button>
+        <button id="btn-key-5" class="key-btn" onclick="inputNumber(5)">5</button>
+      </div>
+      <div class="keypad-row">
+        <button id="btn-key-6" class="key-btn" onclick="inputNumber(6)">6</button>
+        <button id="btn-key-7" class="key-btn" onclick="inputNumber(7)">7</button>
+        <button id="btn-key-8" class="key-btn" onclick="inputNumber(8)">8</button>
+        <button id="btn-key-9" class="key-btn" onclick="inputNumber(9)">9</button>
+        <button id="btn-memo" class="key-btn btn-memo" onclick="toggleMemo()">✏️</button>
+        <button id="btn-key-0" class="key-btn btn-delete" onclick="inputNumber(0)">❌</button>
+      </div>
+    </div>
+
+    <!-- 🎉 스테이지 클리어 모달 -->
+    <div class="modal-overlay" id="clearModal">
+      <div class="clear-title" id="clearTitleText">🎉 CLEAR!</div>
+      <div class="modal-desc" id="clearDescText">스도쿠 퍼즐을 완벽하게 완성했습니다!</div>
+      <div class="xp-badge" id="clearXpBadge">+20 XP 획득! 🎁</div>
+      <div class="modal-btns">
+        <button class="btn-modal-next" onclick="generateStage()">다음 퍼즐 🚀</button>
+      </div>
+    </div>
+
+    <!-- 🏆 난이도별 연속 기록 모달 -->
+    <div class="modal-overlay" id="recordsModal">
+      <div class="record-box">
+        <h3>
+          <span>🏆 난이도별 연승 기록</span>
+          <span style="cursor:pointer; font-size:16px;" onclick="closeRecordsModal()">✕</span>
+        </h3>
+        <div class="record-row">
+          <span class="record-diff">🌱 입문</span>
+          <div>
+            <span class="record-stat" id="recStreak_easy">0</span> <span class="record-max" id="recMax_easy">(최고 0)</span>
+          </div>
+        </div>
+        <div class="record-row">
+          <span class="record-diff">⚔️ 보통</span>
+          <div>
+            <span class="record-stat" id="recStreak_normal">0</span> <span class="record-max" id="recMax_normal">(최고 0)</span>
+          </div>
+        </div>
+        <div class="record-row">
+          <span class="record-diff">🔥 어려움</span>
+          <div>
+            <span class="record-stat" id="recStreak_hard">0</span> <span class="record-max" id="recMax_hard">(최고 0)</span>
+          </div>
+        </div>
+        <div class="record-row">
+          <span class="record-diff">🔮 X모드</span>
+          <div>
+            <span class="record-stat" id="recStreak_xmode">0</span> <span class="record-max" id="recMax_xmode">(최고 0)</span>
+          </div>
+        </div>
+        <div style="margin-top:14px; text-align:center;">
+          <button class="btn-action" style="padding:6px 18px;" onclick="closeRecordsModal()">닫기</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let solutionBoard = [];
+    let initialBoard = [];
+    let userBoard = [];
+    let currentStageKey = "normal";
+    let isXModeActive = false;
+
+    let selectedCell = null;
+    let selectedNumber = null;
+    let highlightNum = null;
+    let isMemoMode = false;
+    let sessionTotalEarnedXp = 0; // 🌟 포켓Tasks 메인 화면 전달용 누적 XP
+
+    const STAGE_CONFIG = {
+      "easy": { name: "입문", holes: 32, baseReward: 10 },
+      "normal": { name: "보통", holes: 44, baseReward: 20 },
+      "hard": { name: "어려움", holes: 52, baseReward: 30 },
+      "xmode": { name: "X모드", holes: 46, baseReward: 30 }
+    };
+
+    // ========================================================
+    // 🏆 연승 기록 관리 (localStorage)
+    // ========================================================
+    function loadGameRecords() {
+      try {
+        const data = localStorage.getItem('sudoku_records_v1');
+        return data ? JSON.parse(data) : {};
+      } catch(e) {
+        return {};
+      }
+    }
+
+    function saveGameRecords(records) {
+      try {
+        localStorage.setItem('sudoku_records_v1', JSON.stringify(records));
+      } catch(e) {}
+    }
+
+    function getStageRecord(stageKey) {
+      const rec = loadGameRecords();
+      return rec[stageKey] || { currentStreak: 0, maxStreak: 0 };
+    }
+
+    function updateStreakOnClear(stageKey) {
+      const rec = loadGameRecords();
+      if (!rec[stageKey]) rec[stageKey] = { currentStreak: 0, maxStreak: 0 };
+      rec[stageKey].currentStreak = (rec[stageKey].currentStreak || 0) + 1;
+      if (rec[stageKey].currentStreak > (rec[stageKey].maxStreak || 0)) {
+        rec[stageKey].maxStreak = rec[stageKey].currentStreak;
+      }
+      saveGameRecords(rec);
+      return rec[stageKey];
+    }
+
+    function openRecordsModal() {
+      const rec = loadGameRecords();
+      ["easy", "normal", "hard", "xmode"].forEach(key => {
+        const item = rec[key] || { currentStreak: 0, maxStreak: 0 };
+        document.getElementById(`recStreak_${key}`).innerText = `${item.currentStreak || 0}연승`;
+        document.getElementById(`recMax_${key}`).innerText = `(최고 ${item.maxStreak || 0}연승)`;
+      });
+      document.getElementById('recordsModal').classList.add('show');
+    }
+
+    function closeRecordsModal() {
+      document.getElementById('recordsModal').classList.remove('show');
+    }
+
+    // ========================================================
+    // 📐 보드 너비 및 상단 바 100% 일체화 동기화
+    // ========================================================
+    function syncBoardWidths() {
+      const container = document.getElementById('sudoku-board-container');
+      if (!container) return;
+
+      const screenEl = document.getElementById('gameScreen');
+      const maxW = Math.min(screenEl.clientWidth - 20, window.innerHeight * 0.46, 380);
+      container.style.width = maxW + 'px';
+      container.style.height = maxW + 'px';
+
+      const topNav = document.querySelector('.top-nav');
+      const statsBar = document.querySelector('.stats-bar');
+      const controls = document.querySelector('.controls');
+      const keypad = document.getElementById('keypad-container');
+
+      if (topNav) topNav.style.width = maxW + 'px';
+      if (statsBar) statsBar.style.width = maxW + 'px';
+      if (controls) controls.style.width = maxW + 'px';
+      if (keypad) keypad.style.width = maxW + 'px';
+    }
+
+    // ========================================================
+    // 🧠 100% 보장 초고속 스도쿠 생성 엔진
+    // ========================================================
+    function isValid(board, r, c, num, isX) {
+      for (let i = 0; i < 9; i++) {
+        if (board[r][i] === num || board[i][c] === num) return false;
+        const boxR = Math.floor(r / 3) * 3 + Math.floor(i / 3);
+        const boxC = Math.floor(c / 3) * 3 + (i % 3);
+        if (board[boxR][boxC] === num) return false;
+      }
+      if (isX) {
+        if (r === c) {
+          for (let i = 0; i < 9; i++) if (board[i][i] === num) return false;
+        }
+        if (r + c === 8) {
+          for (let i = 0; i < 9; i++) if (board[i][8 - i] === num) return false;
+        }
+      }
+      return true;
+    }
+
+    function solveBoard(board, isX) {
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          if (board[r][c] === 0) {
+            const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
+            for (let num of numbers) {
+              if (isValid(board, r, c, num, isX)) {
+                board[r][c] = num;
+                if (solveBoard(board, isX)) return true;
+                board[r][c] = 0;
+              }
+            }
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+
+    function generateStage() {
+      document.getElementById('clearModal').classList.remove('show');
+      document.getElementById('recordsModal').classList.remove('show');
+
+      currentStageKey = document.getElementById('stageSelect').value;
+      const cfg = STAGE_CONFIG[currentStageKey] || STAGE_CONFIG["normal"];
+      isXModeActive = (currentStageKey === "xmode");
+
+      // 1) 완전한 정답 보드 생성
+      solutionBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
+      solveBoard(solutionBoard, isXModeActive);
+
+      // 2) 초기 문제 보드 복사 및 구멍 뚫기
+      initialBoard = solutionBoard.map(row => [...row]);
+      let holesToDig = cfg.holes;
+      const positions = [];
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) positions.push({ r, c });
+      }
+      positions.sort(() => Math.random() - 0.5);
+
+      for (let pos of positions) {
+        if (holesToDig <= 0) break;
+        initialBoard[pos.r][pos.c] = 0;
+        holesToDig--;
+      }
+
+      // 3) 사용자 입력 데이터 초기화
+      userBoard = Array.from({ length: 9 }, () => 
+        Array(9).fill(null).map(() => ({ val: 0, notes: new Set() }))
+      );
+
+      selectedCell = null;
+      selectedNumber = null;
+      highlightNum = null;
+
+      syncBoardWidths();
+      renderBoard();
+      renderKeypad();
+      updateStatusDisplay();
+    }
+
+    // ========================================================
+    // 🎨 스도쿠 보드 및 키패드 렌더링
+    // ========================================================
+    function renderBoard() {
+      const container = document.getElementById('sudoku-board-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          const cell = document.createElement('div');
+          const isFixed = (initialBoard[r][c] !== 0);
+          const currentVal = isFixed ? initialBoard[r][c] : userBoard[r][c].val;
+          const notes = userBoard[r][c].notes;
+
+          cell.className = 'sudoku-cell';
+          if (r === 2 || r === 5) cell.classList.add('row-bottom-box');
+          if (isFixed) cell.classList.add('fixed');
+          else if (currentVal !== 0) cell.classList.add('user-input');
+
+          if (isXModeActive && (r === c || r + c === 8)) cell.classList.add('x-mode-diag');
+
+          // 하이라이트 계산
+          if (selectedCell) {
+            if (r === selectedCell.r && c === selectedCell.c) cell.classList.add('selected');
+            else if (r === selectedCell.r || c === selectedCell.c) cell.classList.add('crosshair');
+          }
+          if (highlightNum && currentVal === highlightNum && (!selectedCell || (r !== selectedCell.r || c !== selectedCell.c))) {
+            cell.classList.add('same-number');
+          }
+
+          if (currentVal !== 0) {
+            cell.innerText = currentVal;
+          } else if (notes.size > 0) {
+            const notesGrid = document.createElement('div');
+            notesGrid.className = 'notes-grid';
+            for (let n = 1; n <= 9; n++) {
+              const noteEl = document.createElement('div');
+              noteEl.className = 'note-num';
+              noteEl.innerText = notes.has(n) ? n : '';
+              notesGrid.appendChild(noteEl);
+            }
+            cell.appendChild(notesGrid);
+          }
+
+          cell.onclick = (e) => {
+            e.stopPropagation();
+            onCellClick(r, c);
+          };
+
+          container.appendChild(cell);
+        }
+      }
+    }
+
+    function renderKeypad() {
+      for (let i = 0; i <= 9; i++) {
+        const btn = document.getElementById(`btn-key-${i}`);
+        if (btn) {
+          if (selectedNumber === i) btn.classList.add('key-selected');
+          else btn.classList.remove('key-selected');
+        }
+      }
+      const memoBtn = document.getElementById('btn-memo');
+      if (memoBtn) {
+        if (isMemoMode) memoBtn.classList.add('active');
+        else memoBtn.classList.remove('active');
+      }
+    }
+
+    function updateStatusDisplay() {
+      let emptyCount = 0;
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          const v = initialBoard[r][c] !== 0 ? initialBoard[r][c] : userBoard[r][c].val;
+          if (v === 0) emptyCount++;
+        }
+      }
+      document.getElementById('emptyCountText').innerText = `${emptyCount}개`;
+
+      const cfg = STAGE_CONFIG[currentStageKey] || STAGE_CONFIG["normal"];
+      document.getElementById('diffLabelText').innerText = cfg.name;
+
+      const record = getStageRecord(currentStageKey);
+      document.getElementById('currentStreakText').innerText = `${record.currentStreak || 0}연승`;
+    }
+
+    // ========================================================
+    // 👆 터치 / 클릭 조작 이벤트
+    // ========================================================
+    function onCellClick(r, c) {
+      // 숫자 먼저 선택 모드일 때
+      if (selectedNumber !== null) {
+        if (initialBoard[r][c] === 0) {
+          if (selectedNumber === 0) {
+            userBoard[r][c].val = 0;
+            userBoard[r][c].notes.clear();
+          } else if (isMemoMode) {
+            userBoard[r][c].val = 0;
+            if (userBoard[r][c].notes.has(selectedNumber)) userBoard[r][c].notes.delete(selectedNumber);
+            else userBoard[r][c].notes.add(selectedNumber);
+          } else {
+            userBoard[r][c].val = selectedNumber;
+            userBoard[r][c].notes.clear();
+          }
+          checkClearCondition();
+        }
+        highlightNum = (selectedNumber !== 0) ? selectedNumber : null;
+      } else {
+        selectedCell = { r, c };
+        const v = initialBoard[r][c] !== 0 ? initialBoard[r][c] : userBoard[r][c].val;
+        highlightNum = (v !== 0) ? v : null;
+      }
+      renderBoard();
+      renderKeypad();
+      updateStatusDisplay();
+    }
+
+    function inputNumber(num) {
+      if (selectedCell !== null) {
+        const { r, c } = selectedCell;
+        if (initialBoard[r][c] === 0) {
+          if (num === 0) {
+            userBoard[r][c].val = 0;
+            userBoard[r][c].notes.clear();
+            highlightNum = null;
+          } else if (isMemoMode) {
+            userBoard[r][c].val = 0;
+            if (userBoard[r][c].notes.has(num)) userBoard[r][c].notes.delete(num);
+            else userBoard[r][c].notes.add(num);
+          } else {
+            userBoard[r][c].val = num;
+            userBoard[r][c].notes.clear();
+            highlightNum = num;
+          }
+          checkClearCondition();
+        }
+      } else {
+        if (selectedNumber === num) {
+          selectedNumber = null;
+          highlightNum = null;
+        } else {
+          selectedNumber = num;
+          highlightNum = (num !== 0) ? num : null;
+        }
+      }
+      renderBoard();
+      renderKeypad();
+      updateStatusDisplay();
+    }
+
+    function toggleMemo() {
+      isMemoMode = !isMemoMode;
+      renderKeypad();
+    }
+
+    // 바깥 클릭 시 선택 해제
+    document.addEventListener('click', (e) => {
+      selectedCell = null;
+      selectedNumber = null;
+      highlightNum = null;
+      renderBoard();
+      renderKeypad();
+    });
+
+    // ========================================================
+    // 🎉 클리어 검사 & 경험치 보상 연동
+    // ========================================================
+    function checkClearCondition() {
+      let isComplete = true;
+      let isCorrect = true;
+
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          if (initialBoard[r][c] === 0) {
+            const uVal = userBoard[r][c].val;
+            if (uVal === 0) {
+              isComplete = false;
+            } else if (uVal !== solutionBoard[r][c]) {
+              isCorrect = false;
+            }
+          }
+        }
+      }
+
+      if (isComplete && isCorrect) {
+        handleSudokuClear();
+      }
+    }
+
+    function handleSudokuClear() {
+      const cfg = STAGE_CONFIG[currentStageKey] || STAGE_CONFIG["normal"];
+      const rewardXp = cfg.baseReward;
+      const updatedRec = updateStreakOnClear(currentStageKey);
+
+      document.getElementById('clearTitleText').innerText = `🎉 ${cfg.name} 난이도 ${updatedRec.currentStreak}연승 Clear!`;
+      document.getElementById('clearDescText').innerHTML = `
+        스도쿠 퍼즐을 오차 없이 완벽하게 완성했습니다!<br>
+        포켓몬에게 보상 경험치가 지급됩니다.
+      `;
+      document.getElementById('clearXpBadge').innerText = `총 +${rewardXp} XP 획득! 🎁`;
+      document.getElementById('clearModal').classList.add('show');
+
+      // 세션 누적 경험치 가산 & 로컬 저장
+      sessionTotalEarnedXp += rewardXp;
+      try {
+        localStorage.setItem('SUDOKU_PENDING_XP', sessionTotalEarnedXp);
+      } catch(e) {}
+    }
+
+    // ========================================================
+    // 🚪 포켓Tasks로 복귀 (모아둔 경험치 한 번에 전달!)
+    // ========================================================
+    function closeGameAndReturn() {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: 'GAME_FINISHED_RETURN',
+          gameType: 'sudoku',
+          gameName: 'Sudoku',
+          totalXp: sessionTotalEarnedXp
+        }, '*');
+      } else {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = './index.html?rewardXp=' + sessionTotalEarnedXp;
+        }
+      }
+    }
+
+    window.onload = generateStage;
+    window.onresize = syncBoardWidths;
+  </script>
+</body>
+</html>

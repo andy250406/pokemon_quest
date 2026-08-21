@@ -1347,8 +1347,8 @@
               <div class="mini-game-icon">🔢</div>
               <div class="mini-game-title">2048</div>
             </div>
-            <div class="mini-game-card" onclick="alert('🧩 Sudoku 준비 완료!')">
-              <div class="mini-game-icon">🧩</div>
+            <div class="mini-game-card highlight" onclick="openArcadeGame('sudoku')">
+              <div class="mini-game-icon">🔢</div>
               <div class="mini-game-title">Sudoku</div>
             </div>
             <div class="mini-game-card" onclick="alert('💣 Minesweeper 준비 완료!')">
@@ -6351,12 +6351,16 @@
       const modal = document.getElementById('arcadeGameModal');
       const iframe = document.getElementById('arcadeGameIframe');
       if (!modal || !iframe) {
-        window.location.href = './snake_untangle.html';
+        if (gameType === 'sudoku') window.location.href = './sudoku.html';
+        else window.location.href = './snake_untangle.html';
         return;
       }
 
       if (gameType === 'snake_untangle') {
         iframe.src = './snake_untangle.html?v=' + Date.now();
+        modal.style.display = 'flex';
+      } else if (gameType === 'sudoku') {
+        iframe.src = './sudoku.html?v=' + Date.now();
         modal.style.display = 'flex';
       }
     }
@@ -6441,18 +6445,26 @@
         if (urlXp > 0) {
           window.history.replaceState({}, document.title, window.location.pathname);
           setTimeout(() => {
-            applyGameSessionReward(urlXp, "Snake Point");
+            applyGameSessionReward(urlXp, "미니게임");
           }, 400);
           return;
         }
 
-        // 2) 로컬 스토리지 펜딩 XP 체크
-        const pendingXp = parseInt(localStorage.getItem('SNAKE_PENDING_XP')) || 0;
-        if (pendingXp > 0) {
+        // 2) 로컬 스토리지 펜딩 XP 체크 (Snake Point & Sudoku)
+        const snakeXp = parseInt(localStorage.getItem('SNAKE_PENDING_XP')) || 0;
+        if (snakeXp > 0) {
           localStorage.removeItem('SNAKE_PENDING_XP');
           setTimeout(() => {
-            applyGameSessionReward(pendingXp, "Snake Point");
+            applyGameSessionReward(snakeXp, "Snake Point");
           }, 400);
+        }
+
+        const sudokuXp = parseInt(localStorage.getItem('SUDOKU_PENDING_XP')) || 0;
+        if (sudokuXp > 0) {
+          localStorage.removeItem('SUDOKU_PENDING_XP');
+          setTimeout(() => {
+            applyGameSessionReward(sudokuXp, "Sudoku");
+          }, 500);
         }
       } catch(e) {}
     }
