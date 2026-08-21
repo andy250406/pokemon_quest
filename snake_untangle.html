@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>스네이크 언탱글 (Snake Untangle) - 포켓Tasks</title>
+  <title>Snake Point - 포켓Tasks</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
     * {
@@ -92,6 +92,7 @@
       cursor: pointer;
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 4px;
       transition: all 0.15s ease;
     }
@@ -99,21 +100,29 @@
       transform: scale(0.95);
       background: rgba(255,255,255,0.15);
     }
+    .btn-nav.icon-only {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border-radius: 50%;
+      font-size: 16px;
+    }
     .btn-nav.btn-record {
       background: linear-gradient(135deg, #eab308, #ca8a04);
       color: #0f172a;
       font-weight: 800;
       border: none;
+      box-shadow: 0 2px 8px rgba(234, 179, 8, 0.35);
     }
 
     .header-title {
       font-size: 17px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
+      font-weight: 900;
+      letter-spacing: -0.3px;
       color: #ffffff;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
     }
 
     /* 📊 실시간 진행 상황 바 */
@@ -334,14 +343,17 @@
 
   <!-- 🏷️ 상단 네비게이션 -->
   <div class="top-nav">
-    <button class="btn-nav" onclick="closeGameAndReturn()">
-      ← 포켓Tasks
+    <button class="btn-nav icon-only" onclick="closeGameAndReturn()" title="포켓Tasks로 복귀" style="font-size:18px; font-weight:900;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
     </button>
     <div class="header-title">
-      🧩 스네이크 언탱글
+      🧩 Snake Point
     </div>
-    <button class="btn-nav btn-record" onclick="openRecordsModal()">
-      🏆 기록
+    <button class="btn-nav btn-record icon-only" onclick="openRecordsModal()" title="난이도별 연승 기록">
+      🏆
     </button>
   </div>
 

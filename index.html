@@ -1130,18 +1130,20 @@
     }
 
     
-    /* 🎮 3열 컴팩트 미니게임 그리드 */
+    /* 🎮 정사각형 고정 미니게임 그리드 */
     .arcade-grid-3col {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-top: 6px;
+      gap: 10px;
+      margin-top: 8px;
     }
     .mini-game-card {
+      aspect-ratio: 1 / 1;
+      width: 100%;
       background: #1e293b;
       border: 1px solid #334155;
-      border-radius: 10px;
-      padding: 12px 6px;
+      border-radius: 14px;
+      padding: 8px 4px;
       text-align: center;
       cursor: pointer;
       transition: all 0.15s ease;
@@ -1149,23 +1151,24 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 8px;
+      box-sizing: border-box;
     }
     .mini-game-card:hover {
       border-color: #64748b;
       transform: translateY(-2px);
     }
     .mini-game-card.highlight {
-      border: 1px solid rgba(56,189,248,0.5);
-      background: linear-gradient(135deg, rgba(56,189,248,0.15), rgba(30,58,138,0.25));
-      box-shadow: 0 2px 10px rgba(56,189,248,0.2);
+      border: 1.5px solid rgba(56,189,248,0.6);
+      background: linear-gradient(135deg, rgba(56,189,248,0.18), rgba(30,58,138,0.3));
+      box-shadow: 0 4px 15px rgba(56,189,248,0.25);
     }
     .mini-game-icon {
-      font-size: 24px;
+      font-size: 28px;
       line-height: 1;
     }
     .mini-game-title {
-      font-size: 11px;
+      font-size: 11.5px;
       font-weight: 800;
       color: #f1f5f9;
       white-space: nowrap;
@@ -4705,10 +4708,10 @@
 
       const title = document.getElementById('paneTitleText');
       if (tab === 'QUEST') { title.innerText = "📋 퀘스트 목록"; document.getElementById('paneQuestView').style.display = 'block'; }
-      else if (tab === 'STREAK') { title.innerText = "퀘스트 기록"; document.getElementById('paneStreakView').style.display = 'block'; renderStreakList(appState.quests); }
-      else if (tab === 'ARCADE') { title.innerText = "미니게임"; document.getElementById('paneArcadeView').style.display = 'block'; }
+      else if (tab === 'STREAK') { title.innerText = "📊 퀘스트 기록"; document.getElementById('paneStreakView').style.display = 'block'; renderStreakList(appState.quests); }
+      else if (tab === 'ARCADE') { title.innerText = "🎮 미니게임"; document.getElementById('paneArcadeView').style.display = 'block'; }
       else if (tab === 'DEX') {
-        title.innerText = "📖 포켓몬 도감 (1세대 151)";
+        title.innerText = "📖 포켓몬 도감";
         document.getElementById('panePokedexView').style.display = 'block';
         renderPokedexGrid();
       }
@@ -4962,7 +4965,7 @@
       // 우측 완료 버튼 상태 구성
       let btnHtml = '';
       if (timing.isDoneToday) {
-        btnHtml = `<button class="btn-quest-done disabled" style="opacity:0.6; cursor:not-allowed;" title="다음 예정일까지 완료됨">완료됨 ✓</button>`;
+        btnHtml = `<button class="btn-quest-done disabled" style="opacity:0.6; cursor:not-allowed; min-width:38px; padding:6px 10px;" title="다음 예정일까지 완료됨">✓</button>`;
       } else if (timing.isActionableNow) {
         btnHtml = `<button class="btn-quest-done" onclick="completeQuestDirect('${q.id}')">+${q.rewardXp} XP</button>`;
       } else if (timing.isWaitingForTime) {
