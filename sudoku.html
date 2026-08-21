@@ -555,13 +555,13 @@
         <button id="btn-key-9" class="key-btn" onclick="handleKeyInput(event, 9)">9</button>
         <button id="btn-key-0" class="key-btn btn-delete" onclick="handleKeyInput(event, 0)" title="지우기">❌</button>
       </div>
-      <!-- 3행: 3열 기능 버튼 (임시저장 💾, 되돌리기 ↩️, 메모 ✏️) -->
+      <!-- 3행: 3열 기능 버튼 (저장 💾, 되돌리기 ↩️, 메모 ✏️) -->
       <div class="keypad-row">
-        <button id="btn-save" class="key-btn btn-func" onclick="saveSnapshot(event)" title="현재 상태 임시저장">
+        <button id="btn-save" class="key-btn btn-func" onclick="saveProgress(event)" title="현재 진행 상태 영구 저장">
           <span>💾</span>
-          <span>임시저장</span>
+          <span>저장</span>
         </button>
-        <button id="btn-restore" class="key-btn btn-func" onclick="restoreSnapshot(event)" title="임시저장한 상태로 되돌리기">
+        <button id="btn-restore" class="key-btn btn-func" onclick="restoreProgress(event)" title="저장된 상태로 되돌리기">
           <span>↩️</span>
           <span>되돌리기</span>
         </button>
@@ -805,32 +805,96 @@
     }
 
     // ========================================================
-    // 🌟 [요청 1]: 💾 임시저장 & ↩️ 되돌리기 기능
+    // 💾 영구 저장 (localStorage) & ↩️ 난이도 일치 되돌리기 기능
     // ========================================================
-    function saveSnapshot(e) {
-      if (e) e.stopPropagation();
-      savedSnapshot = userBoard.map(row => 
-        row.map(cell => ({ val: cell.val, notes: new Set(cell.notes) }))
-      );
-      showToast("💾 현재 상태가 임시저장되었습니다!");
+    function loadSavedSlot() {
+      try {
+        const data = localStorage.getItem('sudoku_saved_slot_v2');
+        return data ? JSON.parse(data) : null;
+      } catch(e) {
+        return null;
+      }
     }
 
-    function restoreSnapshot(e) {
+    function updateRestoreButtonState() {
+      const restoreBtn = document.getElementById('btn-restore');
+      if (!restoreBtn) return;
+
+      const slot = loadSavedSlot();
+      // 저장된 기록이 있고, 저장된 난이도와 현재 난이도가 일치할 때만 활성화
+      if (slot && slot.stageKey === currentStageKey) {
+        restoreBtn.classList.remove('disabled');
+        restoreBtn.removeAttribute('disabled');
+        restoreBtn.title = `[${STAGE_CONFIG[slot.stageKey]?.name || slot.stageKey}] 저장 시점으로 되돌리기`;
+      } else {
+        restoreBtn.classList.add('disabled');
+        restoreBtn.setAttribute('disabled', 'true');
+        if (!slot) {
+          restoreBtn.title = "저장된 기록이 없습니다";
+        } else {
+          const slotName = STAGE_CONFIG[slot.stageKey]?.name || slot.stageKey;
+          restoreBtn.title = `[${slotName}] 난이도에 저장된 기록이 있습니다`;
+        }
+      }
+    }
+
+    function saveProgress(e) {
       if (e) e.stopPropagation();
-      if (!savedSnapshot) {
-        showToast("⚠️ 저장된 임시저장 상태가 없습니다!");
+
+      const existing = loadSavedSlot();
+      if (existing) {
+        const diffName = STAGE_CONFIG[existing.stageKey]?.name || existing.stageKey;
+        const isOverwrite = confirm(`⚠️ 이전에 저장된 [${diffName}] 진행 기록이 있습니다.\n현재 상태로 덮어씌우시겠습니까?`);
+        if (!isOverwrite) return;
+      }
+
+      const slot = {
+        stageKey: currentStageKey,
+        initialBoard: initialBoard.map(r => [...r]),
+        solutionBoard: solutionBoard.map(r => [...r]),
+        userBoard: userBoard.map(r => r.map(c => ({ val: c.val, notes: Array.from(c.notes) }))),
+        isXModeActive: isXModeActive,
+        timestamp: Date.now()
+      };
+
+      try {
+        localStorage.setItem('sudoku_saved_slot_v2', JSON.stringify(slot));
+        showToast("💾 현재 진행 상태가 저장되었습니다!");
+        updateRestoreButtonState();
+      } catch(err) {
+        alert("저장에 실패했습니다.");
+      }
+    }
+
+    function restoreProgress(e) {
+      if (e) e.stopPropagation();
+      const slot = loadSavedSlot();
+      if (!slot) {
+        showToast("⚠️ 저장된 진행 기록이 없습니다!");
         return;
       }
-      userBoard = savedSnapshot.map(row => 
-        row.map(cell => ({ val: cell.val, notes: new Set(cell.notes) }))
-      );
+
+      if (slot.stageKey !== currentStageKey) {
+        const slotName = STAGE_CONFIG[slot.stageKey]?.name || slot.stageKey;
+        showToast(`⚠️ [${slotName}] 난이도에 저장된 기록입니다!`);
+        return;
+      }
+
+      // 100% 온전하게 복원
+      initialBoard = slot.initialBoard.map(r => [...r]);
+      solutionBoard = slot.solutionBoard.map(r => [...r]);
+      userBoard = slot.userBoard.map(r => r.map(c => ({ val: c.val, notes: new Set(c.notes) })));
+      isXModeActive = slot.isXModeActive;
+
       selectedCell = null;
       selectedNumber = null;
       highlightNum = null;
+
+      syncBoardWidths();
       renderBoard();
       renderKeypad();
       updateStatusDisplay();
-      showToast("↩️ 임시저장된 상태로 되돌렸습니다!");
+      showToast("↩️ 저장했던 진행 상태를 불러왔습니다!");
     }
 
     // ========================================================
@@ -973,6 +1037,9 @@
         if (isMemoMode) memoBtn.classList.add('active');
         else memoBtn.classList.remove('active');
       }
+
+      // 🌟 되돌리기 버튼 활성화 상태 최신화 (저장된 난이도와 일치할 때만 활성화)
+      updateRestoreButtonState();
     }
 
     function updateStatusDisplay() {
