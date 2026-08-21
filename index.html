@@ -5580,6 +5580,145 @@
       }, 550);
     }
 
+    // ========================================================
+    // 🌟 경험치 획득 & 연속 레벨업 & 자동 진화 종합 엔진
+    // ========================================================
+    function processXpGainAndEvolve(earnedXp) {
+      if (!earnedXp || isNaN(earnedXp) || earnedXp <= 0) return;
+
+      const stats = appState.userStats;
+      const growth = appState.pokemon?.growth || "MEDIUM_SLOW";
+      
+      stats.currentXp = (stats.currentXp || 0) + Number(earnedXp);
+      stats.requiredXp = calculateRequiredXpForLevel(stats.level, growth);
+
+      let leveledUp = false;
+      while (stats.currentXp >= stats.requiredXp && stats.level < 100) {
+        stats.currentXp -= stats.requiredXp;
+        stats.level += 1;
+        stats.requiredXp = calculateRequiredXpForLevel(stats.level, growth);
+        leveledUp = true;
+      }
+
+      // 1) 레벨업 시 미니 별 연출 및 진화 검사
+      if (leveledUp) {
+        triggerMiniLevelUpEffect(stats.level);
+        checkAutoEvolution(appState.pokemon?.id, stats.level);
+      }
+
+      // 2) 경험치바 & 레벨 뱃지 UI 갱신
+      updateXpBarUI();
+
+      // 3) 로컬 캐시 동기화
+      saveLocalFullCache();
+
+      // 4) 백엔드에 비동기 경험치 저장
+      try {
+        fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "feedBerries",
+            amount: earnedXp
+          })
+        }).catch(() => {});
+      } catch(e) {}
+    }
+
+    function updateXpBarUI() {
+      const stats = appState.userStats;
+      const growth = appState.pokemon?.growth || "MEDIUM_SLOW";
+      stats.requiredXp = calculateRequiredXpForLevel(stats.level, growth);
+
+      const xpPercent = Math.min(100, Math.floor((stats.currentXp / stats.requiredXp) * 100));
+      const xpValuesEl = document.getElementById('xpValues');
+      const xpBarFillEl = document.getElementById('xpBarFill');
+      const lvBadgeEl = document.getElementById('lvBadge');
+
+      if (xpValuesEl) xpValuesEl.innerText = `${stats.currentXp} / ${stats.requiredXp}`;
+      if (xpBarFillEl) xpBarFillEl.style.width = xpPercent + '%';
+      if (lvBadgeEl) lvBadgeEl.innerText = 'Lv.' + stats.level;
+    }
+
+    function checkAutoEvolution(pokemonId, currentLevel) {
+      if (appState.isEgg || !pokemonId || pokemonId <= 0) return;
+      const pInfo = getPokemonData(pokemonId);
+      if (!pInfo || !pInfo.evolvesTo) return;
+
+      const reqLevel = pInfo.evolveLevel || 16;
+      if (currentLevel >= reqLevel) {
+        const nextMon = getPokemonData(pInfo.evolvesTo);
+        if (!nextMon) return;
+
+        const prevId = appState.pokemon.id;
+        const prevName = appState.pokemon.name;
+        const finalLv = appState.userStats.level;
+        const finalXp = appState.userStats.currentXp;
+        const gender = appState.pokemon.gender || "♂";
+        const nature = appState.pokemon.nature || "고집";
+
+        recordCurrentPokemonToHistory("EVOLVED");
+
+        try {
+          fetch(GAS_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "recordEvolution",
+              prevPokemonId: prevId,
+              prevName: prevName,
+              finalLevel: finalLv,
+              finalXp: finalXp,
+              gender: gender,
+              nature: nature,
+              nextPokemonId: nextMon.id,
+              nextName: nextMon.name
+            })
+          }).catch(() => {});
+        } catch(e) {}
+
+        appState.pokemon.id = nextMon.id;
+        appState.pokemon.name = nextMon.name;
+        appState.pokemon.type = nextMon.type;
+        appState.pokemon.growth = nextMon.growth;
+        appState.pokemon.idleGif = `./images/pokemon/showdown/${nextMon.id}.gif`;
+        appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, nextMon.growth);
+
+        recordCurrentPokemonToHistory("ACTIVE");
+        saveLocalFullCache();
+        initUI(appState);
+
+        triggerEvolutionOverlay(pInfo.name, nextMon.name, nextMon.id, reqLevel, "EVOLVE");
+      }
+    }
+
+    function triggerEvolutionOverlay(fromName, toName, toId, level, type = "EVOLVE") {
+      const overlay = document.getElementById('evolveOverlay');
+      const titleEl = document.getElementById('evolveTitleText');
+      const spriteEl = document.getElementById('evolveSpriteImg');
+      const descEl = document.getElementById('evolveDescText');
+      if (!overlay) return;
+
+      if (type === "HATCH") {
+        if (titleEl) titleEl.innerText = "🐣 알 부화 탄생! 🐣";
+        if (descEl) descEl.innerHTML = `[${fromName}] 알에서 <b>${toName}</b>(이)가 태어났습니다!`;
+      } else {
+        if (titleEl) titleEl.innerText = "✨ 축하합니다! 포켓몬 진화! ✨";
+        if (descEl) descEl.innerHTML = `<b>${fromName}</b>(이)가 Lv.${level}에 도달하여 <b>${toName}</b>(으)로 진화했습니다!`;
+      }
+
+      if (spriteEl) {
+        spriteEl.src = `./images/pokemon/showdown/${toId}.gif`;
+      }
+
+      overlay.classList.add('active');
+    }
+
+    function closeEvolveOverlay() {
+      const overlay = document.getElementById('evolveOverlay');
+      if (overlay) overlay.classList.remove('active');
+    }
+
     function highlightXpBar() {
       const xpFill = document.getElementById('xpBarFill');
       if (xpFill) {
