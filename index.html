@@ -4083,7 +4083,7 @@
       }
 
       window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
+      window.OneSignalDeferred.push(async function(OneSignal) {
         try {
           const subId = OneSignal.User?.PushSubscription?.id;
           const token = OneSignal.User?.PushSubscription?.token;
@@ -4097,11 +4097,57 @@
       });
     }
 
+    // ========================================================
+    // ⚡ 0.01초 즉각 로딩을 위한 로컬 캐시(SWR) 엔진
+    // ========================================================
+    const LOCAL_CACHE_KEY = 'POKEMON_QUEST_FULL_CACHE_V2';
+
+    function saveLocalFullCache() {
+      try {
+        const cachePayload = {
+          userStats: appState.userStats,
+          pokemon: appState.pokemon,
+          isEgg: appState.isEgg,
+          eggTier: appState.eggTier,
+          quests: appState.quests,
+          pokemonHistory: appState.pokemonHistory,
+          cachedAt: Date.now()
+        };
+        localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(cachePayload));
+      } catch(e) {}
+    }
+
+    function restoreLocalFullCache() {
+      try {
+        const raw = localStorage.getItem(LOCAL_CACHE_KEY);
+        if (!raw) return false;
+        const cached = JSON.parse(raw);
+        if (cached && cached.pokemon) {
+          if (cached.userStats) appState.userStats = cached.userStats;
+          if (cached.pokemon) appState.pokemon = cached.pokemon;
+          appState.isEgg = Boolean(cached.isEgg);
+          appState.eggTier = cached.eggTier || 2;
+          if (Array.isArray(cached.quests)) appState.quests = cached.quests;
+          if (Array.isArray(cached.pokemonHistory)) appState.pokemonHistory = cached.pokemonHistory;
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    function saveLocalPokemonCache() {
+      saveLocalFullCache();
+    }
+
+    function restoreLocalPokemonCache() {
+      return restoreLocalFullCache();
+    }
+
     window.onload = function() {
       logDebug("🌱 포켓Tasks 웹 앱 로드 시작", "info");
       
       // 🚀 1단계 (0.01초): 로컬 캐시로 즉시 렌더링 (체감 로딩 0초!)
-      const hasCache = restoreLocalFullCache();
+      restoreLocalFullCache();
 
       const growth = appState.pokemon?.growth || "MEDIUM_SLOW";
       appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, growth);
@@ -4110,9 +4156,10 @@
       const dateInput = document.getElementById('inputQuestDateTab1');
       if (dateInput) dateInput.value = todayIso;
 
+      // 🌟 배경, 캐릭터, 퀘스트 목록 즉시 렌더링!
       initUI(appState);
 
-      // 🚀 2단계 (백그라운드 비동기): 스프레드시트에서 0.2초 초고속 최신화 (SWR)
+      // 🚀 2단계 (백그라운드 비동기): 스프레드시트에서 최신 데이터 조용히 갱신
       fetchLatestDataFromSheet();
 
       initOneSignal();
@@ -4123,7 +4170,7 @@
       try {
         const res = await fetch(GAS_API_URL + "?action=getInitialData");
         const json = await res.json();
-        if (json.success && json.data) {
+        if (json && json.success && json.data) {
           applyBackendDataToAppState(json.data);
           saveLocalFullCache();
           initUI(appState);
@@ -4135,6 +4182,7 @@
     }
 
     function applyBackendDataToAppState(data) {
+      if (!data) return;
       if (data.quests && Array.isArray(data.quests)) {
         appState.quests = data.quests;
       }
@@ -4170,16 +4218,15 @@
       try {
         const res = await fetch(GAS_API_URL + "?action=forceSyncGoogleTasks");
         const json = await res.json();
-        if (json.success && json.data) {
+        if (json && json.success && json.data) {
           applyBackendDataToAppState(json.data);
           saveLocalFullCache();
           initUI(appState);
           logDebug(`Google Tasks 정밀 동기화 성공 (퀘스트 ${appState.quests.length}개)`, "success");
-          if (btn) btn.innerText = "동기화";
-        } else {
-          if (btn) btn.innerText = "동기화";
         }
       } catch (e) {
+        logDebug("동기화 연결 확인 필요", "warn");
+      } finally {
         if (btn) btn.innerText = "동기화";
       }
     }
@@ -4271,55 +4318,6 @@
       renderQuestList(data.quests);
       renderStreakList(data.quests);
       renderPokedexGrid();
-    }
-
-    async function syncWithGasBackend() {
-      const btn = document.getElementById('btnRefreshQuests');
-      if (btn) btn.innerText = "동기화 중...";
-      logDebug("Google Tasks 백엔드 동기화 요청 전송...", "info");
-      try {
-        const res = await fetch(GAS_API_URL + "?action=getInitialData");
-        const json = await res.json();
-        if (json.success && json.data) {
-          appState.quests = json.data.quests || [];
-          
-          if (json.data.pokemonHistory && json.data.pokemonHistory.length > 0) {
-            appState.pokemonHistory = json.data.pokemonHistory;
-          }
-
-          if (json.data.pokemon) {
-            const pInfo = getPokemonData(json.data.pokemon.id);
-            const gender = json.data.pokemon.gender || (pInfo?.genderType === 'GENDERLESS' ? ' ' : '♂');
-            appState.pokemon = {
-              id: json.data.pokemon.id,
-              name: json.data.pokemon.name,
-              gender: gender,
-              nature: json.data.pokemon.nature || "고집",
-              natureBuff: json.data.pokemon.natureBuff || "+공격",
-              type: pInfo ? pInfo.type : json.data.pokemon.type,
-              growth: pInfo ? pInfo.growth : "MEDIUM_SLOW",
-              idleGif: `./images/pokemon/showdown/${json.data.pokemon.id}.gif`
-            };
-            appState.isEgg = Boolean(json.data.isEgg);
-          }
-          if (json.data.userStats) {
-            appState.userStats.level = json.data.userStats.level;
-            appState.userStats.currentXp = json.data.userStats.currentXp;
-            appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, appState.pokemon.growth);
-          }
-          
-          recordCurrentPokemonToHistory("ACTIVE");
-          saveLocalPokemonCache();
-
-          initUI(appState);
-          logDebug(`Google Tasks 동기화 성공 (퀘스트 ${appState.quests.length}개)`, "success");
-          if (btn) btn.innerText = "동기화";
-        } else {
-          if (btn) btn.innerText = "동기화";
-        }
-      } catch (e) {
-        if (btn) btn.innerText = "동기화";
-      }
     }
 
     function onRecurrenceChange() {
@@ -5865,7 +5863,7 @@
       checkBrowserNotificationState();
 
       window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
+      window.OneSignalDeferred.push(async function(OneSignal) {
         try {
           if (OneSignal.Debug && OneSignal.Debug.setLogLevel) {
             OneSignal.Debug.setLogLevel('warn');
@@ -5927,7 +5925,7 @@
 
     async function updateOneSignalStatus() {
       window.OneSignalDeferred = window.OneSignalDeferred || [];
-      OneSignalDeferred.push(async function(OneSignal) {
+      window.OneSignalDeferred.push(async function(OneSignal) {
         const badge = document.getElementById('pushStatusBadge');
         const desc = document.getElementById('pushStatusDesc');
         if (!badge) return;
@@ -6005,7 +6003,7 @@
         executeOptIn(window.OneSignal);
       } else {
         window.OneSignalDeferred = window.OneSignalDeferred || [];
-        window.OneSignalDeferred.push(executeOptIn);
+        window.window.OneSignalDeferred.push(executeOptIn);
       }
     }
 
