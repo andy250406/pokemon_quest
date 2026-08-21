@@ -40,7 +40,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 12px 10px;
+      padding: 10px 10px;
       border-radius: 28px;
       box-shadow: 0 25px 65px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
       transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -67,7 +67,7 @@
         height: 100dvh !important;
         border-radius: 0 !important;
         box-shadow: none !important;
-        padding: 8px 6px;
+        padding: 6px 6px;
       }
     }
 
@@ -77,7 +77,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
       padding: 0 2px;
       box-sizing: border-box;
     }
@@ -131,16 +131,16 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 6px;
+      margin-bottom: 5px;
       background: #141b2d;
-      padding: 7px 14px;
+      padding: 6px 14px;
       border-radius: 10px;
       border: 1px solid rgba(255,255,255,0.08);
       box-shadow: 0 4px 14px rgba(0,0,0,0.35);
       box-sizing: border-box;
     }
     .stat-item {
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 700;
       color: #94a3b8;
       display: flex;
@@ -155,7 +155,7 @@
     /* 🕹️ 컨트롤러 (난이도 선택 및 새로고침 버튼) */
     .controls {
       width: 100%;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       display: flex;
       gap: 6px;
       align-items: center;
@@ -214,7 +214,7 @@
       grid-template-rows: repeat(9, 1fr);
       overflow: hidden;
       box-sizing: border-box;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .sudoku-cell {
@@ -284,46 +284,51 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(7px, 2vw, 9px);
+      font-size: clamp(7px, 2vw, 9.5px);
       font-weight: 700;
-      color: #cbd5e1;
+      color: #94a3b8;
       line-height: 1;
+      transition: all 0.1s ease;
+    }
+    /* 🌟 [요청 2]: 조그만 메모 후보 숫자 노란색 하이라이트 */
+    .note-num.note-highlight {
+      color: #facc15 !important;
+      font-weight: 900 !important;
+      transform: scale(1.3);
+      text-shadow: 0 0 4px rgba(250, 204, 21, 0.8);
     }
 
-    /* ⌨️ 하단 스마트 키패드 (2행 5열 + 우측 세로 2단 메모 버튼) */
+    /* ⌨️ 하단 스마트 키패드 (3행 구조: 1~5 / 6~X / 3열 기능 버튼) */
     #keypad-container {
       width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
       box-sizing: border-box;
     }
-    .keypad-layout {
+    .keypad-row {
       display: flex;
-      gap: 6px;
+      gap: 5px;
       width: 100%;
     }
-    .keypad-numbers-grid {
-      flex: 1;
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      grid-template-rows: 1fr 1fr;
-      gap: 6px;
-    }
     .key-btn {
-      height: clamp(38px, 5.8dvh, 44px);
+      flex: 1;
+      height: clamp(35px, 5.2dvh, 42px);
       background: #1e293b;
       border: 1px solid #334155;
-      border-radius: 10px;
+      border-radius: 9px;
       color: #f1f5f9;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 800;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
       transition: all 0.12s ease;
     }
     .key-btn:active {
-      transform: scale(0.92);
+      transform: scale(0.93);
       background: #334155;
     }
     .key-btn.key-selected {
@@ -338,33 +343,30 @@
       border-color: #881337;
       color: #f43f5e;
     }
-    
-    .btn-memo-tall {
-      width: 66px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      font-size: 18px;
-      font-weight: 800;
-      color: #f1f5f9;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      transition: all 0.12s ease;
-      flex-shrink: 0;
+    /* 🌟 [요청 4]: 숫자 9개 완성 시 비활성화 스타일 */
+    .key-btn.disabled {
+      opacity: 0.25 !important;
+      cursor: not-allowed !important;
+      pointer-events: none !important;
+      background: #131924 !important;
+      border-color: #202736 !important;
+      color: #64748b !important;
+      box-shadow: none !important;
     }
-    .btn-memo-tall:active {
-      transform: scale(0.94);
-      background: #334155;
+
+    /* 3행 기능 버튼 스타일 (임시저장, 되돌리기, 메모) */
+    .key-btn.btn-func {
+      font-size: 12px;
+      gap: 5px;
+      background: #172338;
+      border-color: #2e3e5c;
     }
-    .btn-memo-tall.active {
+    .key-btn.btn-memo.active {
       background: linear-gradient(135deg, #f59e0b, #d97706) !important;
       color: #0f172a !important;
       border-color: #fde047 !important;
-      box-shadow: 0 0 12px rgba(245,158,11,0.6) !important;
+      box-shadow: 0 0 10px rgba(245,158,11,0.5) !important;
+      font-weight: 900;
     }
 
     /* ✨ 클리어 모달 */
@@ -457,6 +459,31 @@
     .record-diff { font-weight: 700; color: #e2e8f0; }
     .record-stat { font-weight: 800; color: #38bdf8; }
     .record-max { font-size: 10.5px; color: #94a3b8; font-weight: 600; }
+
+    /* 🍞 심플 인게임 토스트 알림 */
+    #sudokuToast {
+      position: absolute;
+      bottom: 130px;
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid #38bdf8;
+      color: #f1f5f9;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      z-index: 60;
+      white-space: nowrap;
+    }
+    #sudokuToast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
   </style>
 </head>
 <body>
@@ -507,27 +534,40 @@
     <!-- 🎨 스도쿠 9x9 그리드 보드 -->
     <div id="sudoku-board-container"></div>
 
-    <!-- ⌨️ 하단 스마트 키패드 (1 2 3 4 5 / 6 7 8 9 X / 우측 2단 메모) -->
+    <!-- 🍞 인게임 토스트 -->
+    <div id="sudokuToast"></div>
+
+    <!-- ⌨️ 하단 스마트 키패드 (1 2 3 4 5 / 6 7 8 9 X / 임시저장, 되돌리기, 메모) -->
     <div id="keypad-container">
-      <div class="keypad-layout">
-        <div class="keypad-numbers-grid">
-          <!-- 1행: 1 2 3 4 5 -->
-          <button id="btn-key-1" class="key-btn" onclick="handleKeyInput(event, 1)">1</button>
-          <button id="btn-key-2" class="key-btn" onclick="handleKeyInput(event, 2)">2</button>
-          <button id="btn-key-3" class="key-btn" onclick="handleKeyInput(event, 3)">3</button>
-          <button id="btn-key-4" class="key-btn" onclick="handleKeyInput(event, 4)">4</button>
-          <button id="btn-key-5" class="key-btn" onclick="handleKeyInput(event, 5)">5</button>
-          <!-- 2행: 6 7 8 9 X -->
-          <button id="btn-key-6" class="key-btn" onclick="handleKeyInput(event, 6)">6</button>
-          <button id="btn-key-7" class="key-btn" onclick="handleKeyInput(event, 7)">7</button>
-          <button id="btn-key-8" class="key-btn" onclick="handleKeyInput(event, 8)">8</button>
-          <button id="btn-key-9" class="key-btn" onclick="handleKeyInput(event, 9)">9</button>
-          <button id="btn-key-0" class="key-btn btn-delete" onclick="handleKeyInput(event, 0)">❌</button>
-        </div>
-        <!-- 우측 위아래 2단 세로 메모 버튼 -->
-        <button id="btn-memo" class="key-btn btn-memo-tall" onclick="toggleMemo(event)">
+      <!-- 1행: 1 2 3 4 5 -->
+      <div class="keypad-row">
+        <button id="btn-key-1" class="key-btn" onclick="handleKeyInput(event, 1)">1</button>
+        <button id="btn-key-2" class="key-btn" onclick="handleKeyInput(event, 2)">2</button>
+        <button id="btn-key-3" class="key-btn" onclick="handleKeyInput(event, 3)">3</button>
+        <button id="btn-key-4" class="key-btn" onclick="handleKeyInput(event, 4)">4</button>
+        <button id="btn-key-5" class="key-btn" onclick="handleKeyInput(event, 5)">5</button>
+      </div>
+      <!-- 2행: 6 7 8 9 X -->
+      <div class="keypad-row">
+        <button id="btn-key-6" class="key-btn" onclick="handleKeyInput(event, 6)">6</button>
+        <button id="btn-key-7" class="key-btn" onclick="handleKeyInput(event, 7)">7</button>
+        <button id="btn-key-8" class="key-btn" onclick="handleKeyInput(event, 8)">8</button>
+        <button id="btn-key-9" class="key-btn" onclick="handleKeyInput(event, 9)">9</button>
+        <button id="btn-key-0" class="key-btn btn-delete" onclick="handleKeyInput(event, 0)" title="지우기">❌</button>
+      </div>
+      <!-- 3행: 3열 기능 버튼 (임시저장 💾, 되돌리기 ↩️, 메모 ✏️) -->
+      <div class="keypad-row">
+        <button id="btn-save" class="key-btn btn-func" onclick="saveSnapshot(event)" title="현재 상태 임시저장">
+          <span>💾</span>
+          <span>임시저장</span>
+        </button>
+        <button id="btn-restore" class="key-btn btn-func" onclick="restoreSnapshot(event)" title="임시저장한 상태로 되돌리기">
+          <span>↩️</span>
+          <span>되돌리기</span>
+        </button>
+        <button id="btn-memo" class="key-btn btn-func btn-memo" onclick="toggleMemo(event)" title="후보 숫자 메모 토글">
           <span>✏️</span>
-          <span style="font-size:11px; margin-top:2px;">메모</span>
+          <span>메모</span>
         </button>
       </div>
     </div>
@@ -586,9 +626,9 @@
     let selectedNumber = null;   // 숫자 먼저 선택 모드 (1~9, 0)
     let highlightNum = null;     // 하이라이트할 숫자
     let isMemoMode = false;      // 메모 모드 활성화 여부
+    let savedSnapshot = null;    // 🌟 [요청 1]: 임시저장 스냅샷 (메모 포함)
     let sessionTotalEarnedXp = 0; // 🌟 포켓Tasks 메인 화면 전달용 누적 XP
 
-    // 🎯 개편된 난이도 및 경험치 (어려움 30 XP, 지옥 50 XP, X모드 50 XP)
     const STAGE_CONFIG = {
       "hard": { name: "어려움", holes: 48, baseReward: 30 },
       "hell": { name: "지옥", holes: 58, baseReward: 50 },
@@ -644,6 +684,21 @@
     }
 
     // ========================================================
+    // 🍞 인게임 토스트 알림
+    // ========================================================
+    let toastTimeout = null;
+    function showToast(msg) {
+      const toast = document.getElementById('sudokuToast');
+      if (!toast) return;
+      toast.innerText = msg;
+      toast.classList.add('show');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 1600);
+    }
+
+    // ========================================================
     // 📐 보드 너비 및 상단 바 100% 일체화 동기화
     // ========================================================
     function syncBoardWidths() {
@@ -651,7 +706,7 @@
       if (!container) return;
 
       const screenEl = document.getElementById('gameScreen');
-      const maxW = Math.min(screenEl.clientWidth - 16, window.innerHeight * 0.46, 380);
+      const maxW = Math.min(screenEl.clientWidth - 16, window.innerHeight * 0.44, 380);
       container.style.width = maxW + 'px';
       container.style.height = maxW + 'px';
 
@@ -713,6 +768,7 @@
       currentStageKey = document.getElementById('stageSelect').value;
       const cfg = STAGE_CONFIG[currentStageKey] || STAGE_CONFIG["hard"];
       isXModeActive = (currentStageKey === "xmode");
+      savedSnapshot = null; // 새 스테이지 시작 시 스냅샷 리셋
 
       // 1) 완전한 정답 보드 생성
       solutionBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
@@ -746,6 +802,78 @@
       renderBoard();
       renderKeypad();
       updateStatusDisplay();
+    }
+
+    // ========================================================
+    // 🌟 [요청 1]: 💾 임시저장 & ↩️ 되돌리기 기능
+    // ========================================================
+    function saveSnapshot(e) {
+      if (e) e.stopPropagation();
+      savedSnapshot = userBoard.map(row => 
+        row.map(cell => ({ val: cell.val, notes: new Set(cell.notes) }))
+      );
+      showToast("💾 현재 상태가 임시저장되었습니다!");
+    }
+
+    function restoreSnapshot(e) {
+      if (e) e.stopPropagation();
+      if (!savedSnapshot) {
+        showToast("⚠️ 저장된 임시저장 상태가 없습니다!");
+        return;
+      }
+      userBoard = savedSnapshot.map(row => 
+        row.map(cell => ({ val: cell.val, notes: new Set(cell.notes) }))
+      );
+      selectedCell = null;
+      selectedNumber = null;
+      highlightNum = null;
+      renderBoard();
+      renderKeypad();
+      updateStatusDisplay();
+      showToast("↩️ 임시저장된 상태로 되돌렸습니다!");
+    }
+
+    // ========================================================
+    // 🌟 [요청 3]: 정답 기입 시 같은 행/열/3x3박스/대각선 메모 즉시 삭제
+    // ========================================================
+    function clearRelatedNotes(targetR, targetC, num) {
+      if (!num || num <= 0) return;
+
+      // 1) 해당 칸 자체의 메모 완전 삭제
+      userBoard[targetR][targetC].notes.clear();
+
+      // 2) 같은 행 & 같은 열
+      for (let i = 0; i < 9; i++) {
+        if (i !== targetC) userBoard[targetR][i].notes.delete(num);
+        if (i !== targetR) userBoard[i][targetC].notes.delete(num);
+      }
+
+      // 3) 같은 3x3 서브박스
+      const startR = Math.floor(targetR / 3) * 3;
+      const startC = Math.floor(targetC / 3) * 3;
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 3; c++) {
+          const curR = startR + r;
+          const curC = startC + c;
+          if (curR !== targetR || curC !== targetC) {
+            userBoard[curR][curC].notes.delete(num);
+          }
+        }
+      }
+
+      // 4) X모드 대각선
+      if (isXModeActive) {
+        if (targetR === targetC) {
+          for (let i = 0; i < 9; i++) {
+            if (i !== targetR) userBoard[i][i].notes.delete(num);
+          }
+        }
+        if (targetR + targetC === 8) {
+          for (let i = 0; i < 9; i++) {
+            if (i !== targetR) userBoard[i][8 - i].notes.delete(num);
+          }
+        }
+      }
     }
 
     // ========================================================
@@ -789,7 +917,13 @@
             for (let n = 1; n <= 9; n++) {
               const noteEl = document.createElement('div');
               noteEl.className = 'note-num';
-              noteEl.innerText = notes.has(n) ? n : '';
+              if (notes.has(n)) {
+                noteEl.innerText = n;
+                // 🌟 [요청 2]: 선택된 숫자와 같은 조그만 메모 후보 숫자도 노란색으로 강조!
+                if (highlightNum && highlightNum === n) {
+                  noteEl.classList.add('note-highlight');
+                }
+              }
               notesGrid.appendChild(noteEl);
             }
             cell.appendChild(notesGrid);
@@ -806,13 +940,34 @@
     }
 
     function renderKeypad() {
-      for (let i = 0; i <= 9; i++) {
+      // 🌟 [요청 4]: 보드 전체에서 각 숫자가 9개 다 찼는지 카운트
+      const numCounts = Array(10).fill(0);
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          const v = (initialBoard[r][c] !== 0) ? initialBoard[r][c] : userBoard[r][c].val;
+          if (v >= 1 && v <= 9) numCounts[v]++;
+        }
+      }
+
+      for (let i = 1; i <= 9; i++) {
         const btn = document.getElementById(`btn-key-${i}`);
         if (btn) {
           if (selectedNumber === i) btn.classList.add('key-selected');
           else btn.classList.remove('key-selected');
+
+          // 9개 모두 채워졌으면 버튼 비활성화 (disabled)
+          if (numCounts[i] >= 9) {
+            btn.classList.add('disabled');
+            if (selectedNumber === i) {
+              selectedNumber = null;
+              if (highlightNum === i) highlightNum = null;
+            }
+          } else {
+            btn.classList.remove('disabled');
+          }
         }
       }
+
       const memoBtn = document.getElementById('btn-memo');
       if (memoBtn) {
         if (isMemoMode) memoBtn.classList.add('active');
@@ -841,7 +996,7 @@
     // 👆 스마트 터치 조작 시스템 (셀 우선 & 숫자 우선 양방향 완벽 지원)
     // ========================================================
     function onCellClick(r, c) {
-      // 1) [숫자 먼저 선택 모드]: 이미 특정 숫자가 고정된 상태에서 칸을 연속으로 탭할 때
+      // 1) [숫자 먼저 선택 모드]: 특정 숫자가 고정된 상태에서 칸을 연속으로 탭할 때
       if (selectedNumber !== null) {
         if (initialBoard[r][c] === 0) {
           if (selectedNumber === 0) {
@@ -857,9 +1012,9 @@
               userBoard[r][c].notes.add(selectedNumber);
             }
           } else {
-            // 일반 기입: 고정된 숫자 연속 입력
+            // 일반 기입: 고정된 숫자 기입 및 겹치는 메모 자동 삭제
             userBoard[r][c].val = selectedNumber;
-            userBoard[r][c].notes.clear();
+            clearRelatedNotes(r, c, selectedNumber);
           }
           checkClearCondition();
         }
@@ -890,7 +1045,7 @@
             userBoard[r][c].notes.clear();
             highlightNum = null;
           } else if (isMemoMode) {
-            // 🌟 [요청사항 3]: 메모 모드일 때는 셀 선택을 풀지 않고 연속으로 후보 숫자를 톡톡톡 입력!
+            // 메모 모드: 셀 선택 유지하며 후보 숫자 연속 토글
             userBoard[r][c].val = 0;
             if (userBoard[r][c].notes.has(num)) {
               userBoard[r][c].notes.delete(num);
@@ -898,22 +1053,20 @@
               userBoard[r][c].notes.add(num);
             }
           } else {
-            // 일반 기입
+            // 일반 기입 및 겹치는 메모 즉시 삭제
             userBoard[r][c].val = num;
-            userBoard[r][c].notes.clear();
+            clearRelatedNotes(r, c, num);
             highlightNum = num;
           }
           checkClearCondition();
         }
       } 
-      // B) [셀이 선택되지 않은 상태]: 🌟 [요청사항 2] 숫자를 먼저 선택하여 고정 (연속 입력 모드 활성화)
+      // B) [셀이 선택되지 않은 상태]: 숫자를 먼저 선택하여 고정 (연속 입력 모드)
       else {
         if (selectedNumber === num) {
-          // 같은 숫자를 다시 누르면 선택 해제
           selectedNumber = null;
           highlightNum = null;
         } else {
-          // 해당 숫자 고정 활성화!
           selectedNumber = num;
           highlightNum = (num !== 0) ? num : null;
         }
@@ -930,9 +1083,9 @@
       renderKeypad();
     }
 
-    // 바깥 빈 공간 클릭 시에만 선택 해제 (키패드/보드/컨트롤 클릭 시에는 풀리지 않음)
+    // 바깥 빈 공간 클릭 시에만 선택 해제
     document.addEventListener('click', (e) => {
-      if (e.target.closest('#sudoku-board-container, #keypad-container, .controls, .top-nav, .modal-overlay')) {
+      if (e.target.closest('#sudoku-board-container, #keypad-container, .controls, .top-nav, .modal-overlay, #sudokuToast')) {
         return;
       }
       selectedCell = null;
