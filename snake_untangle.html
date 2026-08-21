@@ -459,6 +459,7 @@
     let maxAllowedMoves = 0;
     let timerSeconds = 0;
     let timerInterval = null;
+    let sessionTotalEarnedXp = 0; // 🌟 이번 플레이 세션 동안 모은 총 경험치
 
     // 🎯 난이도별 기본 설정
     const STAGE_CONFIG = {
@@ -1049,18 +1050,11 @@
       document.getElementById('clearXpBadge').innerText = `총 +${totalReward} XP 획득! 🎁`;
       document.getElementById('clearModal').classList.add('show');
 
-      // 🌟 [포켓Tasks 메인 웹앱으로 XP 지급 메시지 전송]
-      if (window.parent && window.parent !== window) {
-        window.parent.postMessage({
-          type: 'SNAKE_UNTANGLE_CLEAR',
-          stageKey: currentStageKey,
-          stageName: cfg.name,
-          streak: updatedRec.currentStreak,
-          earnedXp: totalReward,
-          moveCount: moveCount,
-          timeSeconds: timerSeconds
-        }, '*');
-      }
+      // 세션 누적 경험치 가산
+      sessionTotalEarnedXp += totalReward;
+      try {
+        localStorage.setItem('SNAKE_PENDING_XP', sessionTotalEarnedXp);
+      } catch(e) {}
     }
 
     // ========================================================
@@ -1075,16 +1069,21 @@
     }
 
     // ========================================================
-    // 🚪 포켓Tasks로 복귀
+    // 🚪 포켓Tasks로 복귀 (모아둔 경험치 한 번에 전달!)
     // ========================================================
     function closeGameAndReturn() {
       if (window.parent && window.parent !== window) {
-        window.parent.postMessage({ type: 'CLOSE_GAME' }, '*');
+        window.parent.postMessage({
+          type: 'GAME_FINISHED_RETURN',
+          gameType: 'snake_untangle',
+          gameName: 'Snake Point',
+          totalXp: sessionTotalEarnedXp
+        }, '*');
       } else {
         if (window.history.length > 1) {
           window.history.back();
         } else {
-          window.location.href = './index.html';
+          window.location.href = './index.html?rewardXp=' + sessionTotalEarnedXp;
         }
       }
     }

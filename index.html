@@ -565,6 +565,29 @@
       transition: transform 0.2s ease;
     }
 
+    /* ✨ 미니게임 보상 획득 시 포켓몬에게 살짝 도는 은은하고 화사한 황금빛 오라 연출 */
+    .pokemon-sprite.game-reward-glow {
+      animation: pokemonRewardAura 1.6s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+    }
+    @keyframes pokemonRewardAura {
+      0% {
+        filter: drop-shadow(0 10px 10px rgba(0,0,0,0.38)) brightness(1);
+        transform: scale(1);
+      }
+      35% {
+        filter: drop-shadow(0 0 24px #38bdf8) drop-shadow(0 0 12px #fbbf24) brightness(1.35);
+        transform: scale(1.12);
+      }
+      70% {
+        filter: drop-shadow(0 0 16px #60a5fa) drop-shadow(0 0 8px #f59e0b) brightness(1.18);
+        transform: scale(1.05);
+      }
+      100% {
+        filter: drop-shadow(0 10px 10px rgba(0,0,0,0.38)) brightness(1);
+        transform: scale(1);
+      }
+    }
+
     /* ✨ 진화 축하 연출 팝업 */
     .evolve-overlay {
       position: absolute;
@@ -4171,6 +4194,9 @@
       // 🌟 배경, 캐릭터, 퀘스트 목록 즉시 렌더링!
       initUI(appState);
 
+      // 🎮 미니게임에서 복귀 시 대기 중인 경험치 보상 확인 및 오라 연출
+      checkPendingGameReward();
+
       // 🚀 2단계 (백그라운드 비동기): 스프레드시트에서 최신 데이터 조용히 갱신
       fetchLatestDataFromSheet();
 
@@ -6052,7 +6078,7 @@
 
     
     // ========================================================
-    // 🎮 미니게임 아케이드 실행 및 XP 보상 연동 시스템
+    // 🎮 미니게임 아케이드 실행 및 XP 누적 보상 연동 시스템
     // ========================================================
     function openArcadeGame(gameType) {
       const modal = document.getElementById('arcadeGameModal');
@@ -6075,23 +6101,107 @@
       if (iframe) iframe.src = '';
     }
 
+    // 🌟 메인 화면 복귀 시 모아둔 미니게임 경험치 일괄 지급 및 황금빛 오라 연출
+    function applyGameSessionReward(earnedXp, gameName = "Snake Point") {
+      if (!earnedXp || isNaN(earnedXp) || earnedXp <= 0) return;
+
+      // 1) 경험치바 1회 하이라이트
+      highlightXpBar();
+
+      // 2) 포켓몬에게 은은한 빛(샤인 오라) 효과 부여
+      triggerPokemonRewardGlow();
+
+      // 3) 파트너 포켓몬 찰진 점프
+      triggerSpriteHopAnimation();
+
+      // 4) 경험치 지급 및 레벨업/진화 처리
+      processXpGainAndEvolve(Number(earnedXp));
+
+      // 5) 토스트 안내
+      showGameRewardToast(`🎮 [${gameName}] 총 +${earnedXp} XP 획득! ✨`);
+    }
+
+    function triggerPokemonRewardGlow() {
+      const pImg = document.getElementById('pokemonImage');
+      if (!pImg) return;
+      pImg.classList.remove('game-reward-glow');
+      void pImg.offsetWidth;
+      pImg.classList.add('game-reward-glow');
+      setTimeout(() => {
+        pImg.classList.remove('game-reward-glow');
+      }, 1700);
+    }
+
+    function showGameRewardToast(msg) {
+      let toast = document.getElementById('gameRewardToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'gameRewardToast';
+        toast.style.cssText = `
+          position: fixed;
+          top: 65px;
+          left: 50%;
+          transform: translateX(-50%) translateY(-20px);
+          background: linear-gradient(135deg, #1e3a8a, #0284c7);
+          color: white;
+          padding: 10px 18px;
+          border-radius: 20px;
+          font-size: 13px;
+          font-weight: 800;
+          box-shadow: 0 8px 25px rgba(0,0,0,0.6), 0 0 15px rgba(56, 189, 248, 0.6);
+          border: 1px solid rgba(255,255,255,0.3);
+          z-index: 1000;
+          opacity: 0;
+          transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+          pointer-events: none;
+        `;
+        document.body.appendChild(toast);
+      }
+      toast.innerText = msg;
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(-50%) translateY(0)';
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-50%) translateY(-20px)';
+      }, 2800);
+    }
+
+    function checkPendingGameReward() {
+      try {
+        // 1) URL 파라미터 체크 (단독 탭 복귀 시)
+        const params = new URLSearchParams(window.location.search);
+        const urlXp = parseInt(params.get('rewardXp')) || 0;
+        if (urlXp > 0) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+          setTimeout(() => {
+            applyGameSessionReward(urlXp, "Snake Point");
+          }, 400);
+          return;
+        }
+
+        // 2) 로컬 스토리지 펜딩 XP 체크
+        const pendingXp = parseInt(localStorage.getItem('SNAKE_PENDING_XP')) || 0;
+        if (pendingXp > 0) {
+          localStorage.removeItem('SNAKE_PENDING_XP');
+          setTimeout(() => {
+            applyGameSessionReward(pendingXp, "Snake Point");
+          }, 400);
+        }
+      } catch(e) {}
+    }
+
     window.addEventListener('message', function(event) {
       if (!event.data) return;
 
-      if (event.data.type === 'SNAKE_UNTANGLE_CLEAR') {
-        const xp = event.data.earnedXp || 20;
-        const stage = event.data.stageName || "보통";
-        const streak = event.data.streak || 1;
-
-        // 메인 포켓몬에게 즉시 XP 지급 및 레벨업/진화 처리
-        processXpGainAndEvolve(xp);
-
-        // 토스트 알림
-        if (typeof showFloatingXpToast === 'function') {
-          showFloatingXpToast(`🎉 [스네이크] ${stage} ${streak}연승! +${xp} XP 획득!`);
-        } else {
-          alert(`🎉 [스네이크 언탱글] ${stage} 난이도 ${streak}연승 클리어!
-파트너 포켓몬에게 +${xp} XP가 지급되었습니다!`);
+      // 게임 완료 후 닫기 시 누적 경험치 전달받음
+      if (event.data.type === 'GAME_FINISHED_RETURN') {
+        closeArcadeGame();
+        const totalXp = Number(event.data.totalXp) || 0;
+        const gameName = event.data.gameName || "Snake Point";
+        if (totalXp > 0) {
+          setTimeout(() => {
+            applyGameSessionReward(totalXp, gameName);
+          }, 200);
         }
       } else if (event.data.type === 'CLOSE_GAME') {
         closeArcadeGame();
