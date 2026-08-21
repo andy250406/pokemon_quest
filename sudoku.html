@@ -1096,26 +1096,74 @@
     });
 
     // ========================================================
-    // 🎉 클리어 검사 & 경험치 보상 연동
+    // 🎉 클리어 검사 & 다중 정답(규칙 만족 여부) 검증 알고리즘
     // ========================================================
-    function checkClearCondition() {
-      let isComplete = true;
-      let isCorrect = true;
-
+    function isCompleteValidSudoku(board, isX) {
+      // 1) 각 행(Row) 검사: 1~9가 중복 없이 9개 모두 존재하는지
       for (let r = 0; r < 9; r++) {
+        const rowSet = new Set();
         for (let c = 0; c < 9; c++) {
-          if (initialBoard[r][c] === 0) {
-            const uVal = userBoard[r][c].val;
-            if (uVal === 0) {
-              isComplete = false;
-            } else if (uVal !== solutionBoard[r][c]) {
-              isCorrect = false;
+          const v = board[r][c];
+          if (v < 1 || v > 9 || rowSet.has(v)) return false;
+          rowSet.add(v);
+        }
+      }
+
+      // 2) 각 열(Col) 검사: 1~9가 중복 없이 9개 모두 존재하는지
+      for (let c = 0; c < 9; c++) {
+        const colSet = new Set();
+        for (let r = 0; r < 9; r++) {
+          const v = board[r][c];
+          if (v < 1 || v > 9 || colSet.has(v)) return false;
+          colSet.add(v);
+        }
+      }
+
+      // 3) 각 3x3 서브박스 검사: 1~9가 중복 없이 9개 모두 존재하는지
+      for (let boxR = 0; boxR < 9; boxR += 3) {
+        for (let boxC = 0; boxC < 9; boxC += 3) {
+          const boxSet = new Set();
+          for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 3; c++) {
+              const v = board[boxR + r][boxC + c];
+              if (v < 1 || v > 9 || boxSet.has(v)) return false;
+              boxSet.add(v);
             }
           }
         }
       }
 
-      if (isComplete && isCorrect) {
+      // 4) X모드 대각선 검사 (활성화된 경우)
+      if (isX) {
+        const diag1Set = new Set();
+        const diag2Set = new Set();
+        for (let i = 0; i < 9; i++) {
+          const v1 = board[i][i];
+          const v2 = board[i][8 - i];
+          if (v1 < 1 || v1 > 9 || diag1Set.has(v1)) return false;
+          if (v2 < 1 || v2 > 9 || diag2Set.has(v2)) return false;
+          diag1Set.add(v1);
+          diag2Set.add(v2);
+        }
+      }
+
+      return true;
+    }
+
+    function checkClearCondition() {
+      // 1) 보드 전체가 빈칸 없이 모두 채워졌는지 검사 & 현재 9x9 보드 구성
+      const currentFullBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
+
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          const uVal = (initialBoard[r][c] !== 0) ? initialBoard[r][c] : userBoard[r][c].val;
+          if (uVal === 0) return; // 아직 빈칸이 남아있으면 클리어 판정 대기
+          currentFullBoard[r][c] = uVal;
+        }
+      }
+
+      // 2) 🌟 생성 시의 정답과 달라도, 스도쿠 퍼즐 규칙을 완벽히 만족하면 정답 인정!
+      if (isCompleteValidSudoku(currentFullBoard, isXModeActive)) {
         handleSudokuClear();
       }
     }
