@@ -56,7 +56,7 @@
       }
     }
 
-    /* 📱 스마트폰 전용 풀스크린 (화면 폭이 작을 때는 여백 없이 꽉 채움) */
+    /* 📱 스마트폰 전용 풀스크린 */
     @media (max-width: 520px) {
       body {
         background: #101622;
@@ -199,7 +199,7 @@
       transform: scale(0.92);
     }
 
-    /* 🎨 스도쿠 보드 컨테이너 (CSS Grid 100% 렌더링 보장) */
+    /* 🎨 스도쿠 보드 컨테이너 */
     #sudoku-board-container {
       position: relative;
       width: 100%;
@@ -231,7 +231,6 @@
       cursor: pointer;
       transition: background 0.1s ease, transform 0.1s ease;
     }
-    /* 3x3 서브박스 두꺼운 경계선 */
     .sudoku-cell:nth-child(3n) {
       border-right: 2px solid #38bdf8;
     }
@@ -253,7 +252,7 @@
       font-weight: 900;
     }
     .sudoku-cell.x-mode-diag {
-      background: #1e1b4b; /* X모드 대각선 보라빛 하이라이트 */
+      background: #1e1b4b; /* X모드 대각선 보라빛 */
     }
     .sudoku-cell.crosshair {
       background: #1e293b !important;
@@ -291,22 +290,25 @@
       line-height: 1;
     }
 
-    /* ⌨️ 하단 스마트 키패드 */
+    /* ⌨️ 하단 스마트 키패드 (2행 5열 + 우측 세로 2단 메모 버튼) */
     #keypad-container {
       width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
       box-sizing: border-box;
     }
-    .keypad-row {
+    .keypad-layout {
       display: flex;
       gap: 6px;
       width: 100%;
     }
-    .key-btn {
+    .keypad-numbers-grid {
       flex: 1;
-      height: clamp(38px, 6.2dvh, 46px);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: 1fr 1fr;
+      gap: 6px;
+    }
+    .key-btn {
+      height: clamp(38px, 5.8dvh, 44px);
       background: #1e293b;
       border: 1px solid #334155;
       border-radius: 10px;
@@ -331,19 +333,41 @@
       box-shadow: 0 0 10px rgba(56,189,248,0.5);
       transform: scale(0.96);
     }
-    .key-btn.btn-memo.active {
-      background: #facc15 !important;
-      color: #0f172a !important;
-      border-color: #fde047 !important;
-      box-shadow: 0 0 10px rgba(250,204,21,0.5);
-    }
     .key-btn.btn-delete {
       background: #3f1822;
       border-color: #881337;
       color: #f43f5e;
     }
+    
+    .btn-memo-tall {
+      width: 66px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 800;
+      color: #f1f5f9;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      transition: all 0.12s ease;
+      flex-shrink: 0;
+    }
+    .btn-memo-tall:active {
+      transform: scale(0.94);
+      background: #334155;
+    }
+    .btn-memo-tall.active {
+      background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+      color: #0f172a !important;
+      border-color: #fde047 !important;
+      box-shadow: 0 0 12px rgba(245,158,11,0.6) !important;
+    }
 
-    /* ✨ 클리어 / 실패 모달 공통 */
+    /* ✨ 클리어 모달 */
     .modal-overlay {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -465,18 +489,17 @@
         <span class="stat-val" id="currentStreakText">0연승</span>
       </div>
       <div class="stat-item">
-        <span>모드:</span>
-        <span class="stat-val" id="diffLabelText">보통</span>
+        <span>난이도:</span>
+        <span class="stat-val" id="diffLabelText">어려움</span>
       </div>
     </div>
 
     <!-- 🕹️ 컨트롤러 (난이도 선택 및 새 퍼즐 새로고침) -->
     <div class="controls">
       <select id="stageSelect" onchange="generateStage()">
-        <option value="easy">🌱 입문 (Easy / +10 XP)</option>
-        <option value="normal" selected>⚔️ 보통 (Normal / +20 XP)</option>
-        <option value="hard">🔥 어려움 (Hard / +30 XP)</option>
-        <option value="xmode">🔮 X모드 대각선 (+30 XP)</option>
+        <option value="hard" selected>🔥 어려움 (Hard / +30 XP)</option>
+        <option value="hell">💀 지옥 (Hell / +50 XP)</option>
+        <option value="xmode">🔮 X모드 대각선 (+50 XP)</option>
       </select>
       <button class="btn-action btn-primary btn-refresh-only" onclick="generateStage()" title="새 퍼즐 새로고침">🔄</button>
     </div>
@@ -484,22 +507,28 @@
     <!-- 🎨 스도쿠 9x9 그리드 보드 -->
     <div id="sudoku-board-container"></div>
 
-    <!-- ⌨️ 하단 스마트 키패드 -->
+    <!-- ⌨️ 하단 스마트 키패드 (1 2 3 4 5 / 6 7 8 9 X / 우측 2단 메모) -->
     <div id="keypad-container">
-      <div class="keypad-row">
-        <button id="btn-key-1" class="key-btn" onclick="inputNumber(1)">1</button>
-        <button id="btn-key-2" class="key-btn" onclick="inputNumber(2)">2</button>
-        <button id="btn-key-3" class="key-btn" onclick="inputNumber(3)">3</button>
-        <button id="btn-key-4" class="key-btn" onclick="inputNumber(4)">4</button>
-        <button id="btn-key-5" class="key-btn" onclick="inputNumber(5)">5</button>
-      </div>
-      <div class="keypad-row">
-        <button id="btn-key-6" class="key-btn" onclick="inputNumber(6)">6</button>
-        <button id="btn-key-7" class="key-btn" onclick="inputNumber(7)">7</button>
-        <button id="btn-key-8" class="key-btn" onclick="inputNumber(8)">8</button>
-        <button id="btn-key-9" class="key-btn" onclick="inputNumber(9)">9</button>
-        <button id="btn-memo" class="key-btn btn-memo" onclick="toggleMemo()">✏️</button>
-        <button id="btn-key-0" class="key-btn btn-delete" onclick="inputNumber(0)">❌</button>
+      <div class="keypad-layout">
+        <div class="keypad-numbers-grid">
+          <!-- 1행: 1 2 3 4 5 -->
+          <button id="btn-key-1" class="key-btn" onclick="handleKeyInput(event, 1)">1</button>
+          <button id="btn-key-2" class="key-btn" onclick="handleKeyInput(event, 2)">2</button>
+          <button id="btn-key-3" class="key-btn" onclick="handleKeyInput(event, 3)">3</button>
+          <button id="btn-key-4" class="key-btn" onclick="handleKeyInput(event, 4)">4</button>
+          <button id="btn-key-5" class="key-btn" onclick="handleKeyInput(event, 5)">5</button>
+          <!-- 2행: 6 7 8 9 X -->
+          <button id="btn-key-6" class="key-btn" onclick="handleKeyInput(event, 6)">6</button>
+          <button id="btn-key-7" class="key-btn" onclick="handleKeyInput(event, 7)">7</button>
+          <button id="btn-key-8" class="key-btn" onclick="handleKeyInput(event, 8)">8</button>
+          <button id="btn-key-9" class="key-btn" onclick="handleKeyInput(event, 9)">9</button>
+          <button id="btn-key-0" class="key-btn btn-delete" onclick="handleKeyInput(event, 0)">❌</button>
+        </div>
+        <!-- 우측 위아래 2단 세로 메모 버튼 -->
+        <button id="btn-memo" class="key-btn btn-memo-tall" onclick="toggleMemo(event)">
+          <span>✏️</span>
+          <span style="font-size:11px; margin-top:2px;">메모</span>
+        </button>
       </div>
     </div>
 
@@ -507,7 +536,7 @@
     <div class="modal-overlay" id="clearModal">
       <div class="clear-title" id="clearTitleText">🎉 CLEAR!</div>
       <div class="modal-desc" id="clearDescText">스도쿠 퍼즐을 완벽하게 완성했습니다!</div>
-      <div class="xp-badge" id="clearXpBadge">+20 XP 획득! 🎁</div>
+      <div class="xp-badge" id="clearXpBadge">+30 XP 획득! 🎁</div>
       <div class="modal-btns">
         <button class="btn-modal-next" onclick="generateStage()">다음 퍼즐 🚀</button>
       </div>
@@ -521,21 +550,15 @@
           <span style="cursor:pointer; font-size:16px;" onclick="closeRecordsModal()">✕</span>
         </h3>
         <div class="record-row">
-          <span class="record-diff">🌱 입문</span>
-          <div>
-            <span class="record-stat" id="recStreak_easy">0</span> <span class="record-max" id="recMax_easy">(최고 0)</span>
-          </div>
-        </div>
-        <div class="record-row">
-          <span class="record-diff">⚔️ 보통</span>
-          <div>
-            <span class="record-stat" id="recStreak_normal">0</span> <span class="record-max" id="recMax_normal">(최고 0)</span>
-          </div>
-        </div>
-        <div class="record-row">
           <span class="record-diff">🔥 어려움</span>
           <div>
             <span class="record-stat" id="recStreak_hard">0</span> <span class="record-max" id="recMax_hard">(최고 0)</span>
+          </div>
+        </div>
+        <div class="record-row">
+          <span class="record-diff">💀 지옥</span>
+          <div>
+            <span class="record-stat" id="recStreak_hell">0</span> <span class="record-max" id="recMax_hell">(최고 0)</span>
           </div>
         </div>
         <div class="record-row">
@@ -556,20 +579,20 @@
     let solutionBoard = [];
     let initialBoard = [];
     let userBoard = [];
-    let currentStageKey = "normal";
+    let currentStageKey = "hard";
     let isXModeActive = false;
 
-    let selectedCell = null;
-    let selectedNumber = null;
-    let highlightNum = null;
-    let isMemoMode = false;
+    let selectedCell = null;     // { r, c }
+    let selectedNumber = null;   // 숫자 먼저 선택 모드 (1~9, 0)
+    let highlightNum = null;     // 하이라이트할 숫자
+    let isMemoMode = false;      // 메모 모드 활성화 여부
     let sessionTotalEarnedXp = 0; // 🌟 포켓Tasks 메인 화면 전달용 누적 XP
 
+    // 🎯 개편된 난이도 및 경험치 (어려움 30 XP, 지옥 50 XP, X모드 50 XP)
     const STAGE_CONFIG = {
-      "easy": { name: "입문", holes: 32, baseReward: 10 },
-      "normal": { name: "보통", holes: 44, baseReward: 20 },
-      "hard": { name: "어려움", holes: 52, baseReward: 30 },
-      "xmode": { name: "X모드", holes: 46, baseReward: 30 }
+      "hard": { name: "어려움", holes: 48, baseReward: 30 },
+      "hell": { name: "지옥", holes: 58, baseReward: 50 },
+      "xmode": { name: "X모드", holes: 50, baseReward: 50 }
     };
 
     // ========================================================
@@ -577,7 +600,7 @@
     // ========================================================
     function loadGameRecords() {
       try {
-        const data = localStorage.getItem('sudoku_records_v1');
+        const data = localStorage.getItem('sudoku_records_v2');
         return data ? JSON.parse(data) : {};
       } catch(e) {
         return {};
@@ -586,7 +609,7 @@
 
     function saveGameRecords(records) {
       try {
-        localStorage.setItem('sudoku_records_v1', JSON.stringify(records));
+        localStorage.setItem('sudoku_records_v2', JSON.stringify(records));
       } catch(e) {}
     }
 
@@ -608,7 +631,7 @@
 
     function openRecordsModal() {
       const rec = loadGameRecords();
-      ["easy", "normal", "hard", "xmode"].forEach(key => {
+      ["hard", "hell", "xmode"].forEach(key => {
         const item = rec[key] || { currentStreak: 0, maxStreak: 0 };
         document.getElementById(`recStreak_${key}`).innerText = `${item.currentStreak || 0}연승`;
         document.getElementById(`recMax_${key}`).innerText = `(최고 ${item.maxStreak || 0}연승)`;
@@ -628,7 +651,7 @@
       if (!container) return;
 
       const screenEl = document.getElementById('gameScreen');
-      const maxW = Math.min(screenEl.clientWidth - 20, window.innerHeight * 0.46, 380);
+      const maxW = Math.min(screenEl.clientWidth - 16, window.innerHeight * 0.46, 380);
       container.style.width = maxW + 'px';
       container.style.height = maxW + 'px';
 
@@ -644,7 +667,7 @@
     }
 
     // ========================================================
-    // 🧠 100% 보장 초고속 스도쿠 생성 엔진
+    // 🧠 100% 즉시 생성 보장 스도쿠 엔진
     // ========================================================
     function isValid(board, r, c, num, isX) {
       for (let i = 0; i < 9; i++) {
@@ -688,7 +711,7 @@
       document.getElementById('recordsModal').classList.remove('show');
 
       currentStageKey = document.getElementById('stageSelect').value;
-      const cfg = STAGE_CONFIG[currentStageKey] || STAGE_CONFIG["normal"];
+      const cfg = STAGE_CONFIG[currentStageKey] || STAGE_CONFIG["hard"];
       isXModeActive = (currentStageKey === "xmode");
 
       // 1) 완전한 정답 보드 생성
@@ -748,17 +771,19 @@
           if (isXModeActive && (r === c || r + c === 8)) cell.classList.add('x-mode-diag');
 
           // 하이라이트 계산
-          if (selectedCell) {
-            if (r === selectedCell.r && c === selectedCell.c) cell.classList.add('selected');
-            else if (r === selectedCell.r || c === selectedCell.c) cell.classList.add('crosshair');
+          if (selectedCell && selectedCell.r === r && selectedCell.c === c) {
+            cell.classList.add('selected');
+          } else if (selectedCell && (selectedCell.r === r || selectedCell.c === c)) {
+            cell.classList.add('crosshair');
           }
-          if (highlightNum && currentVal === highlightNum && (!selectedCell || (r !== selectedCell.r || c !== selectedCell.c))) {
+
+          if (highlightNum && currentVal === highlightNum && (!selectedCell || selectedCell.r !== r || selectedCell.c !== c)) {
             cell.classList.add('same-number');
           }
 
           if (currentVal !== 0) {
             cell.innerText = currentVal;
-          } else if (notes.size > 0) {
+          } else if (notes && notes.size > 0) {
             const notesGrid = document.createElement('div');
             notesGrid.className = 'notes-grid';
             for (let n = 1; n <= 9; n++) {
@@ -805,7 +830,7 @@
       }
       document.getElementById('emptyCountText').innerText = `${emptyCount}개`;
 
-      const cfg = STAGE_CONFIG[currentStageKey] || STAGE_CONFIG["normal"];
+      const cfg = STAGE_CONFIG[currentStageKey] || STAGE_CONFIG["hard"];
       document.getElementById('diffLabelText').innerText = cfg.name;
 
       const record = getStageRecord(currentStageKey);
@@ -813,76 +838,103 @@
     }
 
     // ========================================================
-    // 👆 터치 / 클릭 조작 이벤트
+    // 👆 스마트 터치 조작 시스템 (셀 우선 & 숫자 우선 양방향 완벽 지원)
     // ========================================================
     function onCellClick(r, c) {
-      // 숫자 먼저 선택 모드일 때
+      // 1) [숫자 먼저 선택 모드]: 이미 특정 숫자가 고정된 상태에서 칸을 연속으로 탭할 때
       if (selectedNumber !== null) {
         if (initialBoard[r][c] === 0) {
           if (selectedNumber === 0) {
+            // 지우기
             userBoard[r][c].val = 0;
             userBoard[r][c].notes.clear();
           } else if (isMemoMode) {
+            // 메모 모드: 후보 숫자 토글
             userBoard[r][c].val = 0;
-            if (userBoard[r][c].notes.has(selectedNumber)) userBoard[r][c].notes.delete(selectedNumber);
-            else userBoard[r][c].notes.add(selectedNumber);
+            if (userBoard[r][c].notes.has(selectedNumber)) {
+              userBoard[r][c].notes.delete(selectedNumber);
+            } else {
+              userBoard[r][c].notes.add(selectedNumber);
+            }
           } else {
+            // 일반 기입: 고정된 숫자 연속 입력
             userBoard[r][c].val = selectedNumber;
             userBoard[r][c].notes.clear();
           }
           checkClearCondition();
         }
         highlightNum = (selectedNumber !== 0) ? selectedNumber : null;
-      } else {
+      } 
+      // 2) [셀 먼저 선택 모드]: 칸을 탭하여 선택
+      else {
         selectedCell = { r, c };
         const v = initialBoard[r][c] !== 0 ? initialBoard[r][c] : userBoard[r][c].val;
         highlightNum = (v !== 0) ? v : null;
       }
+
       renderBoard();
       renderKeypad();
       updateStatusDisplay();
     }
 
-    function inputNumber(num) {
+    function handleKeyInput(e, num) {
+      if (e) e.stopPropagation();
+
+      // A) [셀이 이미 선택된 상태]: 선택된 칸에 즉시 기입
       if (selectedCell !== null) {
         const { r, c } = selectedCell;
         if (initialBoard[r][c] === 0) {
           if (num === 0) {
+            // 지우기
             userBoard[r][c].val = 0;
             userBoard[r][c].notes.clear();
             highlightNum = null;
           } else if (isMemoMode) {
+            // 🌟 [요청사항 3]: 메모 모드일 때는 셀 선택을 풀지 않고 연속으로 후보 숫자를 톡톡톡 입력!
             userBoard[r][c].val = 0;
-            if (userBoard[r][c].notes.has(num)) userBoard[r][c].notes.delete(num);
-            else userBoard[r][c].notes.add(num);
+            if (userBoard[r][c].notes.has(num)) {
+              userBoard[r][c].notes.delete(num);
+            } else {
+              userBoard[r][c].notes.add(num);
+            }
           } else {
+            // 일반 기입
             userBoard[r][c].val = num;
             userBoard[r][c].notes.clear();
             highlightNum = num;
           }
           checkClearCondition();
         }
-      } else {
+      } 
+      // B) [셀이 선택되지 않은 상태]: 🌟 [요청사항 2] 숫자를 먼저 선택하여 고정 (연속 입력 모드 활성화)
+      else {
         if (selectedNumber === num) {
+          // 같은 숫자를 다시 누르면 선택 해제
           selectedNumber = null;
           highlightNum = null;
         } else {
+          // 해당 숫자 고정 활성화!
           selectedNumber = num;
           highlightNum = (num !== 0) ? num : null;
         }
       }
+
       renderBoard();
       renderKeypad();
       updateStatusDisplay();
     }
 
-    function toggleMemo() {
+    function toggleMemo(e) {
+      if (e) e.stopPropagation();
       isMemoMode = !isMemoMode;
       renderKeypad();
     }
 
-    // 바깥 클릭 시 선택 해제
+    // 바깥 빈 공간 클릭 시에만 선택 해제 (키패드/보드/컨트롤 클릭 시에는 풀리지 않음)
     document.addEventListener('click', (e) => {
+      if (e.target.closest('#sudoku-board-container, #keypad-container, .controls, .top-nav, .modal-overlay')) {
+        return;
+      }
       selectedCell = null;
       selectedNumber = null;
       highlightNum = null;
@@ -916,7 +968,7 @@
     }
 
     function handleSudokuClear() {
-      const cfg = STAGE_CONFIG[currentStageKey] || STAGE_CONFIG["normal"];
+      const cfg = STAGE_CONFIG[currentStageKey] || STAGE_CONFIG["hard"];
       const rewardXp = cfg.baseReward;
       const updatedRec = updateStreakOnClear(currentStageKey);
 
