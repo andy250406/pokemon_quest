@@ -199,15 +199,15 @@
       transform: scale(0.92);
     }
 
-    /* 🎨 스도쿠 보드 컨테이너 */
+    /* 🎨 스도쿠 보드 컨테이너 (화면 가로폭에 맞추어 시원하게 확장) */
     #sudoku-board-container {
       position: relative;
       width: 100%;
-      max-width: 380px;
+      max-width: 480px;
       aspect-ratio: 1 / 1;
       background: #0b0f19;
       border: 3px solid #38bdf8;
-      border-radius: 12px;
+      border-radius: 14px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.6);
       display: grid;
       grid-template-columns: repeat(9, 1fr);
@@ -222,7 +222,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: clamp(14px, 4.5vw, 20px);
+      font-size: clamp(16px, 5.2vw, 24px);
       font-weight: 800;
       color: #f1f5f9;
       background: #141b2d;
@@ -699,14 +699,17 @@
     }
 
     // ========================================================
-    // 📐 보드 너비 및 상단 바 100% 일체화 동기화
+    // 📐 보드 너비 및 상단 바 100% 일체화 동기화 (화면 가로폭에 맞게 꽉 채움)
     // ========================================================
     function syncBoardWidths() {
       const container = document.getElementById('sudoku-board-container');
       if (!container) return;
 
       const screenEl = document.getElementById('gameScreen');
-      const maxW = Math.min(screenEl.clientWidth - 16, window.innerHeight * 0.44, 380);
+      const availableW = screenEl.clientWidth - 8; // 좌우 살짝의 4px 여백만 둠
+      const availableH = window.innerHeight - 175; // 상하 헤더/통계/키패드 가용 높이
+      const maxW = Math.max(280, Math.min(availableW, availableH, 480));
+
       container.style.width = maxW + 'px';
       container.style.height = maxW + 'px';
 

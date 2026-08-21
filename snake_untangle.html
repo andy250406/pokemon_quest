@@ -40,7 +40,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 14px 10px;
+      padding: 8px 6px;
       border-radius: 28px;
       box-shadow: 0 25px 65px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
       transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -53,10 +53,11 @@
         max-height: 840px !important;
         border-radius: 28px !important;
         box-shadow: 0 30px 80px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.09) !important;
+        padding: 10px 8px;
       }
     }
 
-    /* 📱 스마트폰 전용 풀스크린 (화면 폭이 작을 때는 여백 없이 꽉 채움) */
+    /* 📱 스마트폰 전용 풀스크린 (화면 폭이 작을 때는 미세 여백만 남기고 꽉 채움) */
     @media (max-width: 520px) {
       body {
         background: #101622;
@@ -67,7 +68,7 @@
         height: 100dvh !important;
         border-radius: 0 !important;
         box-shadow: none !important;
-        padding: 8px 6px;
+        padding: 4px 4px;
       }
     }
 
@@ -585,6 +586,13 @@
       if (canvasContainer) canvasContainer.style.width = boardW + 'px';
     }
 
+    function calculateBestCellSize() {
+      const screenEl = document.querySelector('.game-screen') || document.body;
+      const availableW = Math.max(260, Math.min(screenEl.clientWidth - 8, 540));
+      const availableH = Math.max(300, window.innerHeight - 130);
+      return Math.max(9, Math.min(Math.floor(availableW / COLS), Math.floor(availableH / ROWS)));
+    }
+
     // ========================================================
     // 🔄 스테이지 생성 및 초기화
     // ========================================================
@@ -600,10 +608,8 @@
       COLS = w;
       ROWS = h;
 
-      // 📱 모바일/PC 반응형 크기 계산
-      const availableW = Math.min(window.innerWidth * 0.94, 600);
-      const availableH = window.innerHeight * 0.70;
-      CELL = Math.max(9, Math.min(Math.floor(availableW / COLS), Math.floor(availableH / ROWS)));
+      // 📱 모바일/PC 화면 너비에 맞게 시원하게 꽉 채우는 크기 계산
+      CELL = calculateBestCellSize();
 
       canvas.width = COLS * CELL;
       canvas.height = ROWS * CELL;
@@ -1103,9 +1109,7 @@
     window.onload = generateStage;
     window.onresize = () => {
       if (!isAnimating) {
-        const availableW = Math.min(window.innerWidth * 0.94, 600);
-        const availableH = window.innerHeight * 0.70;
-        CELL = Math.max(9, Math.min(Math.floor(availableW / COLS), Math.floor(availableH / ROWS)));
+        CELL = calculateBestCellSize();
         canvas.width = COLS * CELL;
         canvas.height = ROWS * CELL;
         syncBoardWidths();
