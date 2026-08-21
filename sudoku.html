@@ -742,25 +742,91 @@
       return true;
     }
 
+    // 🧠 2) 완성 정답 보드 무작위 생성 (MRV 휴리스틱: 가장 경우의 수 적은 칸 우선 탐색)
     function solveBoard(board, isX) {
+      let minCandidates = 10;
+      let targetCell = null;
+      let validNums = [];
+
       for (let r = 0; r < 9; r++) {
         for (let c = 0; c < 9; c++) {
           if (board[r][c] === 0) {
-            const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9].sort(() => Math.random() - 0.5);
-            for (let num of numbers) {
-              if (isValid(board, r, c, num, isX)) {
-                board[r][c] = num;
-                if (solveBoard(board, isX)) return true;
-                board[r][c] = 0;
-              }
+            const possible = [];
+            for (let num = 1; num <= 9; num++) {
+              if (isValid(board, r, c, num, isX)) possible.push(num);
             }
-            return false;
+            if (possible.length === 0) return false;
+            if (possible.length < minCandidates) {
+              minCandidates = possible.length;
+              targetCell = { r, c };
+              validNums = possible;
+              if (minCandidates === 1) break;
+            }
           }
         }
+        if (minCandidates === 1) break;
       }
-      return true;
+
+      if (!targetCell) return true; // 9x9 완성!
+
+      validNums.sort(() => Math.random() - 0.5);
+
+      for (let num of validNums) {
+        board[targetCell.r][targetCell.c] = num;
+        if (solveBoard(board, isX)) return true;
+        board[targetCell.r][targetCell.c] = 0;
+      }
+      return false;
     }
 
+    // 🧠 3) 🌟 유일해(Unique Solution) 개수 카운터 (2개 이상 시 즉시 조기 탈출)
+    function countSolutions(board, isX, limit = 2) {
+      let solutions = 0;
+
+      function backtrack() {
+        if (solutions >= limit) return;
+
+        let minCandidates = 10;
+        let targetCell = null;
+        let validNums = [];
+
+        for (let r = 0; r < 9; r++) {
+          for (let c = 0; c < 9; c++) {
+            if (board[r][c] === 0) {
+              const possible = [];
+              for (let num = 1; num <= 9; num++) {
+                if (isValid(board, r, c, num, isX)) possible.push(num);
+              }
+              if (possible.length === 0) return;
+              if (possible.length < minCandidates) {
+                minCandidates = possible.length;
+                targetCell = { r, c };
+                validNums = possible;
+                if (minCandidates === 1) break;
+              }
+            }
+          }
+          if (minCandidates === 1) break;
+        }
+
+        if (!targetCell) {
+          solutions++;
+          return;
+        }
+
+        for (let num of validNums) {
+          board[targetCell.r][targetCell.c] = num;
+          backtrack();
+          board[targetCell.r][targetCell.c] = 0;
+          if (solutions >= limit) return;
+        }
+      }
+
+      backtrack();
+      return solutions;
+    }
+
+    // 🧠 4) 🌟 100% 유일해 & 논리적 풀이 보장 스테이지 생성
     function generateStage() {
       document.getElementById('clearModal').classList.remove('show');
       document.getElementById('recordsModal').classList.remove('show');
@@ -774,19 +840,31 @@
       solutionBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
       solveBoard(solutionBoard, isXModeActive);
 
-      // 2) 초기 문제 보드 복사 및 구멍 뚫기
+      // 2) 🌟 유일해를 100% 보장하며 구멍 뚫기
       initialBoard = solutionBoard.map(row => [...row]);
-      let holesToDig = cfg.holes;
+      
       const positions = [];
       for (let r = 0; r < 9; r++) {
         for (let c = 0; c < 9; c++) positions.push({ r, c });
       }
       positions.sort(() => Math.random() - 0.5);
 
+      let holesDug = 0;
+      const maxTargetHoles = cfg.holes;
+
       for (let pos of positions) {
-        if (holesToDig <= 0) break;
+        if (holesDug >= maxTargetHoles) break;
+
+        const backup = initialBoard[pos.r][pos.c];
         initialBoard[pos.r][pos.c] = 0;
-        holesToDig--;
+
+        // 🌟 유일해(해가 정확히 1개)가 깨지지 않는지 검증!
+        if (countSolutions(initialBoard, isXModeActive, 2) === 1) {
+          holesDug++;
+        } else {
+          // 유일해가 깨지면(찍기/불량 퍼즐이 되면) 즉시 복원!
+          initialBoard[pos.r][pos.c] = backup;
+        }
       }
 
       // 3) 사용자 입력 데이터 초기화
