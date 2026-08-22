@@ -392,6 +392,8 @@
   <!-- 🕹️ 2행: 게임 정보 & 난이도 선택 & 새로고침 바구니 칸 -->
   <div class="game-info-bar">
     <div class="info-stat-pill">
+      <span style="color:#0f172a;" id="snakeCountText">🐍 0/0</span>
+      <span style="color:#cbd5e1; font-weight:400; margin:0 1px;">|</span>
       <span style="color:#64748b;">이동:</span>
       <span style="color:#0284c7;" id="moveCountText">0</span>
     </div>
@@ -573,7 +575,7 @@
       if (elMoves) elMoves.innerText = `${moveCount}`;
 
       const elSnake = document.getElementById('snakeCountText');
-      if (elSnake) elSnake.innerText = `${snakes.length} / ${totalInitialSnakes}`;
+      if (elSnake) elSnake.innerText = `🐍 ${snakes.length}/${totalInitialSnakes}`;
 
       const elStreak = document.getElementById('currentStreakText');
       if (elStreak) {

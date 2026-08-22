@@ -331,22 +331,26 @@
       transition: width 0.35s ease;
     }
 
+    /* 🌟 상단 필수 퀘스트 뱃지 (메뉴바와 동일한 투명도 50% + 블러 16px 화이트 글래스모피즘) */
     .quest-badge {
-      background: rgba(33, 150, 243, 0.94);
-      color: white;
-      padding: 8px 14px;
-      border-radius: 22px;
-      font-size: 13.5px;
+      background: rgba(255, 255, 255, 0.5); /* 🌟 투명도 50% */
+      backdrop-filter: blur(16px);          /* 🌟 블러 16px */
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: #0f172a;
+      padding: 7px 13px;
+      border-radius: 18px;
+      font-size: 13px;
       font-weight: 900;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
       display: flex;
       align-items: center;
       gap: 5px;
-      backdrop-filter: blur(8px);
       cursor: pointer;
       flex-shrink: 0;
+      transition: all 0.2s ease;
     }
-    .quest-badge:active { transform: scale(0.95); }
+    .quest-badge:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.7); }
 
     /* 🌾 배경별 인터랙티브 파밍 레이어 (터치/클릭 최우선권 z-index: 18) */
     .berry-harvest-layer {
@@ -5132,28 +5136,6 @@
         return;
       }
 
-      // 🌟 [요청 5]: 필수 퀘스트 카운트 정확한 계산 (오늘 유효한 필수 퀘스트 기준)
-      const todayStr = new Date().toISOString().split('T')[0];
-      quests.forEach(q => {
-        if (!q.isRequired) return;
-        const rec = (q.recurrence || '').toUpperCase().trim();
-        const isSingle = (!rec || rec === 'NONE' || rec === '일회성');
-        const timing = evaluateQuestTimingState(q);
-
-        if (isSingle) {
-          if (!timing.isDoneToday) {
-            reqTotal++;
-          } else if (q.lastCompletedDate === todayStr) {
-            reqTotal++;
-            reqDone++;
-          }
-        } else {
-          reqTotal++;
-          if (timing.isDoneToday) reqDone++;
-        }
-      });
-      document.getElementById('questText').innerText = `${reqDone}/${reqTotal}`;
-
       // 1) 🔁 반복 퀘스트 분리
       const recurringQuests = quests.filter(q => {
         const rec = (q.recurrence || '').toUpperCase().trim();
@@ -5164,7 +5146,8 @@
       recurringQuests.sort((a, b) => {
         const timeA = a.notifyTime || '99:99';
         const timeB = b.notifyTime || '99:99';
-        return timeA.localeCompare(timeB);
+        if (timeA !== timeB) return timeA.localeCompare(timeB);
+        return (a.id || '').localeCompare(b.id || '');
       });
 
       // 2) ⚡ 일회성 퀘스트 분리 (완료된 일회성 퀘스트는 목록에서 완전히 제외!)
@@ -5178,16 +5161,18 @@
       singleQuests.sort((a, b) => {
         const dateA = a.dueDate || '9999-99-99';
         const dateB = b.dueDate || '9999-99-99';
-        if (dateA !== dateB) {
-          return dateA.localeCompare(dateB);
-        }
+        if (dateA !== dateB) return dateA.localeCompare(dateB);
         const timeA = a.notifyTime || '99:99';
         const timeB = b.notifyTime || '99:99';
-        if (timeA !== timeB) {
-          return timeA.localeCompare(timeB);
-        }
-        return (a.id || '').localeCompare(b.id || '');
+        return timeA.localeCompare(timeB);
       });
+
+      // 🌟 [요청 3]: 필수 퀘스트 카운트 정확한 계산 (현재 목록에 유효한 필수 퀘스트 기준)
+      const allActiveQuests = [...recurringQuests, ...singleQuests];
+      const requiredQuests = allActiveQuests.filter(q => Boolean(q.isRequired));
+      reqTotal = requiredQuests.length;
+      reqDone = requiredQuests.filter(q => evaluateQuestTimingState(q).isDoneToday).length;
+      document.getElementById('questText').innerText = `${reqDone}/${reqTotal}`;
 
       // --- [1단: 상단 반복성 퀘스트] ---
       const recSection = document.createElement('div');

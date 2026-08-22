@@ -532,7 +532,9 @@
     <!-- 🕹️ 2행: 게임 정보 & 난이도 선택 & 새로고침 바구니 칸 -->
     <div class="game-info-bar">
       <div class="info-stat-pill">
-        <span style="color:#64748b;">빈칸:</span>
+        <span style="color:#0f172a; font-variant-numeric:tabular-nums;" id="gameTimerText">⏱️ 00:00</span>
+        <span style="color:#cbd5e1; font-weight:400; margin:0 1px;">|</span>
+        <span style="color:#64748b;">빈칸</span>
         <span style="color:#0284c7;" id="emptyCountText">0개</span>
       </div>
       <select id="stageSelect" onchange="generateStage()">
@@ -594,29 +596,44 @@
       </div>
     </div>
 
-    <!-- 🏆 난이도별 연속 기록 모달 -->
+    <!-- 🏆 난이도별 연속 및 최단시간 기록 모달 -->
     <div class="modal-overlay" id="recordsModal">
       <div class="record-box">
         <h3>
-          <span>🏆 난이도별 연승 기록</span>
+          <span>🏆 난이도별 기록</span>
           <span style="cursor:pointer; font-size:16px;" onclick="closeRecordsModal()">✕</span>
         </h3>
-        <div class="record-row">
-          <span class="record-diff">🔥 어려움</span>
-          <div>
-            <span class="record-stat" id="recStreak_hard">0</span> <span class="record-max" id="recMax_hard">(최고 0)</span>
+        <div class="record-row" style="flex-direction:column; align-items:stretch; gap:4px; padding:8px 0; border-bottom:1px solid rgba(0,0,0,0.06);">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="record-diff">🔴 어려움</span>
+            <div>
+              <span class="record-stat" id="recStreak_hard">0연승</span> <span class="record-max" id="recMax_hard">(최고 0)</span>
+            </div>
+          </div>
+          <div style="font-size:11px; color:#64748b; font-weight:700;">
+            ⏱️ 최단 시간: <span style="color:#0284c7; font-weight:900;" id="recBestTime_hard">-</span>
           </div>
         </div>
-        <div class="record-row">
-          <span class="record-diff">💀 지옥</span>
-          <div>
-            <span class="record-stat" id="recStreak_hell">0</span> <span class="record-max" id="recMax_hell">(최고 0)</span>
+        <div class="record-row" style="flex-direction:column; align-items:stretch; gap:4px; padding:8px 0; border-bottom:1px solid rgba(0,0,0,0.06);">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="record-diff">💀 지옥</span>
+            <div>
+              <span class="record-stat" id="recStreak_hell">0연승</span> <span class="record-max" id="recMax_hell">(최고 0)</span>
+            </div>
+          </div>
+          <div style="font-size:11px; color:#64748b; font-weight:700;">
+            ⏱️ 최단 시간: <span style="color:#0284c7; font-weight:900;" id="recBestTime_hell">-</span>
           </div>
         </div>
-        <div class="record-row">
-          <span class="record-diff">🔮 X모드</span>
-          <div>
-            <span class="record-stat" id="recStreak_xmode">0</span> <span class="record-max" id="recMax_xmode">(최고 0)</span>
+        <div class="record-row" style="flex-direction:column; align-items:stretch; gap:4px; padding:8px 0;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="record-diff">🔮 X모드</span>
+            <div>
+              <span class="record-stat" id="recStreak_xmode">0연승</span> <span class="record-max" id="recMax_xmode">(최고 0)</span>
+            </div>
+          </div>
+          <div style="font-size:11px; color:#64748b; font-weight:700;">
+            ⏱️ 최단 시간: <span style="color:#0284c7; font-weight:900;" id="recBestTime_xmode">-</span>
           </div>
         </div>
         <div style="margin-top:14px; text-align:center;">
@@ -648,8 +665,40 @@
     };
 
     // ========================================================
-    // 🏆 연승 기록 관리 (localStorage)
+    // ⏱️ 게임 타이머 시스템 & 🏆 기록 관리 (localStorage)
     // ========================================================
+    let gameTimerInterval = null;
+    let gameTimerSeconds = 0;
+
+    function formatTime(sec) {
+      if (sec === null || sec === undefined) return "-";
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function startTimer() {
+      stopTimer();
+      gameTimerSeconds = 0;
+      updateTimerDisplay();
+      gameTimerInterval = setInterval(() => {
+        gameTimerSeconds++;
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (gameTimerInterval) {
+        clearInterval(gameTimerInterval);
+        gameTimerInterval = null;
+      }
+    }
+
+    function updateTimerDisplay() {
+      const el = document.getElementById('gameTimerText');
+      if (el) el.innerText = `⏱️ ${formatTime(gameTimerSeconds)}`;
+    }
+
     function loadGameRecords() {
       try {
         const data = localStorage.getItem('sudoku_records_v2');
@@ -667,26 +716,35 @@
 
     function getStageRecord(stageKey) {
       const rec = loadGameRecords();
-      return rec[stageKey] || { currentStreak: 0, maxStreak: 0 };
+      return rec[stageKey] || { currentStreak: 0, maxStreak: 0, bestTime: null };
     }
 
-    function updateStreakOnClear(stageKey) {
+    function updateRecordOnClear(stageKey, elapsedSec) {
       const rec = loadGameRecords();
-      if (!rec[stageKey]) rec[stageKey] = { currentStreak: 0, maxStreak: 0 };
+      if (!rec[stageKey]) rec[stageKey] = { currentStreak: 0, maxStreak: 0, bestTime: null };
       rec[stageKey].currentStreak = (rec[stageKey].currentStreak || 0) + 1;
       if (rec[stageKey].currentStreak > (rec[stageKey].maxStreak || 0)) {
         rec[stageKey].maxStreak = rec[stageKey].currentStreak;
       }
+      let isNewBest = false;
+      if (rec[stageKey].bestTime === null || rec[stageKey].bestTime === undefined || elapsedSec < rec[stageKey].bestTime) {
+        rec[stageKey].bestTime = elapsedSec;
+        isNewBest = true;
+      }
       saveGameRecords(rec);
-      return rec[stageKey];
+      return { record: rec[stageKey], isNewBest, elapsedSec };
     }
 
     function openRecordsModal() {
       const rec = loadGameRecords();
       ["hard", "hell", "xmode"].forEach(key => {
-        const item = rec[key] || { currentStreak: 0, maxStreak: 0 };
-        document.getElementById(`recStreak_${key}`).innerText = `${item.currentStreak || 0}연승`;
-        document.getElementById(`recMax_${key}`).innerText = `(최고 ${item.maxStreak || 0}연승)`;
+        const item = rec[key] || { currentStreak: 0, maxStreak: 0, bestTime: null };
+        const elStreak = document.getElementById(`recStreak_${key}`);
+        if (elStreak) elStreak.innerText = `${item.currentStreak || 0}연승`;
+        const elMax = document.getElementById(`recMax_${key}`);
+        if (elMax) elMax.innerText = `(최고 ${item.maxStreak || 0}연승)`;
+        const elBest = document.getElementById(`recBestTime_${key}`);
+        if (elBest) elBest.innerText = formatTime(item.bestTime);
       });
       document.getElementById('recordsModal').classList.add('show');
     }
@@ -1013,6 +1071,7 @@
       renderKeypad();
       updateStatusDisplay();
       resetCompletionTracking();
+      startTimer();
     }
 
     // ========================================================
@@ -1458,15 +1517,22 @@
     }
 
     function handleSudokuClear() {
-      // 🌟 [요청 5]: 게임 클리어 시 승리 햅틱 진동
+      // ⏱️ 타이머 정지
+      stopTimer();
+
+      // 🌟 게임 클리어 시 승리 햅틱 진동
       triggerHaptic([60, 50, 80, 60, 160]);
 
       const cfg = STAGE_CONFIG[currentStageKey] || STAGE_CONFIG["hard"];
       const rewardXp = cfg.baseReward;
-      const updatedRec = updateStreakOnClear(currentStageKey);
+      const clearResult = updateRecordOnClear(currentStageKey, gameTimerSeconds);
+      const updatedRec = clearResult.record;
+      const timeFormatted = formatTime(gameTimerSeconds);
+      const newBestBadge = clearResult.isNewBest ? `<span style="color:#eab308; font-weight:900; margin-left:4px;">👑 신기록!</span>` : '';
 
       document.getElementById('clearTitleText').innerText = `🎉 ${cfg.name} 난이도 ${updatedRec.currentStreak}연승 Clear!`;
       document.getElementById('clearDescText').innerHTML = `
+        클리어 소요 시간: <b>${timeFormatted}</b> ${newBestBadge}<br>
         스도쿠 퍼즐을 오차 없이 완벽하게 완성했습니다!<br>
         포켓몬에게 보상 경험치가 지급됩니다.
       `;
