@@ -378,22 +378,23 @@
       font-weight: 900;
     }
 
-    /* ✨ 클리어 모달 공통 (화이트 테마) */
+    /* ✨ 클리어 모달 공통 (화이트 글래스모피즘 테마) */
     .modal-overlay {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(16px);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      border-radius: 14px;
+      border-radius: 20px;
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
       transition: all 0.25s ease;
-      z-index: 50;
+      z-index: 100; /* 🌟 최상단 노출 */
       padding: 16px;
       text-align: center;
       color: #0f172a;

@@ -226,13 +226,13 @@
       touch-action: none;
     }
 
-    /* ✨ 클리어 / 실패 / 기록 모달 공통 (화이트 테마) */
+    /* ✨ 클리어 / 실패 / 기록 모달 공통 (화이트 글래스모피즘 테마) */
     .modal-overlay {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -247,20 +247,6 @@
       text-align: center;
       color: #0f172a;
     }
-      backdrop-filter: blur(8px);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      border-radius: 10px;
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transition: all 0.25s ease;
-      z-index: 50;
-      padding: 16px;
-      text-align: center;
-    }
     .modal-overlay.show {
       opacity: 1;
       visibility: visible;
@@ -270,34 +256,33 @@
     .clear-title {
       font-size: 20px;
       font-weight: 900;
-      color: #4ade80;
+      color: #16a34a;
       margin-bottom: 6px;
-      text-shadow: 0 0 16px rgba(74,222,128,0.5);
     }
     .fail-title {
       font-size: 20px;
       font-weight: 900;
-      color: #f43f5e;
+      color: #dc2626;
       margin-bottom: 6px;
-      text-shadow: 0 0 16px rgba(244,63,94,0.5);
     }
 
     .modal-desc {
-      font-size: 12.5px;
-      color: #cbd5e1;
+      font-size: 13px;
+      color: #334155;
+      font-weight: 600;
       margin-bottom: 12px;
       line-height: 1.6;
     }
     .xp-badge {
       display: inline-block;
       background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: #0f172a;
+      color: #ffffff;
       font-weight: 900;
       font-size: 13px;
-      padding: 4px 12px;
+      padding: 5px 14px;
       border-radius: 20px;
       margin-bottom: 14px;
-      box-shadow: 0 2px 10px rgba(245,158,11,0.4);
+      box-shadow: 0 3px 10px rgba(245,158,11,0.35);
     }
 
     .modal-btns {
@@ -305,40 +290,43 @@
       gap: 8px;
     }
     .btn-modal-next {
-      background: linear-gradient(135deg, #10b981, #059669);
+      background: #16a34a;
       color: white;
       border: none;
-      padding: 9px 20px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 800;
+      padding: 10px 22px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 900;
       cursor: pointer;
+      box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
     }
+    .btn-modal-next:active { transform: scale(0.95); }
     .btn-modal-retry {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: white;
-      border: none;
-      padding: 9px 20px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 800;
+      background: #fee2e2;
+      color: #ef4444;
+      border: 1px solid #fca5a5;
+      padding: 10px 22px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 900;
       cursor: pointer;
     }
-
-    /* 🏆 기록 리스트 팝업 모달 */
+    /* 🏆 기록 리스트 팝업 모달 (화이트 테마) */
     .record-box {
       width: 88%;
       max-width: 320px;
-      background: #182235;
-      border: 1px solid #334155;
-      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 16px;
       padding: 16px;
       text-align: left;
+      color: #0f172a;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     }
     .record-box h3 {
       font-size: 15px;
-      font-weight: 800;
-      color: #fbbf24;
+      font-weight: 900;
+      color: #d97706;
       margin-bottom: 12px;
       display: flex;
       align-items: center;
@@ -349,23 +337,23 @@
       justify-content: space-between;
       align-items: center;
       padding: 7px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
       font-size: 12px;
     }
     .record-row:last-child {
       border-bottom: none;
     }
     .record-diff {
-      font-weight: 700;
-      color: #e2e8f0;
+      font-weight: 800;
+      color: #0f172a;
     }
     .record-stat {
       font-weight: 800;
-      color: #38bdf8;
+      color: #0284c7;
     }
     .record-max {
       font-size: 10.5px;
-      color: #94a3b8;
+      color: #64748b;
       font-weight: 600;
     }
   </style>
