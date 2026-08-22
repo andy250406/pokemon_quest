@@ -1504,22 +1504,22 @@
               <div class="mini-game-title">Snake Point</div>
             </div>
             <!-- 3. 지뢰찾기 -->
-            <div class="mini-game-card" onclick="alert('💣 Minesweeper 준비 완료!')">
+            <div class="mini-game-card highlight" onclick="openArcadeGame('minesweeper')">
               <div class="mini-game-icon">💣</div>
               <div class="mini-game-title">Minesweeper</div>
             </div>
             <!-- 4. 스파이더 솔리테어 -->
-            <div class="mini-game-card" onclick="alert('🃏 Spider Solitaire 준비 완료!')">
+            <div class="mini-game-card" onclick="alert('🃏 Spider Solitaire 준비 중입니다!')">
               <div class="mini-game-icon">🃏</div>
               <div class="mini-game-title">Spider Solitaire</div>
             </div>
             <!-- 5. 2048 -->
-            <div class="mini-game-card" onclick="alert('🔢 2048 준비 완료!')">
+            <div class="mini-game-card highlight" onclick="openArcadeGame('game_2048')">
               <div class="mini-game-icon">2️⃣</div>
               <div class="mini-game-title">2048</div>
             </div>
             <!-- 6. 수박게임 -->
-            <div class="mini-game-card" onclick="alert('🍉 Watermelon 준비 완료!')">
+            <div class="mini-game-card" onclick="alert('🍉 Watermelon 준비 중입니다!')">
               <div class="mini-game-icon">🍉</div>
               <div class="mini-game-title">Watermelon</div>
             </div>
@@ -6739,6 +6739,8 @@
       const iframe = document.getElementById('arcadeGameIframe');
       if (!modal || !iframe) {
         if (gameType === 'sudoku') window.location.href = './sudoku.html';
+        else if (gameType === 'minesweeper') window.location.href = './minesweeper.html';
+        else if (gameType === 'game_2048' || gameType === '2048') window.location.href = './game_2048.html';
         else window.location.href = './snake_untangle.html';
         return;
       }
@@ -6748,6 +6750,12 @@
         modal.style.display = 'flex';
       } else if (gameType === 'sudoku') {
         iframe.src = './sudoku.html?v=' + Date.now();
+        modal.style.display = 'flex';
+      } else if (gameType === 'minesweeper') {
+        iframe.src = './minesweeper.html?v=' + Date.now();
+        modal.style.display = 'flex';
+      } else if (gameType === 'game_2048' || gameType === '2048') {
+        iframe.src = './game_2048.html?v=' + Date.now();
         modal.style.display = 'flex';
       }
     }

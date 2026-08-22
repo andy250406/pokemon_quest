@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>2048 - 포켓Tasks</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    body {
+      background: #0b101b;
+      color: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .game-screen {
+      width: 100vw;
+      height: 100vh;
+      max-width: 500px;
+      position: relative;
+      background: #f8fafc;
+      background-image: 
+        radial-gradient(at 10% 10%, rgba(224, 242, 254, 0.7) 0px, transparent 50%),
+        radial-gradient(at 90% 90%, rgba(254, 243, 199, 0.6) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(241, 245, 249, 0.8) 0px, transparent 50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    /* 🏷️ 1행: 최상단 네비게이션 */
+    .top-nav {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      box-sizing: border-box;
+    }
+    .top-nav-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-nav {
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      color: #334155;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      transition: all 0.15s ease;
+    }
+    .btn-nav:active {
+      transform: scale(0.95);
+      background: rgba(226, 232, 240, 0.8);
+    }
+    .btn-nav.icon-only {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border-radius: 10px;
+      font-size: 15px;
+    }
+    .header-title {
+      font-size: 17px;
+      font-weight: 900;
+      letter-spacing: -0.3px;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 🕹️ 2행: 점수 / 최고기록 / 최고타일 / 새게임 컨트롤 바구니 칸 */
+    .game-info-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 12px;
+      padding: 6px 8px;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 14px;
+      box-sizing: border-box;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+    .info-stat-pill {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+    }
+    .btn-action.btn-refresh-only {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-action.btn-refresh-only:active {
+      transform: scale(0.92);
+      background: rgba(226, 232, 240, 0.8);
+    }
+
+    /* 🎨 2048 4x4 보드 컨테이너 */
+    #board-container {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      aspect-ratio: 1 / 1;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 2px solid rgba(0, 0, 0, 0.08);
+      border-radius: 20px;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 10px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.06);
+      touch-action: none;
+      margin-bottom: auto;
+      box-sizing: border-box;
+    }
+
+    /* 보드 타일 셀 */
+    .grid-cell {
+      position: relative;
+      background: rgba(0, 0, 0, 0.04);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(20px, 7vw, 32px);
+      font-weight: 900;
+      color: #0f172a;
+      transition: transform 0.1s ease;
+      overflow: hidden;
+    }
+
+    /* 타일 값별 스타일링 */
+    .grid-cell[data-val="2"] { background: #f1f5f9; color: #334155; }
+    .grid-cell[data-val="4"] { background: #e2e8f0; color: #1e293b; }
+    .grid-cell[data-val="8"] { background: #fed7aa; color: #c2410c; }
+    .grid-cell[data-val="16"] { background: #fdba74; color: #9a3412; }
+    .grid-cell[data-val="32"] { background: #fca5a5; color: #991b1b; }
+    .grid-cell[data-val="64"] { background: #f87171; color: #ffffff; }
+    .grid-cell[data-val="128"] { background: #fef08a; color: #854d0e; font-size: clamp(17px, 6vw, 28px); }
+    .grid-cell[data-val="256"] { background: #fde047; color: #713f12; font-size: clamp(17px, 6vw, 28px); }
+    .grid-cell[data-val="512"] { background: #7dd3fc; color: #0369a1; font-size: clamp(17px, 6vw, 28px); }
+    .grid-cell[data-val="1024"] { background: #818cf8; color: #ffffff; font-size: clamp(14px, 5vw, 24px); }
+    .grid-cell[data-val="2048"] { background: #c084fc; color: #ffffff; font-size: clamp(14px, 5vw, 24px); box-shadow: 0 0 20px rgba(192, 132, 252, 0.6); }
+    .grid-cell[data-val="4096"] { background: #f43f5e; color: #ffffff; font-size: clamp(14px, 5vw, 24px); box-shadow: 0 0 24px rgba(244, 63, 94, 0.6); }
+
+    /* 타일 생성 & 합체 팝 애니메이션 */
+    .grid-cell.pop {
+      animation: tilePop 0.2s ease-in-out;
+    }
+    @keyframes tilePop {
+      0% { transform: scale(0.8); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+
+    .grid-cell.new {
+      animation: tileNew 0.18s ease-out;
+    }
+    @keyframes tileNew {
+      0% { transform: scale(0.2); opacity: 0.5; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* 🍞 인게임 토스트 알림 */
+    #gameToast {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(15, 23, 42, 0.9);
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      z-index: 120;
+      white-space: nowrap;
+    }
+    #gameToast.show {
+      opacity: 1;
+    }
+
+    /* ✨ 클리어 / 게임오버 / 기록 모달 공통 */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 20px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      z-index: 100;
+      padding: 16px;
+      text-align: center;
+      color: #0f172a;
+    }
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .clear-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #0284c7;
+      margin-bottom: 6px;
+    }
+    .modal-desc {
+      font-size: 13px;
+      color: #334155;
+      font-weight: 600;
+      margin-bottom: 14px;
+      line-height: 1.6;
+    }
+    .xp-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 14px;
+      padding: 6px 16px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 3px 10px rgba(245, 158, 11, 0.35);
+    }
+    .modal-btns {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-modal-next {
+      background: #0284c7;
+      color: white;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+    }
+    .btn-modal-next:active { transform: scale(0.95); }
+
+    /* 🏆 기록 리스트 팝업 모달 */
+    .record-box {
+      width: 88%;
+      max-width: 320px;
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: left;
+      color: #0f172a;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+    .record-box h3 {
+      font-size: 15px;
+      font-weight: 900;
+      color: #d97706;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .record-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      font-size: 12.5px;
+    }
+    .record-row:last-child {
+      border-bottom: none;
+    }
+    .record-diff {
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .record-stat {
+      font-weight: 900;
+      color: #0284c7;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-screen">
+
+    <!-- 🏷️ 1행: 최상단 네비게이션 (뒤로가기 / 게임제목 / 저장 / 기록) -->
+    <div class="top-nav">
+      <button class="btn-nav icon-only" onclick="closeGameAndReturn()" title="포켓Tasks로 복귀" style="font-size:18px; font-weight:900;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </button>
+      <div class="header-title">
+        🔢 2048
+      </div>
+      <div class="top-nav-right">
+        <button class="btn-nav icon-only" onclick="saveCurrentGame(true)" title="현재 진행 상태 저장">
+          💾
+        </button>
+        <button class="btn-nav icon-only" onclick="openRecordsModal()" title="최고 기록">
+          🏆
+        </button>
+      </div>
+    </div>
+
+    <!-- 🕹️ 2행: 점수 / 최고점수 / 최고타일 / 새게임 컨트롤 바구니 칸 -->
+    <div class="game-info-bar">
+      <div class="info-stat-pill">
+        <span style="color:#64748b;">점수:</span>
+        <span style="color:#0284c7;" id="scoreText">0</span>
+      </div>
+      <div class="info-stat-pill">
+        <span style="color:#64748b;">최고:</span>
+        <span style="color:#d97706;" id="bestScoreText">0</span>
+      </div>
+      <div class="info-stat-pill">
+        <span style="color:#64748b;">타일:</span>
+        <span style="color:#7c3aed;" id="maxTileText">2</span>
+      </div>
+      <button class="btn-action btn-refresh-only" onclick="startNewGame()" title="새 게임 시작">🔄</button>
+    </div>
+
+    <!-- 🎨 2048 4x4 보드 -->
+    <div id="board-container"></div>
+
+    <!-- 🍞 인게임 토스트 -->
+    <div id="gameToast"></div>
+
+    <!-- 🎮 게임 오버 / 클리어 모달 -->
+    <div class="modal-overlay" id="gameOverModal">
+      <div class="clear-title" id="overTitleText">🎮 GAME OVER</div>
+      <div class="modal-desc" id="overDescText"></div>
+      <div class="xp-badge" id="overXpBadge">+10 XP 획득! 🎁</div>
+      <div class="modal-btns">
+        <button class="btn-modal-next" onclick="startNewGame()">새 게임 🚀</button>
+      </div>
+    </div>
+
+    <!-- 🏆 기록 모달 -->
+    <div class="modal-overlay" id="recordsModal">
+      <div class="record-box">
+        <h3>
+          <span>🏆 2048 최고 기록</span>
+          <span style="cursor:pointer; font-size:16px;" onclick="closeRecordsModal()">✕</span>
+        </h3>
+        <div class="record-row">
+          <span class="record-diff">👑 최고 점수</span>
+          <span class="record-stat" id="recBestScore">0점</span>
+        </div>
+        <div class="record-row">
+          <span class="record-diff">🔢 달성 최고 타일</span>
+          <span class="record-stat" id="recMaxTile">2</span>
+        </div>
+        <div class="record-row">
+          <span class="record-diff">🎮 총 플레이 횟수</span>
+          <span class="record-stat" id="recTotalGames">0회</span>
+        </div>
+        <div style="margin-top:14px; text-align:center;">
+          <button class="btn-nav" style="padding:6px 18px; margin:0 auto;" onclick="closeRecordsModal()">닫기</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ========================================================
+    // ⚙️ 2048 데이터 구조 및 상태
+    // ========================================================
+    const GRID_SIZE = 4;
+    let board = Array.from({ length: 4 }, () => Array(4).fill(0));
+    let score = 0;
+    let bestScore = 0;
+    let maxTile = 2;
+    let isGameOver = false;
+    let sessionTotalEarnedXp = 0;
+
+    // ========================================================
+    // 📳 햅틱 진동
+    // ========================================================
+    function triggerHaptic(pattern = 30) {
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try { navigator.vibrate(pattern); } catch(e) {}
+      }
+    }
+
+    // ========================================================
+    // 🍞 토스트 알림
+    // ========================================================
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById('gameToast');
+      if (!el) return;
+      el.innerText = msg;
+      el.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        el.classList.remove('show');
+      }, 1400);
+    }
+
+    // ========================================================
+    // 🏆 기록 및 진행 상태 영구 저장 (localStorage)
+    // ========================================================
+    function loadRecords() {
+      try {
+        const data = localStorage.getItem('game_2048_records_v1');
+        return data ? JSON.parse(data) : { bestScore: 0, maxTile: 2, totalGames: 0 };
+      } catch(e) {
+        return { bestScore: 0, maxTile: 2, totalGames: 0 };
+      }
+    }
+
+    function saveRecords(rec) {
+      try {
+        localStorage.setItem('game_2048_records_v1', JSON.stringify(rec));
+      } catch(e) {}
+    }
+
+    function saveCurrentGame(isUserExplicit = false) {
+      try {
+        const gameState = {
+          board,
+          score,
+          maxTile,
+          isGameOver
+        };
+        localStorage.setItem('game_2048_saved_state_v1', JSON.stringify(gameState));
+        if (isUserExplicit) {
+          showToast('💾 진행 상태가 저장되었습니다!');
+          triggerHaptic(30);
+        }
+      } catch(e) {}
+    }
+
+    function loadSavedGame() {
+      try {
+        const data = localStorage.getItem('game_2048_saved_state_v1');
+        if (!data) return null;
+        const parsed = JSON.parse(data);
+        if (parsed.board && Array.isArray(parsed.board) && parsed.board.length === 4 && !parsed.isGameOver) {
+          return parsed;
+        }
+      } catch(e) {}
+      return null;
+    }
+
+    function openRecordsModal() {
+      const rec = loadRecords();
+      document.getElementById('recBestScore').innerText = `${(rec.bestScore || 0).toLocaleString()}점`;
+      document.getElementById('recMaxTile').innerText = `${rec.maxTile || 2}`;
+      document.getElementById('recTotalGames').innerText = `${rec.totalGames || 0}회`;
+      document.getElementById('recordsModal').classList.add('show');
+    }
+
+    function closeRecordsModal() {
+      document.getElementById('recordsModal').classList.remove('show');
+    }
+
+    // ========================================================
+    // 📐 보드 및 상단 컨트롤 너비 동기화
+    // ========================================================
+    function syncBoardWidths() {
+      const screenEl = document.querySelector('.game-screen') || document.body;
+      const availableW = Math.max(260, Math.min(screenEl.clientWidth - 16, 420));
+      const availableH = Math.max(280, window.innerHeight - 130);
+      const boardW = Math.min(availableW, availableH);
+
+      const boardContainer = document.getElementById('board-container');
+      const topNav = document.querySelector('.top-nav');
+      const infoBar = document.querySelector('.game-info-bar');
+
+      if (boardContainer) {
+        boardContainer.style.maxWidth = boardW + 'px';
+        boardContainer.style.width = boardW + 'px';
+      }
+      if (topNav) {
+        topNav.style.maxWidth = boardW + 'px';
+        topNav.style.width = boardW + 'px';
+      }
+      if (infoBar) {
+        infoBar.style.maxWidth = boardW + 'px';
+        infoBar.style.width = boardW + 'px';
+      }
+    }
+
+    // ========================================================
+    // 🔄 게임 초기화 & 시작
+    // ========================================================
+    function startNewGame() {
+      document.getElementById('gameOverModal').classList.remove('show');
+      document.getElementById('recordsModal').classList.remove('show');
+
+      board = Array.from({ length: 4 }, () => Array(4).fill(0));
+      score = 0;
+      maxTile = 2;
+      isGameOver = false;
+
+      // 새 게임 카운트 증가
+      const rec = loadRecords();
+      rec.totalGames = (rec.totalGames || 0) + 1;
+      saveRecords(rec);
+
+      spawnRandomTile();
+      spawnRandomTile();
+
+      updateStatusDisplay();
+      renderBoard();
+      saveCurrentGame(false);
+    }
+
+    function initGame() {
+      const rec = loadRecords();
+      bestScore = rec.bestScore || 0;
+
+      const saved = loadSavedGame();
+      if (saved) {
+        board = saved.board;
+        score = saved.score || 0;
+        maxTile = saved.maxTile || 2;
+        isGameOver = saved.isGameOver || false;
+      } else {
+        startNewGame();
+        return;
+      }
+
+      updateStatusDisplay();
+      renderBoard();
+      syncBoardWidths();
+    }
+
+    // ========================================================
+    // 🎲 타일 생성 & 렌더링
+    // ========================================================
+    function spawnRandomTile() {
+      const emptyCells = [];
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          if (board[r][c] === 0) emptyCells.push({ r, c });
+        }
+      }
+      if (emptyCells.length === 0) return null;
+
+      const chosen = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+      const val = Math.random() < 0.9 ? 2 : 4;
+      board[chosen.r][chosen.c] = val;
+      return chosen;
+    }
+
+    function renderBoard(newPos = null, mergedPositions = []) {
+      const container = document.getElementById('board-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'grid-cell';
+          const val = board[r][c];
+
+          if (val > 0) {
+            cell.setAttribute('data-val', val);
+            cell.innerText = val;
+
+            if (newPos && newPos.r === r && newPos.c === c) {
+              cell.classList.add('new');
+            } else if (mergedPositions.some(p => p.r === r && p.c === c)) {
+              cell.classList.add('pop');
+            }
+          }
+          container.appendChild(cell);
+        }
+      }
+    }
+
+    function updateStatusDisplay() {
+      document.getElementById('scoreText').innerText = `${score.toLocaleString()}`;
+      document.getElementById('bestScoreText').innerText = `${bestScore.toLocaleString()}`;
+      document.getElementById('maxTileText').innerText = `${maxTile}`;
+    }
+
+    // ========================================================
+    // 🕹️ 이동 알고리즘 (2048 코어 로직)
+    // ========================================================
+    function slide(row) {
+      let arr = row.filter(val => val !== 0);
+      let merged = [];
+      for (let i = 0; i < arr.length - 1; i++) {
+        if (arr[i] === arr[i + 1]) {
+          arr[i] *= 2;
+          score += arr[i];
+          if (arr[i] > maxTile) maxTile = arr[i];
+          arr[i + 1] = 0;
+          merged.push(i);
+        }
+      }
+      arr = arr.filter(val => val !== 0);
+      while (arr.length < 4) {
+        arr.push(0);
+      }
+      return { arr, merged };
+    }
+
+    function move(direction) {
+      if (isGameOver) return false;
+
+      let moved = false;
+      let mergedPositions = [];
+      const oldBoard = board.map(r => [...r]);
+
+      if (direction === 'LEFT') {
+        for (let r = 0; r < 4; r++) {
+          const res = slide(board[r]);
+          board[r] = res.arr;
+          res.merged.forEach(c => mergedPositions.push({ r, c }));
+        }
+      } else if (direction === 'RIGHT') {
+        for (let r = 0; r < 4; r++) {
+          const res = slide(board[r].slice().reverse());
+          board[r] = res.arr.reverse();
+          res.merged.forEach(c => mergedPositions.push({ r, c: 3 - c }));
+        }
+      } else if (direction === 'UP') {
+        for (let c = 0; c < 4; c++) {
+          let col = [board[0][c], board[1][c], board[2][c], board[3][c]];
+          const res = slide(col);
+          for (let r = 0; r < 4; r++) board[r][c] = res.arr[r];
+          res.merged.forEach(r => mergedPositions.push({ r, c }));
+        }
+      } else if (direction === 'DOWN') {
+        for (let c = 0; c < 4; c++) {
+          let col = [board[3][c], board[2][c], board[1][c], board[0][c]];
+          const res = slide(col);
+          for (let r = 0; r < 4; r++) board[3 - r][c] = res.arr[r];
+          res.merged.forEach(r => mergedPositions.push({ r: 3 - r, c }));
+        }
+      }
+
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          if (oldBoard[r][c] !== board[r][c]) moved = true;
+        }
+      }
+
+      if (moved) {
+        triggerHaptic(20);
+        const newPos = spawnRandomTile();
+
+        if (score > bestScore) {
+          bestScore = score;
+          const rec = loadRecords();
+          rec.bestScore = bestScore;
+          if (maxTile > (rec.maxTile || 2)) rec.maxTile = maxTile;
+          saveRecords(rec);
+        }
+
+        updateStatusDisplay();
+        renderBoard(newPos, mergedPositions);
+        saveCurrentGame(false);
+
+        // 게임오버 체크
+        if (checkGameOver()) {
+          handleGameOver();
+        }
+      }
+      return moved;
+    }
+
+    function checkGameOver() {
+      // 1) 빈칸이 있으면 아직 게임오버 아님
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          if (board[r][c] === 0) return false;
+        }
+      }
+      // 2) 인접한 같은 숫자가 있으면 합칠 수 있음
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          const v = board[r][c];
+          if (r < 3 && board[r + 1][c] === v) return false;
+          if (c < 3 && board[r][c + 1] === v) return false;
+        }
+      }
+      return true;
+    }
+
+    // ========================================================
+    // 🎁 게임오버 시 높은 타일별 경험치 산정 및 보상 지급
+    // ========================================================
+    function handleGameOver() {
+      isGameOver = true;
+      triggerHaptic([60, 50, 80, 60, 160]);
+
+      // 🌟 [경험치 공식]: 판에 남아있는 높은 타일들의 가치 합산
+      let tileRewardXp = 0;
+      let count128 = 0, count256 = 0, count512 = 0, count1024 = 0, count2048Plus = 0;
+
+      for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+          const v = board[r][c];
+          if (v >= 2048) { count2048Plus++; tileRewardXp += 50; }
+          else if (v === 1024) { count1024++; tileRewardXp += 30; }
+          else if (v === 512) { count512++; tileRewardXp += 20; }
+          else if (v === 256) { count256++; tileRewardXp += 10; }
+          else if (v === 128) { count128++; tileRewardXp += 5; }
+        }
+      }
+
+      // 기본 참가 보상 10 XP + 타일 합산 (최대 100 XP)
+      const finalXp = Math.min(100, Math.max(10, 10 + tileRewardXp));
+
+      let descHtml = `최종 점수: <b>${score.toLocaleString()}점</b><br>최고 타일: <b>${maxTile}</b>`;
+      if (count2048Plus > 0 || count1024 > 0 || count512 > 0) {
+        descHtml += `<br><span style="color:#0284c7; font-size:11.5px; font-weight:800;">✨ 고급 타일 보너스 적용!</span>`;
+      }
+
+      document.getElementById('overDescText').innerHTML = descHtml;
+      document.getElementById('overXpBadge').innerText = `총 +${finalXp} XP 획득! 🎁`;
+      document.getElementById('gameOverModal').classList.add('show');
+
+      // 세션 누적 경험치 가산 & 로컬 저장
+      sessionTotalEarnedXp += finalXp;
+      try {
+        localStorage.setItem('2048_PENDING_XP', sessionTotalEarnedXp);
+      } catch(e) {}
+    }
+
+    // ========================================================
+    // 👆 터치 스와이프 & 키보드 조작 이벤트
+    // ========================================================
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    const boardEl = document.getElementById('board-container');
+
+    window.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+      if (!touchStartX || !touchStartY) return;
+      const diffX = e.changedTouches[0].clientX - touchStartX;
+      const diffY = e.changedTouches[0].clientY - touchStartY;
+      const absX = Math.abs(diffX);
+      const absY = Math.abs(diffY);
+
+      if (Math.max(absX, absY) > 30) {
+        if (absX > absY) {
+          if (diffX > 0) move('RIGHT');
+          else move('LEFT');
+        } else {
+          if (diffY > 0) move('DOWN');
+          else move('UP');
+        }
+      }
+      touchStartX = 0;
+      touchStartY = 0;
+    }, { passive: true });
+
+    window.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case 'ArrowLeft': case 'a': case 'A': e.preventDefault(); move('LEFT'); break;
+        case 'ArrowRight': case 'd': case 'D': e.preventDefault(); move('RIGHT'); break;
+        case 'ArrowUp': case 'w': case 'W': e.preventDefault(); move('UP'); break;
+        case 'ArrowDown': case 's': case 'S': e.preventDefault(); move('DOWN'); break;
+      }
+    });
+
+    // ========================================================
+    // 🚪 포켓Tasks로 복귀 (모아둔 경험치 한 번에 전달!)
+    // ========================================================
+    function closeGameAndReturn() {
+      // 나가기 직전 상태 자동 저장
+      saveCurrentGame(false);
+
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: 'GAME_FINISHED_RETURN',
+          gameType: 'game_2048',
+          gameName: '2048',
+          totalXp: sessionTotalEarnedXp
+        }, '*');
+      } else {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = './index.html?rewardXp=' + sessionTotalEarnedXp;
+        }
+      }
+    }
+
+    window.onload = initGame;
+    window.onresize = syncBoardWidths;
+  </script>
+</body>
+</html>

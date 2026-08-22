@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Minesweeper - 지뢰찾기</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    body {
+      background: #0b101b;
+      color: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .game-screen {
+      width: 100vw;
+      height: 100vh;
+      max-width: 560px;
+      position: relative;
+      background: #f8fafc;
+      background-image: 
+        radial-gradient(at 10% 10%, rgba(224, 242, 254, 0.7) 0px, transparent 50%),
+        radial-gradient(at 90% 90%, rgba(254, 243, 199, 0.6) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(241, 245, 249, 0.8) 0px, transparent 50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+
+    /* 🏷️ 1행: 최상단 네비게이션 */
+    .top-nav {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      box-sizing: border-box;
+    }
+    .btn-nav {
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      color: #334155;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      transition: all 0.15s ease;
+    }
+    .btn-nav:active {
+      transform: scale(0.95);
+      background: rgba(226, 232, 240, 0.8);
+    }
+    .btn-nav.icon-only {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border-radius: 10px;
+      font-size: 15px;
+    }
+    .header-title {
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: -0.3px;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 🕹️ 2행: 게임 정보 & 크기 & 난이도 컨트롤 바구니 칸 (화이트 글래스모피즘) */
+    .game-info-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      margin-bottom: 6px;
+      padding: 5px 6px;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 14px;
+      box-sizing: border-box;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+    .info-stat-pill {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 10px;
+      padding: 6px 8px;
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+      white-space: nowrap;
+    }
+    select {
+      flex: 0 1 auto;
+      width: auto;
+      max-width: 138px;
+      padding: 6px 4px;
+      font-size: 11px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.85);
+      color: #0f172a;
+      cursor: pointer;
+      font-weight: 800;
+      outline: none;
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+      white-space: nowrap;
+    }
+    .btn-action {
+      padding: 6px 8px;
+      font-size: 11.5px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.85);
+      color: #0f172a;
+      cursor: pointer;
+      font-weight: 800;
+      outline: none;
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+    }
+    .btn-action:active {
+      transform: scale(0.95);
+      background: rgba(226, 232, 240, 0.8);
+    }
+    .btn-action.btn-refresh-only {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      color: #334155;
+    }
+
+    /* 🎨 캔버스 뷰포트 컨테이너 (화이트 글래스모피즘) */
+    #canvas-container {
+      position: relative;
+      border: 2px solid rgba(0, 0, 0, 0.08);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      touch-action: none;
+      overflow: hidden;
+      margin-bottom: auto;
+    }
+    canvas {
+      display: block;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    /* 🕹️ 하단 스마트 모드 전환 바 */
+    .bottom-mode-bar {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      gap: 6px;
+      margin-top: auto;
+      margin-bottom: 2px;
+      box-sizing: border-box;
+    }
+    .btn-mode-toggle {
+      flex: 1;
+      padding: 9px 0;
+      font-size: 13px;
+      font-weight: 800;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.75);
+      color: #475569;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+      transition: all 0.15s ease;
+    }
+    .btn-mode-toggle.active {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #0284c7;
+      box-shadow: 0 3px 10px rgba(2, 132, 199, 0.35);
+    }
+    .btn-mode-toggle.flag-mode.active {
+      background: #ea580c;
+      border-color: #ea580c;
+      box-shadow: 0 3px 10px rgba(234, 88, 12, 0.35);
+    }
+
+    /* ✨ 클리어 / 실패 / 기록 모달 공통 (화이트 글래스모피즘 테마) */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 20px;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      z-index: 100;
+      padding: 16px;
+      text-align: center;
+      color: #0f172a;
+    }
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .clear-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: #16a34a;
+      margin-bottom: 6px;
+    }
+    .fail-title {
+      font-size: 20px;
+      font-weight: 900;
+      color: #dc2626;
+      margin-bottom: 6px;
+    }
+    .modal-desc {
+      font-size: 13px;
+      color: #334155;
+      font-weight: 600;
+      margin-bottom: 12px;
+      line-height: 1.6;
+    }
+    .xp-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 13px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 3px 10px rgba(245, 158, 11, 0.35);
+    }
+    .modal-btns {
+      display: flex;
+      gap: 8px;
+    }
+    .btn-modal-next {
+      background: #16a34a;
+      color: white;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+    }
+    .btn-modal-next:active { transform: scale(0.95); }
+    .btn-modal-retry {
+      background: #fee2e2;
+      color: #ef4444;
+      border: 1px solid #fca5a5;
+      padding: 10px 22px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .btn-modal-retry:active { transform: scale(0.95); }
+
+    /* 🏆 기록 리스트 팝업 모달 */
+    .record-box {
+      width: 88%;
+      max-width: 320px;
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: left;
+      color: #0f172a;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+    .record-box h3 {
+      font-size: 15px;
+      font-weight: 900;
+      color: #d97706;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .record-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      font-size: 12px;
+    }
+    .record-row:last-child {
+      border-bottom: none;
+    }
+    .record-diff {
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .record-stat {
+      font-weight: 800;
+      color: #0284c7;
+    }
+    .record-max {
+      font-size: 10.5px;
+      color: #64748b;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="game-screen">
+
+    <!-- 🏷️ 1행: 최상단 네비게이션 -->
+    <div class="top-nav">
+      <button class="btn-nav icon-only" onclick="closeGameAndReturn()" title="포켓Tasks로 복귀" style="font-size:18px; font-weight:900;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </button>
+      <div class="header-title">
+        💣 Minesweeper
+      </div>
+      <button class="btn-nav icon-only" onclick="openRecordsModal()" title="난이도별 연승 기록">
+        🏆
+      </button>
+    </div>
+
+    <!-- 🕹️ 2행: 남은 지뢰 수 & 칸 크기 & 난이도 & 새로고침 바구니 칸 -->
+    <div class="game-info-bar">
+      <div class="info-stat-pill">
+        <span style="color:#ef4444;">🚩</span>
+        <span style="color:#0f172a;" id="mineCountText">0</span>
+      </div>
+      <select id="sizeSelect" onchange="generateStage()">
+        <option value="16x24">16x24 (+0XP)</option>
+        <option value="20x30" selected>20x30 (+10XP)</option>
+        <option value="26x38">26x38 (+20XP)</option>
+        <option value="32x46">32x46 (+40XP)</option>
+      </select>
+      <select id="diffSelect" onchange="generateStage()">
+        <option value="normal" selected>🟢 보통 (+20XP)</option>
+        <option value="hard">🔥 어려움 (+30XP)</option>
+        <option value="minefield">💀 지뢰밭 (+40XP)</option>
+      </select>
+      <button class="btn-action btn-refresh-only" onclick="generateStage()" title="새 맵 생성">🔄</button>
+    </div>
+
+    <!-- 🎨 게임 캔버스 컨테이너 -->
+    <div id="canvas-container">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <!-- 🕹️ 하단 모드 전환 바 (열기 🔍 / 깃발 🚩) -->
+    <div class="bottom-mode-bar">
+      <button class="btn-mode-toggle active" id="btnModeDig" onclick="setInteractionMode('DIG')">
+        🔍 칸 열기
+      </button>
+      <button class="btn-mode-toggle flag-mode" id="btnModeFlag" onclick="setInteractionMode('FLAG')">
+        🚩 깃발 꽂기
+      </button>
+    </div>
+
+    <!-- 🎉 스테이지 클리어 모달 -->
+    <div class="modal-overlay" id="clearModal">
+      <div class="clear-title" id="clearTitleText">🎉 CLEAR!</div>
+      <div class="modal-desc" id="clearDescText">모든 지뢰를 피해 안전하게 탐사 완료했습니다!</div>
+      <div class="xp-badge" id="clearXpBadge">+30 XP 획득! 🎁</div>
+      <div class="modal-btns">
+        <button class="btn-modal-next" onclick="generateStage()">다음 맵 🚀</button>
+      </div>
+    </div>
+
+    <!-- 💥 스테이지 실패 모달 -->
+    <div class="modal-overlay" id="failModal">
+      <div class="fail-title">💥 지뢰 폭발!</div>
+      <div class="modal-desc">지뢰를 밟아 탐사가 중단되었습니다.<br>다시 도전해 보세요!</div>
+      <div class="modal-btns">
+        <button class="btn-modal-retry" onclick="generateStage()">다시 도전 🔄</button>
+      </div>
+    </div>
+
+    <!-- 🏆 난이도별 연승 기록 모달 -->
+    <div class="modal-overlay" id="recordsModal">
+      <div class="record-box">
+        <h3>
+          <span>🏆 난이도별 연승 기록</span>
+          <span style="cursor:pointer; font-size:16px;" onclick="closeRecordsModal()">✕</span>
+        </h3>
+        <div class="record-row">
+          <span class="record-diff">🟢 보통</span>
+          <div>
+            <span class="record-stat" id="recStreak_normal">0연승</span> <span class="record-max" id="recMax_normal">(최고 0)</span>
+          </div>
+        </div>
+        <div class="record-row">
+          <span class="record-diff">🔥 어려움</span>
+          <div>
+            <span class="record-stat" id="recStreak_hard">0연승</span> <span class="record-max" id="recMax_hard">(최고 0)</span>
+          </div>
+        </div>
+        <div class="record-row">
+          <span class="record-diff">💀 지뢰밭</span>
+          <div>
+            <span class="record-stat" id="recStreak_minefield">0연승</span> <span class="record-max" id="recMax_minefield">(최고 0)</span>
+          </div>
+        </div>
+        <div style="margin-top:14px; text-align:center;">
+          <button class="btn-action" style="padding:6px 18px;" onclick="closeRecordsModal()">닫기</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ========================================================
+    // ⚙️ 환경 설정 및 경험치 규칙
+    // ========================================================
+    const SIZE_CONFIG = {
+      "16x24": { cols: 16, rows: 24, sizeXp: 0 },
+      "20x30": { cols: 20, rows: 30, sizeXp: 10 },
+      "26x38": { cols: 26, rows: 38, sizeXp: 20 },
+      "32x46": { cols: 32, rows: 46, sizeXp: 40 }
+    };
+
+    const DIFF_CONFIG = {
+      "normal": { name: "보통", density: 0.12, diffXp: 20 },
+      "hard": { name: "어려움", density: 0.16, diffXp: 30 },
+      "minefield": { name: "지뢰밭", density: 0.21, diffXp: 40 }
+    };
+
+    const NUMBER_COLORS = [
+      "",
+      "#2563eb", // 1: 파랑
+      "#16a34a", // 2: 초록
+      "#dc2626", // 3: 빨강
+      "#7c3aed", // 4: 보라
+      "#ea580c", // 5: 주황
+      "#0891b2", // 6: 청록
+      "#0f172a", // 7: 검정
+      "#64748b"  // 8: 회색
+    ];
+
+    let COLS = 20;
+    let ROWS = 30;
+    let CELL_SIZE = 16;
+    let totalMines = 0;
+    let flagsPlaced = 0;
+    let isGameOver = false;
+    let isGameWon = false;
+    let isFirstClick = true;
+    let interactionMode = "DIG"; // "DIG" 또는 "FLAG"
+    let sessionTotalEarnedXp = 0;
+
+    // 보드 데이터 구조: { isMine, isOpen, isFlag, count }
+    let board = [];
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // ========================================================
+    // 📳 햅틱 진동
+    // ========================================================
+    function triggerHaptic(pattern = 30) {
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try { navigator.vibrate(pattern); } catch(e) {}
+      }
+    }
+
+    // ========================================================
+    // 🏆 연승 기록 관리 (localStorage)
+    // ========================================================
+    function loadGameRecords() {
+      try {
+        const data = localStorage.getItem('minesweeper_records_v1');
+        return data ? JSON.parse(data) : {};
+      } catch(e) { return {}; }
+    }
+
+    function saveGameRecords(records) {
+      try { localStorage.setItem('minesweeper_records_v1', JSON.stringify(records)); } catch(e) {}
+    }
+
+    function getStageRecord(diffKey) {
+      const rec = loadGameRecords();
+      return rec[diffKey] || { currentStreak: 0, maxStreak: 0 };
+    }
+
+    function updateStreakOnClear(diffKey) {
+      const rec = loadGameRecords();
+      if (!rec[diffKey]) rec[diffKey] = { currentStreak: 0, maxStreak: 0 };
+      rec[diffKey].currentStreak = (rec[diffKey].currentStreak || 0) + 1;
+      if (rec[diffKey].currentStreak > (rec[diffKey].maxStreak || 0)) {
+        rec[diffKey].maxStreak = rec[diffKey].currentStreak;
+      }
+      saveGameRecords(rec);
+      return rec[diffKey];
+    }
+
+    function resetStreakOnFail(diffKey) {
+      const rec = loadGameRecords();
+      if (rec[diffKey]) {
+        rec[diffKey].currentStreak = 0;
+        saveGameRecords(rec);
+      }
+    }
+
+    function openRecordsModal() {
+      const rec = loadGameRecords();
+      ["normal", "hard", "minefield"].forEach(key => {
+        const item = rec[key] || { currentStreak: 0, maxStreak: 0 };
+        document.getElementById(`recStreak_${key}`).innerText = `${item.currentStreak || 0}연승`;
+        document.getElementById(`recMax_${key}`).innerText = `(최고 ${item.maxStreak || 0}연승)`;
+      });
+      document.getElementById('recordsModal').classList.add('show');
+    }
+
+    function closeRecordsModal() {
+      document.getElementById('recordsModal').classList.remove('show');
+    }
+
+    // ========================================================
+    // 🕹️ 조작 모드 전환
+    // ========================================================
+    function setInteractionMode(mode) {
+      interactionMode = mode;
+      document.getElementById('btnModeDig').classList.toggle('active', mode === 'DIG');
+      document.getElementById('btnModeFlag').classList.toggle('active', mode === 'FLAG');
+      triggerHaptic(20);
+    }
+
+    function updateStatusDisplay() {
+      const remaining = Math.max(0, totalMines - flagsPlaced);
+      document.getElementById('mineCountText').innerText = `${remaining}`;
+    }
+
+    // 📐 보드 크기와 상단 헤더 동기화
+    function syncBoardWidths() {
+      const boardW = canvas.width + 4;
+      const topNav = document.querySelector('.top-nav');
+      const infoBar = document.querySelector('.game-info-bar');
+      const canvasContainer = document.getElementById('canvas-container');
+      const bottomBar = document.querySelector('.bottom-mode-bar');
+
+      if (topNav) { topNav.style.maxWidth = boardW + 'px'; topNav.style.width = boardW + 'px'; }
+      if (infoBar) { infoBar.style.maxWidth = boardW + 'px'; infoBar.style.width = boardW + 'px'; }
+      if (canvasContainer) { canvasContainer.style.maxWidth = boardW + 'px'; canvasContainer.style.width = boardW + 'px'; }
+      if (bottomBar) { bottomBar.style.maxWidth = boardW + 'px'; bottomBar.style.width = boardW + 'px'; }
+    }
+
+    function calculateBestCellSize() {
+      const screenEl = document.querySelector('.game-screen') || document.body;
+      const availableW = Math.max(260, Math.min(screenEl.clientWidth - 12, 540));
+      const availableH = Math.max(300, window.innerHeight - 170);
+      return Math.max(8, Math.min(Math.floor(availableW / COLS), Math.floor(availableH / ROWS)));
+    }
+
+    // ========================================================
+    // 🔄 맵 생성 및 초기화
+    // ========================================================
+    function generateStage() {
+      document.getElementById('clearModal').classList.remove('show');
+      document.getElementById('failModal').classList.remove('show');
+      document.getElementById('recordsModal').classList.remove('show');
+
+      const sizeKey = document.getElementById('sizeSelect').value;
+      const diffKey = document.getElementById('diffSelect').value;
+
+      const sizeCfg = SIZE_CONFIG[sizeKey] || SIZE_CONFIG["20x30"];
+      const diffCfg = DIFF_CONFIG[diffKey] || DIFF_CONFIG["normal"];
+
+      COLS = sizeCfg.cols;
+      ROWS = sizeCfg.rows;
+      totalMines = Math.floor(COLS * ROWS * diffCfg.density);
+      flagsPlaced = 0;
+      isGameOver = false;
+      isGameWon = false;
+      isFirstClick = true;
+
+      CELL_SIZE = calculateBestCellSize();
+      canvas.width = COLS * CELL_SIZE;
+      canvas.height = ROWS * CELL_SIZE;
+
+      // 빈 보드 생성
+      board = Array.from({ length: ROWS }, () =>
+        Array.from({ length: COLS }, () => ({
+          isMine: false,
+          isOpen: false,
+          isFlag: false,
+          count: 0
+        }))
+      );
+
+      updateStatusDisplay();
+      syncBoardWidths();
+      draw();
+    }
+
+    // 첫 클릭 시 안전 구역(지뢰 0개) 보장 지뢰 심기
+    function plantMines(safeR, safeC) {
+      let planted = 0;
+      while (planted < totalMines) {
+        const r = Math.floor(Math.random() * ROWS);
+        const c = Math.floor(Math.random() * COLS);
+
+        // 첫 클릭한 칸 및 8방향 인접칸 제외
+        if (Math.abs(r - safeR) <= 1 && Math.abs(c - safeC) <= 1) continue;
+        if (board[r][c].isMine) continue;
+
+        board[r][c].isMine = true;
+        planted++;
+      }
+
+      // 각 칸 주변 지뢰 수 계산
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (board[r][c].isMine) continue;
+          let cnt = 0;
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              const nr = r + dr, nc = c + dc;
+              if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && board[nr][nc].isMine) {
+                cnt++;
+              }
+            }
+          }
+          board[r][c].count = cnt;
+        }
+      }
+    }
+
+    // ========================================================
+    // 🎨 렌더링 시스템 (화이트 글래스모피즘 & 클래식 타일)
+    // ========================================================
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          const cell = board[r][c];
+          const x = c * CELL_SIZE;
+          const y = r * CELL_SIZE;
+
+          if (cell.isOpen) {
+            if (cell.isMine) {
+              // 밟은 지뢰
+              ctx.fillStyle = '#ef4444';
+              ctx.fillRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+              ctx.font = `${Math.floor(CELL_SIZE * 0.65)}px sans-serif`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText('💣', x + CELL_SIZE / 2, y + CELL_SIZE / 2);
+            } else {
+              // 열린 빈칸
+              ctx.fillStyle = '#ffffff';
+              ctx.fillRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+
+              if (cell.count > 0) {
+                ctx.fillStyle = NUMBER_COLORS[cell.count] || '#0f172a';
+                ctx.font = `bold ${Math.max(10, Math.floor(CELL_SIZE * 0.68))}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(cell.count, x + CELL_SIZE / 2, y + CELL_SIZE / 2 + 1);
+              }
+            }
+          } else {
+            // 닫힌 칸 (화이트 글래스 버튼 느낌)
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+
+            // 상단/좌측 하이라이트
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(x + 1, y + 1, CELL_SIZE - 2, 2);
+            ctx.fillRect(x + 1, y + 1, 2, CELL_SIZE - 2);
+
+            if (cell.isFlag) {
+              ctx.font = `${Math.floor(CELL_SIZE * 0.65)}px sans-serif`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText('🚩', x + CELL_SIZE / 2, y + CELL_SIZE / 2);
+            }
+          }
+
+          // 격자선
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+        }
+      }
+    }
+
+    // ========================================================
+    // 👆 터치 & 클릭 조작 핸들러
+    // ========================================================
+    let longPressTimer = null;
+    let isLongPressTriggered = false;
+    let touchStartPos = null;
+
+    canvas.addEventListener('pointerdown', (e) => {
+      if (isGameOver) return;
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+      const c = Math.floor((clientX - rect.left) / CELL_SIZE);
+      const r = Math.floor((clientY - rect.top) / CELL_SIZE);
+
+      if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+
+      touchStartPos = { r, c, clientX, clientY };
+      isLongPressTriggered = false;
+
+      // 모바일 길게 누르기(280ms)로 깃발 토글
+      longPressTimer = setTimeout(() => {
+        isLongPressTriggered = true;
+        toggleFlag(r, c);
+        triggerHaptic(45);
+        draw();
+      }, 280);
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!touchStartPos) return;
+      const dist = Math.hypot(e.clientX - touchStartPos.clientX, e.clientY - touchStartPos.clientY);
+      if (dist > 10) {
+        clearTimeout(longPressTimer);
+      }
+    });
+
+    canvas.addEventListener('pointerup', (e) => {
+      clearTimeout(longPressTimer);
+      if (isGameOver || isLongPressTriggered || !touchStartPos) {
+        touchStartPos = null;
+        return;
+      }
+
+      const rect = canvas.getBoundingClientRect();
+      const c = Math.floor((e.clientX - rect.left) / CELL_SIZE);
+      const r = Math.floor((e.clientY - rect.top) / CELL_SIZE);
+
+      if (r === touchStartPos.r && c === touchStartPos.c) {
+        if (e.button === 2 || interactionMode === "FLAG") {
+          // 우클릭 or 깃발 모드
+          toggleFlag(r, c);
+        } else {
+          // 좌클릭 or 열기 모드
+          handleClickCell(r, c);
+        }
+        draw();
+      }
+      touchStartPos = null;
+    });
+
+    canvas.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+    });
+
+    // 🚩 깃발 토글
+    function toggleFlag(r, c) {
+      if (board[r][c].isOpen) return;
+      board[r][c].isFlag = !board[r][c].isFlag;
+      flagsPlaced += board[r][c].isFlag ? 1 : -1;
+      triggerHaptic(25);
+      updateStatusDisplay();
+    }
+
+    // 🔍 칸 열기 또는 Chord(주변 개방)
+    function handleClickCell(r, c) {
+      const cell = board[r][c];
+
+      // 1) 이미 열린 숫자 칸 탭 -> 주변 깃발 수가 일치하면 주변 미개봉 칸 일괄 오픈 (Chord 기능)
+      if (cell.isOpen && cell.count > 0) {
+        let flagCount = 0;
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            const nr = r + dr, nc = c + dc;
+            if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && board[nr][nc].isFlag) {
+              flagCount++;
+            }
+          }
+        }
+        if (flagCount === cell.count) {
+          triggerHaptic(30);
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              const nr = r + dr, nc = c + dc;
+              if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && !board[nr][nc].isOpen && !board[nr][nc].isFlag) {
+                openCell(nr, nc);
+              }
+            }
+          }
+          checkWinCondition();
+        }
+        return;
+      }
+
+      if (cell.isOpen || cell.isFlag) return;
+
+      // 2) 첫 클릭 처리
+      if (isFirstClick) {
+        isFirstClick = false;
+        plantMines(r, c);
+      }
+
+      triggerHaptic(20);
+      openCell(r, c);
+      checkWinCondition();
+    }
+
+    // 칸 열기 (0이면 연쇄 BFS 오픈)
+    function openCell(r, c) {
+      if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+      const cell = board[r][c];
+      if (cell.isOpen || cell.isFlag) return;
+
+      cell.isOpen = true;
+
+      if (cell.isMine) {
+        handleGameFail();
+        return;
+      }
+
+      // 0인 경우 주변 8칸 연쇄 오픈
+      if (cell.count === 0) {
+        const queue = [{ r, c }];
+        while (queue.length > 0) {
+          const cur = queue.shift();
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              const nr = cur.r + dr, nc = cur.c + dc;
+              if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+                const nextCell = board[nr][nc];
+                if (!nextCell.isOpen && !nextCell.isFlag && !nextCell.isMine) {
+                  nextCell.isOpen = true;
+                  if (nextCell.count === 0) {
+                    queue.push({ r: nr, c: nc });
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // ========================================================
+    // 🏆 승리 & 실패 판정 및 경험치 지급
+    // ========================================================
+    function checkWinCondition() {
+      if (isGameOver) return;
+
+      let unOpenedNonMines = 0;
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (!board[r][c].isMine && !board[r][c].isOpen) {
+            unOpenedNonMines++;
+          }
+        }
+      }
+
+      if (unOpenedNonMines === 0) {
+        handleGameWin();
+      }
+    }
+
+    function handleGameWin() {
+      isGameOver = true;
+      isGameWon = true;
+      triggerHaptic([60, 50, 80, 60, 160]);
+
+      // 남은 지뢰 칸 깃발 일괄 처리
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (board[r][c].isMine) board[r][c].isFlag = true;
+        }
+      }
+      flagsPlaced = totalMines;
+      updateStatusDisplay();
+
+      const sizeKey = document.getElementById('sizeSelect').value;
+      const diffKey = document.getElementById('diffSelect').value;
+      const sizeCfg = SIZE_CONFIG[sizeKey] || SIZE_CONFIG["20x30"];
+      const diffCfg = DIFF_CONFIG[diffKey] || DIFF_CONFIG["normal"];
+
+      // 🌟 [경험치 공식]: 칸수별 XP (0/10/20/40) + 난이도별 XP (20/30/40)
+      const totalReward = sizeCfg.sizeXp + diffCfg.diffXp;
+      const updatedRec = updateStreakOnClear(diffKey);
+
+      document.getElementById('clearTitleText').innerText = `🎉 ${diffCfg.name} 난이도 ${updatedRec.currentStreak}연승 Clear!`;
+      document.getElementById('clearDescText').innerHTML = `
+        맵 크기: <b>${sizeKey} (+${sizeCfg.sizeXp} XP)</b><br>
+        난이도: <b>${diffCfg.name} (+${diffCfg.diffXp} XP)</b><br>
+        모든 지뢰를 찾아내 안전하게 탐사를 마쳤습니다!
+      `;
+      document.getElementById('clearXpBadge').innerText = `총 +${totalReward} XP 획득! 🎁`;
+      document.getElementById('clearModal').classList.add('show');
+
+      // 세션 누적 경험치 가산 & 로컬 저장
+      sessionTotalEarnedXp += totalReward;
+      try {
+        localStorage.setItem('MINESWEEPER_PENDING_XP', sessionTotalEarnedXp);
+      } catch(e) {}
+    }
+
+    function handleGameFail() {
+      isGameOver = true;
+      triggerHaptic([100, 80, 120]);
+
+      // 모든 지뢰 공개
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (board[r][c].isMine) board[r][c].isOpen = true;
+        }
+      }
+
+      const diffKey = document.getElementById('diffSelect').value;
+      resetStreakOnFail(diffKey);
+      document.getElementById('failModal').classList.add('show');
+    }
+
+    // ========================================================
+    // 🚪 포켓Tasks로 복귀 (모아둔 경험치 한 번에 전달!)
+    // ========================================================
+    function closeGameAndReturn() {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+          type: 'GAME_FINISHED_RETURN',
+          gameType: 'minesweeper',
+          gameName: 'Minesweeper',
+          totalXp: sessionTotalEarnedXp
+        }, '*');
+      } else {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = './index.html?rewardXp=' + sessionTotalEarnedXp;
+        }
+      }
+    }
+
+    window.onload = generateStage;
+    window.onresize = () => {
+      CELL_SIZE = calculateBestCellSize();
+      canvas.width = COLS * CELL_SIZE;
+      canvas.height = ROWS * CELL_SIZE;
+      syncBoardWidths();
+      draw();
+    };
+  </script>
+</body>
+</html>
