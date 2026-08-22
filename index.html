@@ -206,40 +206,46 @@
       z-index: 20;
     }
 
+    /* 🌟 포켓몬 상태바: 가운데 영역을 넘지 않도록 가로폭 컴팩트화 (max-width: 250px) & 1.2배 확대 */
     .pokemon-card {
       background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(10px);
-      padding: 6px 12px;
-      border-radius: 16px;
+      padding: 7px 13px;
+      border-radius: 18px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-      flex: 1;
-      max-width: calc(100% - 110px);
+      flex: 0 1 auto;
+      width: auto;
+      max-width: clamp(210px, 52%, 260px); /* 가운데 영역을 절대 넘지 않는 단정하고 컴팩트한 폭 */
     }
 
     .card-top {
       display: flex;
       align-items: center;
-      gap: 5px;
-      line-height: 1;
+      gap: 6px;
+      line-height: 1.1;
+      margin-bottom: 2px;
     }
 
     .level-badge {
       background: #4CAF50;
       color: white;
-      font-size: 11px;
-      font-weight: 800;
-      padding: 1px 5px;
-      border-radius: 5px;
+      font-size: 12.5px;
+      font-weight: 900;
+      padding: 2px 6px;
+      border-radius: 6px;
       flex-shrink: 0;
     }
 
     .pokemon-name {
-      font-size: 14px;
-      font-weight: 800;
+      font-size: 15.5px;
+      font-weight: 900;
       color: #222;
       display: flex;
       align-items: center;
       gap: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .gender-symbol.male { color: #1976D2; font-weight: 900; }
@@ -291,21 +297,21 @@
     }
 
     .xp-text {
-      font-size: 10px;
-      color: #666;
-      font-weight: 700;
+      font-size: 11.5px;
+      color: #555;
+      font-weight: 800;
       display: flex;
       justify-content: space-between;
-      margin-top: 2px;
-      margin-bottom: 2px;
+      margin-top: 3px;
+      margin-bottom: 3px;
       line-height: 1.1;
     }
 
     .xp-bar-bg {
       width: 100%;
-      height: 6px;
+      height: 8px;
       background: #E0E0E0;
-      border-radius: 4px;
+      border-radius: 5px;
       overflow: hidden;
     }
 
@@ -317,16 +323,16 @@
     }
 
     .quest-badge {
-      background: rgba(33, 150, 243, 0.92);
+      background: rgba(33, 150, 243, 0.94);
       color: white;
-      padding: 7px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 800;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      padding: 8px 14px;
+      border-radius: 22px;
+      font-size: 13.5px;
+      font-weight: 900;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.22);
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 5px;
       backdrop-filter: blur(8px);
       cursor: pointer;
       flex-shrink: 0;
@@ -425,35 +431,35 @@
       100% { transform: translateY(590px) translateX(10px) rotate(8deg) scale(0.8); opacity: 0; }
     }
 
-    /* 🍒 우측 하단 아이템 수확 위젯 (치트 콘솔과 동일한 슬림 사이즈) */
+    /* 🍒 우측 하단 아이템 수확 위젯 (1.2배 확대) */
     .berry-basket-widget {
       position: absolute;
-      bottom: clamp(75px, 11vh, 90px);
+      bottom: clamp(80px, 12vh, 100px);
       right: 14px;
       background: rgba(31, 36, 46, 0.95);
       backdrop-filter: blur(10px);
-      border: 1.5px solid rgba(255,255,255,0.4);
-      border-radius: 20px;
-      padding: 4px 8px;
+      border: 1.5px solid rgba(255,255,255,0.45);
+      border-radius: 22px;
+      padding: 5px 10px;
       display: flex;
       align-items: center;
-      gap: 6px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.45);
       z-index: 25;
       transform: scale(0);
       transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
     .berry-basket-widget.show { transform: scale(1); }
-    .basket-xp { font-size: 11px; font-weight: 900; color: #FFEB3B; }
+    .basket-xp { font-size: 13px; font-weight: 900; color: #FFEB3B; }
 
     .btn-eat-berries {
       background: linear-gradient(135deg, #FF9800, #F57C00);
       color: white;
       border: none;
-      padding: 5px 11px;
-      border-radius: 14px;
-      font-size: 11px;
-      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 900;
       cursor: pointer;
     }
     .btn-eat-berries:active { transform: scale(0.95); }
@@ -530,10 +536,10 @@
       transition: none; /* requestAnimationFrame 루프로 직접 120Hz 부드러운 보간 */
     }
 
-    /* 🌟 단정하고 일관된 스프라이트 컨테이너 (105px) */
+    /* 🌟 단정하고 큼직한 1.2배 스프라이트 컨테이너 (128px) */
     .pokemon-sprite-container {
-      width: 105px;
-      height: 105px;
+      width: 128px;
+      height: 128px;
       display: flex;
       align-items: flex-end;
       justify-content: center;
@@ -543,11 +549,11 @@
     .pokemon-sprite {
       width: 100%;
       height: 100%;
-      max-width: 105px;
-      max-height: 105px;
+      max-width: 128px;
+      max-height: 128px;
       object-fit: contain;
       image-rendering: pixelated;
-      filter: drop-shadow(0 10px 10px rgba(0,0,0,0.38));
+      filter: drop-shadow(0 12px 12px rgba(0,0,0,0.42));
       transform-origin: bottom center;
       transition: transform 0.2s ease;
     }
@@ -636,20 +642,20 @@
       box-shadow: 0 6px 20px rgba(37,99,235,0.5);
     }
 
-    /* 하단 네비게이션 바 */
+    /* 하단 네비게이션 바 (1.2배 확대 및 3개 탭 최적화) */
     .bottom-nav {
       position: absolute;
-      bottom: max(12px, env(safe-area-inset-bottom));
-      left: max(10px, env(safe-area-inset-left));
-      right: max(10px, env(safe-area-inset-right));
-      background: rgba(255, 255, 255, 0.94);
-      backdrop-filter: blur(12px);
-      border-radius: 22px;
-      padding: 8px 12px;
+      bottom: max(14px, env(safe-area-inset-bottom));
+      left: max(14px, env(safe-area-inset-left));
+      right: max(14px, env(safe-area-inset-right));
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(14px);
+      border-radius: 26px;
+      padding: 10px 16px;
       display: flex;
       justify-content: space-around;
       align-items: center;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.28);
       z-index: 20;
     }
 
@@ -659,15 +665,17 @@
       align-items: center;
       background: none;
       border: none;
-      color: #666;
-      font-size: 11px;
-      font-weight: 800;
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 900;
       cursor: pointer;
-      gap: 2px;
+      gap: 3px;
       flex: 1;
+      padding: 4px 0;
+      transition: color 0.15s ease, transform 0.15s ease;
     }
-    .nav-btn .icon { font-size: 18px; }
-    .nav-btn.active { color: #2196F3; }
+    .nav-btn .icon { font-size: 24px; line-height: 1; }
+    .nav-btn.active { color: #0284c7; transform: scale(1.06); }
 
     /* 📋 퀘스트 상단 툴바 */
     .quest-toolbar {
@@ -1179,12 +1187,14 @@
     .game-title { font-size: 14px; font-weight: 900; color: white; margin-bottom: 4px; }
     .game-reward { font-size: 11px; font-weight: 800; color: #FFEB3B; }
 
-    /* 🛠️ 치트 콘솔 트리거 버튼 */
+    /* 🛠️ 치트 콘솔 트리거 버튼 (1.2배 확대) */
     .dev-toggle-trigger {
-      position: absolute; bottom: clamp(75px, 11vh, 90px); left: 14px;
-      background: rgba(33, 150, 243, 0.95); color: white; border: 1.5px solid rgba(255,255,255,0.4);
-      font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 20px; z-index: 25; cursor: pointer;
+      position: absolute; bottom: clamp(80px, 12vh, 100px); left: 14px;
+      background: rgba(33, 150, 243, 0.95); color: white; border: 1.5px solid rgba(255,255,255,0.45);
+      font-size: 12.5px; font-weight: 900; padding: 7px 14px; border-radius: 22px; z-index: 25; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
+    .dev-toggle-trigger:active { transform: scale(0.95); }
 
     /* 🕹️ 5x5 치트 콘솔 팝업 모달 */
     .cheat-modal-content {
@@ -1378,27 +1388,19 @@
       <!-- 🛠️ 좌측 하단 치트 콘솔 트리거 -->
       <button class="dev-toggle-trigger" onclick="openCheatModal()">🕹️ 치트 콘솔</button>
 
-      <!-- 하단 네비게이션 메뉴 바 -->
+      <!-- 하단 네비게이션 메뉴 바 (3개 탭 최적화) -->
       <div class="bottom-nav">
-        <button class="nav-btn active" onclick="switchWorkspaceTab('QUEST')">
+        <button class="nav-btn active" data-tab="QUEST" onclick="switchWorkspaceTab('QUEST')">
           <span class="icon">📋</span>
           <span>퀘스트</span>
         </button>
-        <button class="nav-btn" onclick="switchWorkspaceTab('STREAK')">
-          <span class="icon">📊</span>
-          <span>기록</span>
-        </button>
-        <button class="nav-btn" onclick="switchWorkspaceTab('ARCADE')">
+        <button class="nav-btn" data-tab="ARCADE" onclick="switchWorkspaceTab('ARCADE')">
           <span class="icon">🎮</span>
           <span>미니게임</span>
         </button>
-        <button class="nav-btn" onclick="switchWorkspaceTab('DEX')">
+        <button class="nav-btn" data-tab="DEX" onclick="switchWorkspaceTab('DEX')">
           <span class="icon">📖</span>
           <span>도감</span>
-        </button>
-        <button class="nav-btn" onclick="switchWorkspaceTab('NOTIF')">
-          <span class="icon">🔔</span>
-          <span>알림</span>
         </button>
       </div>
 
@@ -1408,7 +1410,12 @@
     <div class="workspace-pane" id="workspacePane">
       <div class="pane-header">
         <div class="pane-title" id="paneTitleText">📋 퀘스트 목록</div>
-        <button class="icon-btn mobile-close-btn" onclick="closeMobileWorkspace()">✕</button>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <!-- 🌟 [요청 1]: 퀘스트 기록(📊) 및 알림설정(🔔) 동그란 버튼 -->
+          <button class="icon-btn" id="btnHeaderStreak" onclick="switchWorkspaceTab('STREAK')" title="퀘스트 연속 실천 기록">📊</button>
+          <button class="icon-btn" id="btnHeaderNotif" onclick="switchWorkspaceTab('NOTIF')" title="알림 & PWA 앱 설정">🔔</button>
+          <button class="icon-btn mobile-close-btn" onclick="closeMobileWorkspace()" title="닫기">✕</button>
+        </div>
       </div>
       <div class="pane-body">
         
@@ -4908,7 +4915,7 @@
     }
 
 
-        function switchWorkspaceTab(tab) {
+    function switchWorkspaceTab(tab) {
       const workPane = document.getElementById('workspacePane');
       workPane.classList.add('open');
 
@@ -4918,17 +4925,38 @@
       document.getElementById('panePokedexView').style.display = 'none';
       document.getElementById('paneNotifView').style.display = 'none';
 
+      // 상단 헤더 버튼 활성화 하이라이트
+      const btnStreak = document.getElementById('btnHeaderStreak');
+      const btnNotif = document.getElementById('btnHeaderNotif');
+      if (btnStreak) btnStreak.style.background = (tab === 'STREAK') ? '#2563eb' : 'rgba(255,255,255,0.12)';
+      if (btnNotif) btnNotif.style.background = (tab === 'NOTIF') ? '#2563eb' : 'rgba(255,255,255,0.12)';
+
+      // 하단 네비 버튼 활성화 하이라이트
+      document.querySelectorAll('.bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
+      const activeNavBtn = document.querySelector(`.bottom-nav .nav-btn[data-tab="${tab}"]`);
+      if (activeNavBtn) activeNavBtn.classList.add('active');
+
       const title = document.getElementById('paneTitleText');
-      if (tab === 'QUEST') { title.innerText = "📋 퀘스트 목록"; document.getElementById('paneQuestView').style.display = 'block'; }
-      else if (tab === 'STREAK') { title.innerText = "📊 퀘스트 기록"; document.getElementById('paneStreakView').style.display = 'block'; renderStreakList(appState.quests); }
-      else if (tab === 'ARCADE') { title.innerText = "🎮 미니게임"; document.getElementById('paneArcadeView').style.display = 'block'; }
+      if (tab === 'QUEST') { 
+        title.innerHTML = "📋 퀘스트 목록"; 
+        document.getElementById('paneQuestView').style.display = 'block'; 
+      }
+      else if (tab === 'STREAK') { 
+        title.innerHTML = `<span style="cursor:pointer; margin-right:4px;" onclick="switchWorkspaceTab('QUEST')">⬅</span> 📊 퀘스트 기록`; 
+        document.getElementById('paneStreakView').style.display = 'block'; 
+        renderStreakList(appState.quests); 
+      }
+      else if (tab === 'ARCADE') { 
+        title.innerHTML = "🎮 미니게임"; 
+        document.getElementById('paneArcadeView').style.display = 'block'; 
+      }
       else if (tab === 'DEX') {
-        title.innerText = "📖 포켓몬 도감";
+        title.innerHTML = "📖 포켓몬 도감";
         document.getElementById('panePokedexView').style.display = 'block';
         renderPokedexGrid();
       }
       else if (tab === 'NOTIF') {
-        title.innerText = "🔔 알림 설정";
+        title.innerHTML = `<span style="cursor:pointer; margin-right:4px;" onclick="switchWorkspaceTab('QUEST')">⬅</span> 🔔 알림 & PWA 설정`;
         document.getElementById('paneNotifView').style.display = 'block';
         runDiagnostics();
       }
