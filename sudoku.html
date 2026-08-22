@@ -125,28 +125,67 @@
       gap: 6px;
     }
 
-    /* 🕹️ 게임 정보 & 난이도 컨트롤 바 (화이트 글래스모피즘) */
+    /* 🕹️ 게임 정보 & 난이도 컨트롤 바구니 칸 (보드와 100% 일체화 & 화이트 글래스모피즘) */
     .game-info-bar {
       width: 100%;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 6px;
       margin-bottom: 6px;
+      padding: 5px 8px;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 14px;
       box-sizing: border-box;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
-    select, .btn-action {
+    .info-stat-pill {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 10px;
       padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+    }
+    select {
+      flex: 0 1 auto;
+      width: auto;
+      max-width: 148px; /* 🌟 내부 텍스트 최대 길이에 맞춘 컴팩트 폭 */
+      padding: 6px 6px;
       font-size: 12px;
       border-radius: 10px;
       border: 1px solid rgba(0, 0, 0, 0.1);
-      background: rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.85);
       color: #0f172a;
       cursor: pointer;
       font-weight: 800;
       outline: none;
       transition: all 0.15s ease;
       touch-action: manipulation;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+    }
+    .btn-action {
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.85);
+      color: #0f172a;
+      cursor: pointer;
+      font-weight: 800;
+      outline: none;
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
     }
     .btn-action:active {
       transform: scale(0.95);
@@ -162,7 +201,7 @@
       font-size: 15px;
       border-radius: 10px;
       flex-shrink: 0;
-      background: rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.85);
       border: 1px solid rgba(0, 0, 0, 0.1);
       color: #334155;
     }
@@ -490,13 +529,13 @@
       </button>
     </div>
 
-    <!-- 🕹️ 2행: 게임 정보 & 난이도 선택 & 새로고침 (1열) -->
+    <!-- 🕹️ 2행: 게임 정보 & 난이도 선택 & 새로고침 바구니 칸 -->
     <div class="game-info-bar">
-      <div style="background:rgba(255,255,255,0.75); border:1px solid rgba(0,0,0,0.08); border-radius:10px; padding:6px 10px; font-size:12px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:4px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+      <div class="info-stat-pill">
         <span style="color:#64748b;">빈칸:</span>
         <span style="color:#0284c7;" id="emptyCountText">0개</span>
       </div>
-      <select id="stageSelect" onchange="generateStage()" style="flex:1; min-width:0; background:rgba(255,255,255,0.75); border:1px solid rgba(0,0,0,0.1); color:#0f172a; font-weight:800; font-size:12px; border-radius:10px; padding:6px 8px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+      <select id="stageSelect" onchange="generateStage()">
         <option value="hard" selected>🔴 어려움 (+30XP)</option>
         <option value="hell">💀 지옥 (+50XP)</option>
         <option value="xmode">🔮 X모드 (+50XP)</option>
@@ -687,11 +726,16 @@
       container.style.height = maxW + 'px';
 
       const topNav = document.querySelector('.top-nav');
+      const infoBar = document.querySelector('.game-info-bar');
       const keypad = document.getElementById('keypad-container');
 
       if (topNav) {
         topNav.style.maxWidth = maxW + 'px';
         topNav.style.width = maxW + 'px';
+      }
+      if (infoBar) {
+        infoBar.style.maxWidth = maxW + 'px';
+        infoBar.style.width = maxW + 'px';
       }
       if (keypad) {
         keypad.style.maxWidth = maxW + 'px';

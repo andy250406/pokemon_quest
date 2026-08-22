@@ -770,14 +770,14 @@
       background: rgba(255, 255, 255, 0.65);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border-radius: 14px; padding: 8px 2px;
+      border-radius: 16px; padding: 6px 1px;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.7); transition: all 0.2s ease;
       position: relative;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
     }
     .dex-card:active { transform: scale(0.95); border-color: #3b82f6; }
-    .dex-sprite { width: 56px; height: 56px; object-fit: contain; image-rendering: pixelated; }
+    .dex-sprite { width: 72px; height: 72px; object-fit: contain; image-rendering: pixelated; }
     .dex-sprite.locked { filter: brightness(0); opacity: 0.25; }
     .dex-num { font-size: 10px; font-weight: 800; color: #64748b; margin-top: 2px; }
     .dex-name { font-size: 11.5px; font-weight: 800; color: #0f172a; margin-top: 2px; text-align: center; word-break: keep-all; }
@@ -1802,8 +1802,8 @@
 
       <div class="form-group">
         <div class="form-checkbox-row">
-          <input type="checkbox" id="inputQuestRequired" style="width:18px; height:18px;">
-          <label for="inputQuestRequired" style="font-size:13px; font-weight:800; color:white; cursor:pointer;">
+          <input type="checkbox" id="inputQuestRequired" style="width:18px; height:18px; cursor:pointer;">
+          <label for="inputQuestRequired" style="font-size:13.5px; font-weight:900; color:#0f172a; cursor:pointer;">
             🔥 필수 퀘스트로 설정
           </label>
         </div>
