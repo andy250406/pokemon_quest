@@ -88,7 +88,7 @@
       box-sizing: border-box;
     }
     .btn-nav {
-      background: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.75);
       border: 1px solid rgba(0, 0, 0, 0.08);
       color: #334155;
       padding: 6px 12px;
@@ -100,28 +100,19 @@
       align-items: center;
       justify-content: center;
       gap: 4px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-      transition: all 0.15s ease;
-    }
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
       transition: all 0.15s ease;
     }
     .btn-nav:active {
       transform: scale(0.95);
-      background: rgba(255,255,255,0.15);
+      background: rgba(226, 232, 240, 0.8);
     }
     .btn-nav.icon-only {
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       padding: 0;
-      border-radius: 50%;
+      border-radius: 10px;
       font-size: 15px;
-    }
-    .btn-nav.btn-record {
-      background: linear-gradient(135deg, #eab308, #ca8a04);
-      color: #0f172a;
-      font-weight: 800;
-      border: none;
-      box-shadow: 0 2px 8px rgba(234, 179, 8, 0.35);
     }
 
     .header-title {
@@ -134,7 +125,15 @@
       gap: 6px;
     }
 
-    /* 🕹️ 1열 통합 컨트롤러 */
+    /* 🕹️ 게임 정보 & 난이도 컨트롤 바 (화이트 글래스모피즘) */
+    .game-info-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+      box-sizing: border-box;
+    }
     select, .btn-action {
       padding: 6px 10px;
       font-size: 12px;
@@ -149,11 +148,9 @@
       touch-action: manipulation;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
     }
-    .btn-action.btn-primary {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      border: none;
-      color: white;
-      box-shadow: 0 2px 8px rgba(37,99,235,0.35);
+    .btn-action:active {
+      transform: scale(0.95);
+      background: rgba(226, 232, 240, 0.8);
     }
     .btn-action.btn-refresh-only {
       width: 34px;
@@ -165,9 +162,9 @@
       font-size: 15px;
       border-radius: 10px;
       flex-shrink: 0;
-    }
-    .btn-action.btn-refresh-only:active {
-      transform: scale(0.92);
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      color: #334155;
     }
 
     /* 🎨 스도쿠 보드 컨테이너 (화이트 글래스모피즘) */
@@ -477,25 +474,34 @@
 <body>
   <div class="game-screen" id="gameScreen">
 
-    <!-- 🏷️ 1열 통합 상단 네비게이션 & 게임 컨트롤 바 -->
-    <div class="top-nav" style="gap:6px; margin-bottom:6px;">
-      <button class="btn-nav icon-only" onclick="closeGameAndReturn()" title="포켓Tasks로 복귀" style="font-size:18px; font-weight:900; flex-shrink:0;">
+    <!-- 🏷️ 1행: 최상단 네비게이션 (뒤로가기 / 게임제목 / 기록) -->
+    <div class="top-nav">
+      <button class="btn-nav icon-only" onclick="closeGameAndReturn()" title="포켓Tasks로 복귀" style="font-size:18px; font-weight:900;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
       </button>
-      <div style="background:rgba(255,255,255,0.7); border:1px solid rgba(0,0,0,0.08); border-radius:10px; padding:6px 9px; font-size:12px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:4px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+      <div class="header-title">
+        🧩 Sudoku
+      </div>
+      <button class="btn-nav icon-only" onclick="openRecordsModal()" title="난이도별 연승 기록">
+        🏆
+      </button>
+    </div>
+
+    <!-- 🕹️ 2행: 게임 정보 & 난이도 선택 & 새로고침 (1열) -->
+    <div class="game-info-bar">
+      <div style="background:rgba(255,255,255,0.75); border:1px solid rgba(0,0,0,0.08); border-radius:10px; padding:6px 10px; font-size:12px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:4px; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
         <span style="color:#64748b;">빈칸:</span>
         <span style="color:#0284c7;" id="emptyCountText">0개</span>
       </div>
-      <select id="stageSelect" onchange="generateStage()" style="flex:1; min-width:0; background:rgba(255,255,255,0.75); border:1px solid rgba(0,0,0,0.1); color:#0f172a; font-weight:800; font-size:12px; border-radius:10px; padding:6px 6px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
+      <select id="stageSelect" onchange="generateStage()" style="flex:1; min-width:0; background:rgba(255,255,255,0.75); border:1px solid rgba(0,0,0,0.1); color:#0f172a; font-weight:800; font-size:12px; border-radius:10px; padding:6px 8px; box-shadow:0 2px 6px rgba(0,0,0,0.04);">
         <option value="hard" selected>🔴 어려움 (+30XP)</option>
         <option value="hell">💀 지옥 (+50XP)</option>
         <option value="xmode">🔮 X모드 (+50XP)</option>
       </select>
-      <button class="btn-action btn-primary btn-refresh-only" onclick="generateStage()" title="새 퍼즐 새로고침" style="border-radius:10px; flex-shrink:0;">🔄</button>
-      <button class="btn-nav btn-record icon-only" onclick="openRecordsModal()" title="난이도별 연승 기록" style="flex-shrink:0;">🏆</button>
+      <button class="btn-action btn-refresh-only" onclick="generateStage()" title="새 퍼즐 새로고침">🔄</button>
     </div>
 
     <!-- 🎨 스도쿠 9x9 그리드 보드 -->
