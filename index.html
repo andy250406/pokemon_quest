@@ -132,12 +132,15 @@
       }
     }
 
-    /* 👈 왼쪽 작업창 */
+    /* 👈 왼쪽/오른쪽 작업창 (화이트 글래스모피즘 테마) */
     .workspace-pane {
-      background: #181c24;
+      background: rgba(248, 250, 252, 0.85); /* 🌟 맑고 은은한 화이트 글래스 */
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      color: #1e293b;
     }
 
     .pane-header {
@@ -145,23 +148,25 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      background: #1f242e;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
     }
 
     .pane-title {
       font-size: 16px;
-      font-weight: 800;
-      color: white;
+      font-weight: 900;
+      color: #0f172a;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
     .icon-btn {
-      background: rgba(255,255,255,0.12);
-      border: none;
-      color: white;
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      color: #334155;
       font-size: 16px;
       font-weight: 800;
       width: 32px;
@@ -171,6 +176,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
     }
     .icon-btn:active { transform: scale(0.92); }
 
@@ -206,15 +212,18 @@
       z-index: 20;
     }
 
-    /* 🌟 포켓몬 상태바: 1.6배 시원하게 확장된 가로폭 & 1.2배 타이포그래피 */
+    /* 🌟 포켓몬 상태바: 메뉴바와 동일한 투명도 50% + 블러 16px 글래스모피즘 & 메인화면 50% 엄격 한계치 */
     .pokemon-card {
-      background: rgba(255, 255, 255, 0.94);
-      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.5); /* 🌟 투명도 50% */
+      backdrop-filter: blur(16px);          /* 🌟 블러 16px */
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.35);
       padding: 7px 13px;
       border-radius: 18px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-      flex: 1;
-      max-width: calc(100% - 95px); /* 우측 필수 뱃지와 조화로운 1.6배 확장폭 */
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+      flex: 0 1 auto;
+      width: auto;
+      max-width: 50% !important; /* 🌟 메인화면 절반 크기를 절대 넘지 않음 */
     }
 
     .card-top {
@@ -690,55 +699,66 @@
     .quest-toolbar-left { display: flex; gap: 6px; }
     .quest-toolbar-right { display: flex; gap: 6px; }
 
-    /* 📋 퀘스트 카드 */
+    /* 📋 퀘스트 카드 (화이트 글래스모피즘) */
     .quest-card {
-      background: #252b36;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
       border-radius: 14px;
       padding: 12px 14px;
       margin-bottom: 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
       transition: all 0.2s ease;
     }
     .quest-card-left { display: flex; align-items: center; gap: 10px; flex: 1; }
     .quest-batch-cb { width: 20px; height: 20px; accent-color: #ef4444; cursor: pointer; display: none; }
     .quest-info { flex: 1; }
-    .quest-title { font-size: 15px; font-weight: 800; color: white; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .quest-title { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
     .req-tag { background: #FF9800; color: white; font-size: 10px; font-weight: 900; padding: 1px 6px; border-radius: 4px; }
     .rec-tag { background: #3b82f6; color: white; font-size: 10px; font-weight: 900; padding: 1px 6px; border-radius: 4px; }
-    .quest-meta { font-size: 11px; color: #8892a0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 2px; }
-    .quest-desc { font-size: 11px; color: #94a3b8; line-height: 1.3; margin-top: 3px; }
+    .quest-meta, .quest-top-meta { font-size: 11px; color: #64748b; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 2px; }
+    .quest-desc { font-size: 11px; color: #475569; line-height: 1.3; margin-top: 3px; }
     
     .quest-card-btns { display: flex; align-items: center; gap: 6px; }
     .btn-quest-edit {
-      background: #374151; color: #93c5fd; border: 1px solid #4b5563;
+      background: rgba(255, 255, 255, 0.85); color: #2563eb; border: 1px solid rgba(0, 0, 0, 0.08);
       padding: 7px 10px; border-radius: 9px; font-size: 12px; font-weight: 800;
       cursor: pointer; display: flex; align-items: center; gap: 3px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.04);
     }
-    .btn-quest-edit:active { transform: scale(0.95); background: #4b5563; }
+    .btn-quest-edit:active { transform: scale(0.95); background: #e2e8f0; }
     .btn-quest-done {
       background: #4CAF50; color: white; border: none; padding: 8px 12px;
       border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer;
+      box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
     }
-    .btn-quest-done.disabled { background: #3a4250; color: #788290; cursor: default; }
+    .btn-quest-done.disabled { background: #cbd5e1; color: #64748b; cursor: default; box-shadow: none; }
     .btn-quest-add { background: #2196F3; color: white; border: none; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; }
     .btn-quest-add:active { transform: scale(0.95); }
-    .btn-quest-batch-del { background: #4b5563; color: #fca5a5; border: 1px solid #6b7280; padding: 8px 10px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; }
+    .btn-quest-batch-del { background: #e2e8f0; color: #ef4444; border: 1px solid #cbd5e1; padding: 8px 10px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; }
     .btn-quest-batch-del:active { transform: scale(0.95); }
     .btn-quest-batch-exec { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 900; cursor: pointer; display: none; }
-    .btn-quest-batch-cancel { background: #374151; color: white; border: none; padding: 8px 10px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; display: none; }
+    .btn-quest-batch-cancel { background: #64748b; color: white; border: none; padding: 8px 10px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; display: none; }
 
     /* 📊 퀘스트 연속 실천 기록 */
     .streak-card {
-      background: #252b36; border-radius: 14px; padding: 14px 16px; margin-bottom: 12px;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 14px; padding: 14px 16px; margin-bottom: 12px;
       border-left: 4px solid #FF9800;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      color: #0f172a;
     }
     .streak-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .streak-badge { background: linear-gradient(135deg, #FF9800, #F57C00); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 900; }
 
-    /* 📖 도감 그리드 */
+    /* 📖 도감 그리드 (화이트 글래스모피즘) */
     .pokedex-grid-container {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
@@ -746,16 +766,20 @@
       padding: 4px;
     }
     .dex-card {
-      background: #252b36; border-radius: 14px; padding: 10px 4px;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 14px; padding: 10px 4px;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      cursor: pointer; border: 1px solid rgba(255,255,255,0.06); transition: all 0.2s ease;
+      cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.7); transition: all 0.2s ease;
       position: relative;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
     }
     .dex-card:active { transform: scale(0.95); border-color: #3b82f6; }
     .dex-sprite { width: 64px; height: 64px; object-fit: contain; image-rendering: pixelated; }
-    .dex-sprite.locked { filter: brightness(0); opacity: 0.55; }
-    .dex-num { font-size: 10px; font-weight: 800; color: #8892a0; margin-top: 2px; }
-    .dex-name { font-size: 11px; font-weight: 800; color: #e0e0e0; margin-top: 2px; }
+    .dex-sprite.locked { filter: brightness(0); opacity: 0.25; }
+    .dex-num { font-size: 10px; font-weight: 800; color: #64748b; margin-top: 2px; }
+    .dex-name { font-size: 11px; font-weight: 800; color: #0f172a; margin-top: 2px; }
     .dex-unlocked-dot {
       width: 6px; height: 6px; border-radius: 50%; background: #4ade80;
       position: absolute; top: 6px; right: 6px;
@@ -1074,10 +1098,11 @@
       color: #38bdf8;
     }
 
-    /* 하단 일회성 할일 카드 */
+    /* 하단 일회성 할일 카드 (화이트 글래스모피즘) */
     .single-todo-card {
-      background: #18202f;
-      border: 1px solid #283548;
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(0, 0, 0, 0.06);
       border-radius: 10px;
       padding: 10px 12px;
       margin-bottom: 8px;
@@ -1086,6 +1111,7 @@
       align-items: center;
       gap: 8px;
       transition: background 0.15s ease;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
     }
     .single-todo-left {
       flex: 1;
@@ -1093,8 +1119,8 @@
     }
     .single-todo-title {
       font-size: 13px;
-      font-weight: 700;
-      color: #e2e8f0;
+      font-weight: 800;
+      color: #0f172a;
       margin-bottom: 3px;
       display: flex;
       align-items: center;
@@ -1115,18 +1141,18 @@
       white-space: nowrap;
     }
     .single-todo-status.done {
-      background: rgba(74, 222, 128, 0.12);
-      color: #4ade80;
-      border: 1px solid rgba(74, 222, 128, 0.3);
+      background: rgba(74, 222, 128, 0.18);
+      color: #15803d;
+      border: 1px solid rgba(74, 222, 128, 0.4);
     }
     .single-todo-status.pending {
-      background: rgba(148, 163, 184, 0.12);
-      color: #94a3b8;
-      border: 1px solid rgba(148, 163, 184, 0.25);
+      background: rgba(148, 163, 184, 0.15);
+      color: #475569;
+      border: 1px solid rgba(148, 163, 184, 0.3);
     }
 
     
-    /* 🎮 정사각형 고정 미니게임 그리드 */
+    /* 🎮 정사각형 고정 미니게임 그리드 (화이트 글래스모피즘) */
     .arcade-grid-3col {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -1136,8 +1162,10 @@
     .mini-game-card {
       aspect-ratio: 1 / 1;
       width: 100%;
-      background: #1e293b;
-      border: 1px solid #334155;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
       border-radius: 14px;
       padding: 8px 4px;
       text-align: center;
@@ -1149,15 +1177,16 @@
       justify-content: center;
       gap: 8px;
       box-sizing: border-box;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
     }
     .mini-game-card:hover {
-      border-color: #64748b;
+      border-color: #38bdf8;
       transform: translateY(-2px);
     }
     .mini-game-card.highlight {
-      border: 1.5px solid rgba(56,189,248,0.6);
-      background: linear-gradient(135deg, rgba(56,189,248,0.18), rgba(30,58,138,0.3));
-      box-shadow: 0 4px 15px rgba(56,189,248,0.25);
+      border: 1.5px solid rgba(56, 189, 248, 0.8);
+      background: rgba(224, 242, 254, 0.8);
+      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2);
     }
     .mini-game-icon {
       font-size: 28px;
@@ -1166,27 +1195,31 @@
     .mini-game-title {
       font-size: 11.5px;
       font-weight: 800;
-      color: #f1f5f9;
+      color: #0f172a;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       max-width: 100%;
     }
     .mini-game-card.highlight .mini-game-title {
-      color: #38bdf8;
+      color: #0284c7;
     }
 
     /* 🎮 미니게임 아케이드 */
     .arcade-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .game-launch-card {
-      background: #252b36; border-radius: 16px; padding: 16px; display: flex;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(14px);
+      border-radius: 16px; padding: 16px; display: flex;
       flex-direction: column; align-items: center; cursor: pointer;
-      border: 1px solid rgba(255,255,255,0.06); transition: transform 0.2s ease, border-color 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      transition: transform 0.2s ease, border-color 0.2s ease;
     }
     .game-launch-card:active { transform: scale(0.96); border-color: #2196F3; }
     .game-icon { font-size: 36px; margin-bottom: 8px; }
-    .game-title { font-size: 14px; font-weight: 900; color: white; margin-bottom: 4px; }
-    .game-reward { font-size: 11px; font-weight: 800; color: #FFEB3B; }
+    .game-title { font-size: 14px; font-weight: 900; color: #0f172a; margin-bottom: 4px; }
+    .game-reward { font-size: 11px; font-weight: 800; color: #d97706; }
 
     /* 🛠️ 치트 콘솔 트리거 버튼 (1.2배 확대) */
     .dev-toggle-trigger {
