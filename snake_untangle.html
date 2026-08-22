@@ -884,6 +884,17 @@
       return { x: pt.x * CELL + CELL / 2, y: pt.y * CELL + CELL / 2 };
     }
 
+    // ========================================================
+    // 📳 모바일 햅틱 진동 유틸리티
+    // ========================================================
+    function triggerHaptic(pattern = 25) {
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try {
+          navigator.vibrate(pattern);
+        } catch(e) {}
+      }
+    }
+
     function drawHighlightedMaterialArrowHead(center, dir, color, headWidth, bodyWidth) {
       ctx.save();
       ctx.translate(center.x, center.y);
@@ -934,6 +945,9 @@
 
       const targetSnake = snakes.find(s => s.body.some(p => p.x === clickX && p.y === clickY));
       if (!targetSnake) return;
+
+      // 🌟 [요청 5]: 스네이크 누를 때마다 햅틱 진동
+      triggerHaptic(25);
 
       moveCount++;
       updateStatusDisplay();
@@ -1039,6 +1053,9 @@
     function handleGameClear() {
       if (timerInterval) clearInterval(timerInterval);
       isGameOver = true;
+
+      // 🌟 [요청 5]: 게임 클리어 시 승리 햅틱 진동
+      triggerHaptic([60, 50, 80, 60, 160]);
 
       const cfg = STAGE_CONFIG[currentStageKey] || { name: "보통", baseReward: 20 };
       const baseReward = cfg.baseReward;

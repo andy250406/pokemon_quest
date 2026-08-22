@@ -507,40 +507,15 @@
       100% { transform: translateY(0); }
     }
 
-    /* 🌟 [하] 지상 포켓몬 상하좌우 8px 미세 워킹/바운스 유휴 애니메이션 */
-    .idle-wander-ground {
-      animation: groundGentleWander 5.5s ease-in-out infinite alternate;
-    }
-    @keyframes groundGentleWander {
-      0% { transform: translate(0px, 0px); }
-      25% { transform: translate(7px, -4px); }
-      50% { transform: translate(-6px, 3px); }
-      75% { transform: translate(-4px, -6px); }
-      100% { transform: translate(5px, 5px); }
-    }
-
-    /* 🌟 [중] 중간 부유 포켓몬 12px 둥실둥실 호버링 유휴 애니메이션 */
-    .idle-wander-hover {
-      animation: hoverGentleWander 4.5s ease-in-out infinite alternate;
-    }
-    @keyframes hoverGentleWander {
-      0% { transform: translate(0px, 0px) rotate(0deg); }
-      25% { transform: translate(-7px, -10px) rotate(-1.5deg); }
-      50% { transform: translate(8px, 6px) rotate(1.5deg); }
-      75% { transform: translate(-6px, 9px) rotate(-1deg); }
-      100% { transform: translate(7px, -7px) rotate(1deg); }
-    }
-
-    /* 🌟 [상] 고공 비행 포켓몬 15px 우아한 날개짓 유휴 애니메이션 */
+    /* 🌟 스마트폰 자이로스코프 기울기 반응 래퍼 (설정된 한계 픽셀 내 실시간 모션) */
+    .idle-wander-ground,
+    .idle-wander-hover,
     .idle-wander-sky {
-      animation: skyGentleWander 4.0s ease-in-out infinite alternate;
-    }
-    @keyframes skyGentleWander {
-      0% { transform: translate(0px, 0px) rotate(0deg); }
-      20% { transform: translate(-10px, -11px) rotate(-2.5deg); }
-      45% { transform: translate(9px, 8px) rotate(2.5deg); }
-      70% { transform: translate(-8px, 11px) rotate(-2deg); }
-      100% { transform: translate(11px, -8px) rotate(2deg); }
+      will-change: transform;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: none; /* requestAnimationFrame 루프로 직접 120Hz 부드러운 보간 */
     }
 
     /* 🌟 단정하고 일관된 스프라이트 컨테이너 (105px) */
@@ -4300,8 +4275,105 @@
       });
     }
 
-    // 🌟 찰진 점프 애니메이션 트리거
+    // ========================================================
+    // 📳 모바일 햅틱 진동 유틸리티
+    // ========================================================
+    function triggerHaptic(pattern = 30) {
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try {
+          navigator.vibrate(pattern);
+        } catch(e) {}
+      }
+    }
+
+    // ========================================================
+    // 📱 스마트폰 기울기(자이로스코프) 포켓몬 인터랙티브 모션 엔진
+    // ========================================================
+    let currentTiltX = 0, currentTiltY = 0;
+    let targetTiltX = 0, targetTiltY = 0;
+    let currentAltitudeMode = "하";
+    let isGyroEngineRunning = false;
+
+    // 고도별 한계 이동 픽셀 (지상: ±9px/±7px, 부유: ±15px/±12px, 비행: ±20px/±16px)
+    const TILT_LIMITS = {
+      "하": { maxLimitX: 9, maxLimitY: 7, maxRotate: 0 },
+      "중": { maxLimitX: 15, maxLimitY: 12, maxRotate: 2.0 },
+      "상": { maxLimitX: 20, maxLimitY: 16, maxRotate: 3.5 }
+    };
+
+    function startGyroscopeMotionEngine() {
+      if (isGyroEngineRunning) return;
+      isGyroEngineRunning = true;
+
+      // 1) 스마트폰 자이로스코프 기울기 이벤트 리스너
+      if (typeof window !== "undefined" && window.DeviceOrientationEvent) {
+        const onDeviceOrientation = (e) => {
+          if (e.gamma === null && e.beta === null) return;
+          
+          // gamma: 좌우 기울기 (-90 ~ +90) -> 약 -30 ~ +30 정규화
+          const gamma = Math.max(-30, Math.min(30, e.gamma || 0));
+          const normX = gamma / 30; // -1.0 ~ +1.0
+
+          // beta: 앞뒤 기울기 (-180 ~ +180) -> 일반적인 스마트폰 파지 각도 약 45° 기준 (20°~70°)
+          const rawBeta = (e.beta !== null) ? e.beta : 45;
+          const deltaBeta = Math.max(-25, Math.min(25, rawBeta - 45));
+          const normY = deltaBeta / 25; // -1.0 ~ +1.0
+
+          const limits = TILT_LIMITS[currentAltitudeMode] || TILT_LIMITS["하"];
+          targetTiltX = normX * limits.maxLimitX;
+          targetTiltY = normY * limits.maxLimitY;
+        };
+
+        // iOS 13+ 권한 확인 대응
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+          const reqPerm = () => {
+            DeviceOrientationEvent.requestPermission().then(state => {
+              if (state === 'granted') {
+                window.addEventListener('deviceorientation', onDeviceOrientation, true);
+              }
+            }).catch(() => {});
+            window.removeEventListener('click', reqPerm);
+            window.removeEventListener('touchstart', reqPerm);
+          };
+          window.addEventListener('click', reqPerm, { once: true });
+          window.addEventListener('touchstart', reqPerm, { once: true });
+        } else {
+          window.addEventListener('deviceorientation', onDeviceOrientation, true);
+        }
+      }
+
+      // 2) PC 마우스 패럴랙스 & 유휴 모션 fallback
+      window.addEventListener('mousemove', (e) => {
+        const cx = window.innerWidth / 2;
+        const cy = window.innerHeight / 2;
+        const normX = Math.max(-1, Math.min(1, (e.clientX - cx) / (cx || 1)));
+        const normY = Math.max(-1, Math.min(1, (e.clientY - cy) / (cy || 1)));
+        const limits = TILT_LIMITS[currentAltitudeMode] || TILT_LIMITS["하"];
+        targetTiltX = normX * limits.maxLimitX;
+        targetTiltY = normY * limits.maxLimitY;
+      });
+
+      // 3) 초고속 120Hz 부드러운 보간 렌더 루프
+      function updateTiltLoop() {
+        const wrapper = document.getElementById('idleWanderWrapper');
+        if (wrapper) {
+          // Lerp 보간 (0.09)
+          currentTiltX += (targetTiltX - currentTiltX) * 0.09;
+          currentTiltY += (targetTiltY - currentTiltY) * 0.09;
+
+          const limits = TILT_LIMITS[currentAltitudeMode] || TILT_LIMITS["하"];
+          const rot = limits.maxRotate ? (currentTiltX / limits.maxLimitX) * limits.maxRotate : 0;
+
+          wrapper.style.transform = `translate(${currentTiltX.toFixed(2)}px, ${currentTiltY.toFixed(2)}px) rotate(${rot.toFixed(2)}deg)`;
+        }
+        requestAnimationFrame(updateTiltLoop);
+      }
+      requestAnimationFrame(updateTiltLoop);
+    }
+
+    // 🌟 [요청 1]: 포켓몬 클릭 시 찰진 햅틱 진동 & 점프 애니메이션 트리거
     function triggerSpriteHopAnimation() {
+      triggerHaptic(35);
       const wrapper = document.getElementById('spriteHopWrapper');
       if (!wrapper) return;
       wrapper.classList.remove('hopping');
@@ -4318,6 +4390,9 @@
       // 🌾 모든 서식지별 인터랙티브 파밍 시스템 활성화
       startHabitatFarming(bgKey);
 
+      // 📱 스마트폰 기울기 자이로 센서 모션 엔진 활성화
+      startGyroscopeMotionEngine();
+
       document.getElementById('lvBadge').innerText = 'Lv.' + data.userStats.level;
       
       const genderClass = data.pokemon.gender === '♀' ? 'female' : (data.pokemon.gender === '♂' ? 'male' : 'none');
@@ -4328,11 +4403,12 @@
       const growthEl = document.getElementById('growthTag');
       if (growthEl) growthEl.innerText = growthKr[data.pokemon.growth] || "보통느림";
 
-      // 🌟 DB의 altitude (하 / 중 / 상) 속성에 기반한 동적 위치 및 애니메이션 결정
+      // 🌟 DB의 altitude (하 / 중 / 상) 속성에 기반한 동적 위치 및 자이로 모드 결정
       const stageArea = document.getElementById('stageArea');
       const wanderWrapper = document.getElementById('idleWanderWrapper');
       const pInfo = getPokemonData(data.pokemon.id);
       const alt = (data.isEgg || !pInfo) ? "하" : (pInfo.altitude || "하");
+      currentAltitudeMode = alt;
 
       if (alt === "상") {
         stageArea.className = "stage-area sky-mode";
@@ -5024,7 +5100,8 @@
         q.dueDate = calculateNextDueDateClient(q.recurrence, todayStr);
       }
       
-      // 3) 경험치바 1회 하이라이트 & 경험치 지급
+      // 3) 경험치바 1회 하이라이트 & 찰진 성취감 햅틱 진동 & 경험치 지급
+      triggerHaptic([35, 30, 45]);
       highlightXpBar();
       processXpGainAndEvolve(q.rewardXp || 20);
 
@@ -5702,8 +5779,9 @@
         }, idx * 120);
       });
 
-      // 비행 완료 시점 콜백
+      // 비행 완료 시점 콜백 & 열매 섭취 햅틱 진동
       setTimeout(() => {
+        triggerHaptic([25, 30, 40]);
         if (onCompleteCallback) onCompleteCallback();
       }, 550);
     }
@@ -5820,7 +5898,11 @@
       }
     }
 
+    // 🌟 [요청 4]: 진화할 때 화려한 연출과 함께 끝날 때까지 웅장하고 긴 햅틱 진동
     function triggerEvolutionOverlay(fromName, toName, toId, level, type = "EVOLVE") {
+      // 웅장하고 긴 다단계 햅틱 진동 (약 2.5초간 점점 강해지는 펄스)
+      triggerHaptic([100, 50, 150, 60, 200, 80, 300, 100, 500, 150, 800]);
+
       const overlay = document.getElementById('evolveOverlay');
       const titleEl = document.getElementById('evolveTitleText');
       const spriteEl = document.getElementById('evolveSpriteImg');
@@ -5855,8 +5937,10 @@
       }
     }
 
-    // 🌟 [레벨업 시 포켓몬 머리 위로 별 하나만 살짝 떠올랐다 사라짐]
+    // 🌟 [요청 3]: 레벨업 시 2단 팡파르 햅틱 진동
     function triggerMiniLevelUpEffect(newLevel) {
+      triggerHaptic([40, 60, 50, 60, 100]);
+
       const stageArea = document.getElementById('stageArea');
       const lvBadge = document.getElementById('lvBadge');
 

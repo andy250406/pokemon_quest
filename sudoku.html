@@ -725,6 +725,111 @@
     }
 
     // ========================================================
+    // 📳 모바일 햅틱 진동 유틸리티
+    // ========================================================
+    function triggerHaptic(pattern = 30) {
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try {
+          navigator.vibrate(pattern);
+        } catch(e) {}
+      }
+    }
+
+    // 🌟 [요청 5]: 숫자 9칸 완성 또는 한 줄(행/열/3x3박스) 완성 추적 세트
+    let completedNumbers = new Set();
+    let completedRows = new Set();
+    let completedCols = new Set();
+    let completedBoxes = new Set();
+
+    function resetCompletionTracking() {
+      completedNumbers.clear();
+      completedRows.clear();
+      completedCols.clear();
+      completedBoxes.clear();
+
+      // 현재 초기 보드 상태 기준 이미 꽉 찬 줄/숫자 등록
+      checkSudokuLineOrNumberCompletion(true);
+    }
+
+    function checkSudokuLineOrNumberCompletion(isSilentInit = false) {
+      let newlyCompleted = false;
+
+      // 1) 숫자 9칸 완성 체크
+      const numCounts = Array(10).fill(0);
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          const v = (initialBoard[r][c] !== 0) ? initialBoard[r][c] : userBoard[r][c].val;
+          if (v >= 1 && v <= 9) numCounts[v]++;
+        }
+      }
+      for (let n = 1; n <= 9; n++) {
+        if (numCounts[n] === 9 && !completedNumbers.has(n)) {
+          completedNumbers.add(n);
+          newlyCompleted = true;
+        } else if (numCounts[n] < 9 && completedNumbers.has(n)) {
+          completedNumbers.delete(n);
+        }
+      }
+
+      // 2) 가로 행(Row) 9칸 완성 체크 (1~9 중복 없음)
+      for (let r = 0; r < 9; r++) {
+        const rowSet = new Set();
+        for (let c = 0; c < 9; c++) {
+          const v = (initialBoard[r][c] !== 0) ? initialBoard[r][c] : userBoard[r][c].val;
+          if (v >= 1 && v <= 9) rowSet.add(v);
+        }
+        if (rowSet.size === 9 && !completedRows.has(r)) {
+          completedRows.add(r);
+          newlyCompleted = true;
+        } else if (rowSet.size < 9 && completedRows.has(r)) {
+          completedRows.delete(r);
+        }
+      }
+
+      // 3) 세로 열(Col) 9칸 완성 체크
+      for (let c = 0; c < 9; c++) {
+        const colSet = new Set();
+        for (let r = 0; r < 9; r++) {
+          const v = (initialBoard[r][c] !== 0) ? initialBoard[r][c] : userBoard[r][c].val;
+          if (v >= 1 && v <= 9) colSet.add(v);
+        }
+        if (colSet.size === 9 && !completedCols.has(c)) {
+          completedCols.add(c);
+          newlyCompleted = true;
+        } else if (colSet.size < 9 && completedCols.has(c)) {
+          completedCols.delete(c);
+        }
+      }
+
+      // 4) 3x3 박스 완성 체크
+      for (let br = 0; br < 3; br++) {
+        for (let bc = 0; bc < 3; bc++) {
+          const bIdx = br * 3 + bc;
+          const boxSet = new Set();
+          for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 3; c++) {
+              const v = (initialBoard[br * 3 + r][bc * 3 + c] !== 0) 
+                ? initialBoard[br * 3 + r][bc * 3 + c] 
+                : userBoard[br * 3 + r][bc * 3 + c].val;
+              if (v >= 1 && v <= 9) boxSet.add(v);
+            }
+          }
+          if (boxSet.size === 9 && !completedBoxes.has(bIdx)) {
+            completedBoxes.add(bIdx);
+            newlyCompleted = true;
+          } else if (boxSet.size < 9 && completedBoxes.has(bIdx)) {
+            completedBoxes.delete(bIdx);
+          }
+        }
+      }
+
+      // 🌟 한 숫자 9칸 또는 한 줄이 새로 완성되었을 때 찰진 햅틱 진동!
+      if (newlyCompleted && !isSilentInit) {
+        triggerHaptic([35, 30, 55]);
+      }
+    }
+
+    // ========================================================
     // 🧠 100% 즉시 생성 보장 스도쿠 엔진
     // ========================================================
     function isValid(board, r, c, num, isX) {
@@ -888,6 +993,7 @@
       renderBoard();
       renderKeypad();
       updateStatusDisplay();
+      resetCompletionTracking();
     }
 
     // ========================================================
@@ -980,6 +1086,7 @@
       renderBoard();
       renderKeypad();
       updateStatusDisplay();
+      resetCompletionTracking();
       showToast("↩️ 저장했던 진행 상태를 불러왔습니다!");
     }
 
@@ -1304,6 +1411,9 @@
     }
 
     function checkClearCondition() {
+      // 🌟 [요청 5]: 숫자 9칸 완성 또는 행/열/3x3 한 줄 완성 햅틱 검사
+      checkSudokuLineOrNumberCompletion();
+
       // 1) 보드 전체가 빈칸 없이 모두 채워졌는지 검사 & 현재 9x9 보드 구성
       const currentFullBoard = Array.from({ length: 9 }, () => Array(9).fill(0));
 
@@ -1322,6 +1432,9 @@
     }
 
     function handleSudokuClear() {
+      // 🌟 [요청 5]: 게임 클리어 시 승리 햅틱 진동
+      triggerHaptic([60, 50, 80, 60, 160]);
+
       const cfg = STAGE_CONFIG[currentStageKey] || STAGE_CONFIG["hard"];
       const rewardXp = cfg.baseReward;
       const updatedRec = updateStreakOnClear(currentStageKey);
