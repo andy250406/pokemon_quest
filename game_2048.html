@@ -776,12 +776,12 @@
         }
       }
 
-      // 기본 참가 보상 10 XP + 타일 합산 (최대 100 XP)
-      const finalXp = Math.min(100, Math.max(10, 10 + tileRewardXp));
+      // 🌟 기본 참가 보상 20 XP + 타일 합산 (상한치 없음!)
+      const finalXp = 20 + tileRewardXp;
 
       let descHtml = `최종 점수: <b>${score.toLocaleString()}점</b><br>최고 타일: <b>${maxTile}</b>`;
       if (count2048Plus > 0 || count1024 > 0 || count512 > 0) {
-        descHtml += `<br><span style="color:#0284c7; font-size:11.5px; font-weight:800;">✨ 고급 타일 보너스 적용!</span>`;
+        descHtml += `<br><span style="color:#0284c7; font-size:11.5px; font-weight:800;">✨ 고급 타일 보너스 합산 적용!</span>`;
       }
 
       document.getElementById('overDescText').innerHTML = descHtml;

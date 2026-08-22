@@ -39,7 +39,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 10px;
+      padding: 8px 10px;
       box-sizing: border-box;
       overflow: hidden;
     }
@@ -90,7 +90,7 @@
       gap: 6px;
     }
 
-    /* 🕹️ 2행: 게임 정보 & 크기 & 난이도 컨트롤 바구니 칸 (화이트 글래스모피즘) */
+    /* 🕹️ 2행: 게임 정보 & 크기 & 난이도 컨트롤 바구니 칸 */
     .game-info-bar {
       width: 100%;
       display: flex;
@@ -173,34 +173,44 @@
       color: #334155;
     }
 
-    /* 🎨 캔버스 뷰포트 컨테이너 (화이트 글래스모피즘) */
+    /* 🎨 캔버스 뷰포트 컨테이너 (줌 & 패닝 뷰포트) */
     #canvas-container {
       position: relative;
+      width: 100%;
+      flex: 1;
+      min-height: 0;
       border: 2px solid rgba(0, 0, 0, 0.08);
       border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(241, 245, 249, 0.95);
+      touch-action: none;
+      overflow: hidden;
+      margin-bottom: 6px;
       display: flex;
       justify-content: center;
       align-items: center;
-      touch-action: none;
-      overflow: hidden;
-      margin-bottom: auto;
+      cursor: grab;
+    }
+    #canvas-container:active {
+      cursor: grabbing;
     }
     canvas {
       display: block;
-      cursor: pointer;
       touch-action: none;
     }
 
-    /* 🕹️ 하단 스마트 모드 전환 바 */
+    /* 🕹️ 하단 툴바: 줌 컨트롤러 + 모드 전환 바 */
+    .bottom-toolbar {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-sizing: border-box;
+    }
     .bottom-mode-bar {
       width: 100%;
-      max-width: 480px;
       display: flex;
       gap: 6px;
-      margin-top: auto;
-      margin-bottom: 2px;
       box-sizing: border-box;
     }
     .btn-mode-toggle {
@@ -232,7 +242,45 @@
       box-shadow: 0 3px 10px rgba(234, 88, 12, 0.35);
     }
 
-    /* ✨ 클리어 / 실패 / 기록 모달 공통 (화이트 글래스모피즘 테마) */
+    /* 🔍 줌 컨트롤러 바 */
+    .zoom-ctrl-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.65);
+      padding: 4px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    .btn-zoom {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      color: #334155;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+    .btn-zoom:active {
+      transform: scale(0.92);
+      background: rgba(226, 232, 240, 0.8);
+    }
+    .zoom-text {
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748b;
+      min-width: 48px;
+      text-align: center;
+    }
+
+    /* ✨ 클리어 / 실패 / 기록 모달 공통 */
     .modal-overlay {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -403,19 +451,28 @@
       <button class="btn-action btn-refresh-only" onclick="generateStage()" title="새 맵 생성">🔄</button>
     </div>
 
-    <!-- 🎨 게임 캔버스 컨테이너 -->
+    <!-- 🎨 줌 & 패닝 지원 캔버스 뷰포트 컨테이너 -->
     <div id="canvas-container">
       <canvas id="gameCanvas"></canvas>
     </div>
 
-    <!-- 🕹️ 하단 모드 전환 바 (열기 🔍 / 깃발 🚩) -->
-    <div class="bottom-mode-bar">
-      <button class="btn-mode-toggle active" id="btnModeDig" onclick="setInteractionMode('DIG')">
-        🔍 칸 열기
-      </button>
-      <button class="btn-mode-toggle flag-mode" id="btnModeFlag" onclick="setInteractionMode('FLAG')">
-        🚩 깃발 꽂기
-      </button>
+    <!-- 🕹️ 하단 툴바: 줌 컨트롤러 & 모드 전환 바 -->
+    <div class="bottom-toolbar">
+      <div class="zoom-ctrl-bar">
+        <button class="btn-zoom" onclick="adjustZoom(-0.2)" title="축소">➖</button>
+        <span class="zoom-text" id="zoomLevelText">100%</span>
+        <button class="btn-zoom" onclick="adjustZoom(0.2)" title="확대">➕</button>
+        <button class="btn-zoom" onclick="resetZoomFit()" title="화면에 맞추기">🎯 맞춤</button>
+        <button class="btn-zoom" onclick="centerView()" title="중앙 이동">📍 중앙</button>
+      </div>
+      <div class="bottom-mode-bar">
+        <button class="btn-mode-toggle active" id="btnModeDig" onclick="setInteractionMode('DIG')">
+          🔍 칸 열기
+        </button>
+        <button class="btn-mode-toggle flag-mode" id="btnModeFlag" onclick="setInteractionMode('FLAG')">
+          🚩 깃발 꽂기
+        </button>
+      </div>
     </div>
 
     <!-- 🎉 스테이지 클리어 모달 -->
@@ -501,7 +558,7 @@
 
     let COLS = 20;
     let ROWS = 30;
-    let CELL_SIZE = 16;
+    const CELL_SIZE = 30; // 🌟 넉넉하고 큼직한 고정 셀 크기 (30px)
     let totalMines = 0;
     let flagsPlaced = 0;
     let isGameOver = false;
@@ -510,9 +567,15 @@
     let interactionMode = "DIG"; // "DIG" 또는 "FLAG"
     let sessionTotalEarnedXp = 0;
 
+    // 🌟 카메라 줌 & 패닝 상태 변수
+    let zoomScale = 1.0;
+    let panOffsetX = 0;
+    let panOffsetY = 0;
+
     // 보드 데이터 구조: { isMine, isOpen, isFlag, count }
     let board = [];
 
+    const container = document.getElementById('canvas-container');
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
@@ -590,27 +653,89 @@
     function updateStatusDisplay() {
       const remaining = Math.max(0, totalMines - flagsPlaced);
       document.getElementById('mineCountText').innerText = `${remaining}`;
+      document.getElementById('zoomLevelText').innerText = `${Math.round(zoomScale * 100)}%`;
     }
 
-    // 📐 보드 크기와 상단 헤더 동기화
-    function syncBoardWidths() {
-      const boardW = canvas.width + 4;
-      const topNav = document.querySelector('.top-nav');
-      const infoBar = document.querySelector('.game-info-bar');
-      const canvasContainer = document.getElementById('canvas-container');
-      const bottomBar = document.querySelector('.bottom-mode-bar');
+    // ========================================================
+    // 🔍 줌 & 뷰포트 패닝 제어 시스템
+    // ========================================================
+    function adjustZoom(delta) {
+      const oldZoom = zoomScale;
+      zoomScale = Math.max(0.45, Math.min(2.2, zoomScale + delta));
 
-      if (topNav) { topNav.style.maxWidth = boardW + 'px'; topNav.style.width = boardW + 'px'; }
-      if (infoBar) { infoBar.style.maxWidth = boardW + 'px'; infoBar.style.width = boardW + 'px'; }
-      if (canvasContainer) { canvasContainer.style.maxWidth = boardW + 'px'; canvasContainer.style.width = boardW + 'px'; }
-      if (bottomBar) { bottomBar.style.maxWidth = boardW + 'px'; bottomBar.style.width = boardW + 'px'; }
+      // 뷰포트 중앙 기준 줌 조정
+      const cW = container.clientWidth;
+      const cH = container.clientHeight;
+      const factor = zoomScale / oldZoom;
+      panOffsetX = cW / 2 - (cW / 2 - panOffsetX) * factor;
+      panOffsetY = cH / 2 - (cH / 2 - panOffsetY) * factor;
+
+      clampPanOffset();
+      updateStatusDisplay();
+      draw();
+      triggerHaptic(20);
     }
 
-    function calculateBestCellSize() {
-      const screenEl = document.querySelector('.game-screen') || document.body;
-      const availableW = Math.max(260, Math.min(screenEl.clientWidth - 12, 540));
-      const availableH = Math.max(300, window.innerHeight - 170);
-      return Math.max(8, Math.min(Math.floor(availableW / COLS), Math.floor(availableH / ROWS)));
+    function resetZoomFit() {
+      const cW = container.clientWidth;
+      const cH = container.clientHeight;
+      const mapW = COLS * CELL_SIZE;
+      const mapH = ROWS * CELL_SIZE;
+
+      const scaleX = (cW - 16) / mapW;
+      const scaleY = (cH - 16) / mapH;
+      zoomScale = Math.max(0.4, Math.min(1.2, Math.min(scaleX, scaleY)));
+
+      centerView();
+      triggerHaptic(25);
+    }
+
+    function centerView() {
+      const cW = container.clientWidth;
+      const cH = container.clientHeight;
+      const mapW = COLS * CELL_SIZE * zoomScale;
+      const mapH = ROWS * CELL_SIZE * zoomScale;
+
+      panOffsetX = (cW - mapW) / 2;
+      panOffsetY = (cH - mapH) / 2;
+
+      clampPanOffset();
+      updateStatusDisplay();
+      draw();
+    }
+
+    function clampPanOffset() {
+      const cW = container.clientWidth;
+      const cH = container.clientHeight;
+      const mapW = COLS * CELL_SIZE * zoomScale;
+      const mapH = ROWS * CELL_SIZE * zoomScale;
+
+      // 맵이 뷰포트보다 작으면 가운데 고정, 크면 여백 제한
+      if (mapW <= cW) {
+        panOffsetX = (cW - mapW) / 2;
+      } else {
+        const minX = cW - mapW - 40;
+        const maxX = 40;
+        panOffsetX = Math.max(minX, Math.min(maxX, panOffsetX));
+      }
+
+      if (mapH <= cH) {
+        panOffsetY = (cH - mapH) / 2;
+      } else {
+        const minY = cH - mapH - 40;
+        const maxY = 40;
+        panOffsetY = Math.max(minY, Math.min(maxY, panOffsetY));
+      }
+    }
+
+    function resizeCanvas() {
+      const cW = container.clientWidth;
+      const cH = container.clientHeight;
+      if (cW > 0 && cH > 0) {
+        canvas.width = cW;
+        canvas.height = cH;
+        draw();
+      }
     }
 
     // ========================================================
@@ -635,10 +760,6 @@
       isGameWon = false;
       isFirstClick = true;
 
-      CELL_SIZE = calculateBestCellSize();
-      canvas.width = COLS * CELL_SIZE;
-      canvas.height = ROWS * CELL_SIZE;
-
       // 빈 보드 생성
       board = Array.from({ length: ROWS }, () =>
         Array.from({ length: COLS }, () => ({
@@ -649,9 +770,9 @@
         }))
       );
 
+      resizeCanvas();
+      resetZoomFit();
       updateStatusDisplay();
-      syncBoardWidths();
-      draw();
     }
 
     // 첫 클릭 시 안전 구역(지뢰 0개) 보장 지뢰 심기
@@ -688,13 +809,30 @@
     }
 
     // ========================================================
-    // 🎨 렌더링 시스템 (화이트 글래스모피즘 & 클래식 타일)
+    // 🎨 렌더링 시스템 (화이트 글래스모피즘 & 줌/팬 적용)
     // ========================================================
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
+      ctx.save();
+      // 🌟 카메라 오프셋 및 줌 적용
+      ctx.translate(panOffsetX, panOffsetY);
+      ctx.scale(zoomScale, zoomScale);
+
+      // 전체 맵 배경 그림자
+      const mapW = COLS * CELL_SIZE;
+      const mapH = ROWS * CELL_SIZE;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, mapW, mapH);
+
+      // 뷰포트에 보이는 타일만 효율적으로 렌더링 (Frustum Culling)
+      const visibleMinC = Math.max(0, Math.floor(-panOffsetX / (CELL_SIZE * zoomScale)));
+      const visibleMaxC = Math.min(COLS - 1, Math.ceil((canvas.width - panOffsetX) / (CELL_SIZE * zoomScale)));
+      const visibleMinR = Math.max(0, Math.floor(-panOffsetY / (CELL_SIZE * zoomScale)));
+      const visibleMaxR = Math.min(ROWS - 1, Math.ceil((canvas.height - panOffsetY) / (CELL_SIZE * zoomScale)));
+
+      for (let r = visibleMinR; r <= visibleMaxR; r++) {
+        for (let c = visibleMinC; c <= visibleMaxC; c++) {
           const cell = board[r][c];
           const x = c * CELL_SIZE;
           const y = r * CELL_SIZE;
@@ -702,7 +840,7 @@
           if (cell.isOpen) {
             if (cell.isMine) {
               // 밟은 지뢰
-              ctx.fillStyle = '#ef4444';
+              ctx.fillStyle = '#fee2e2';
               ctx.fillRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
               ctx.font = `${Math.floor(CELL_SIZE * 0.65)}px sans-serif`;
               ctx.textAlign = 'center';
@@ -710,24 +848,24 @@
               ctx.fillText('💣', x + CELL_SIZE / 2, y + CELL_SIZE / 2);
             } else {
               // 열린 빈칸
-              ctx.fillStyle = '#ffffff';
+              ctx.fillStyle = '#f8fafc';
               ctx.fillRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
 
               if (cell.count > 0) {
                 ctx.fillStyle = NUMBER_COLORS[cell.count] || '#0f172a';
-                ctx.font = `bold ${Math.max(10, Math.floor(CELL_SIZE * 0.68))}px sans-serif`;
+                ctx.font = `900 ${Math.floor(CELL_SIZE * 0.68)}px -apple-system, BlinkMacSystemFont, sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(cell.count, x + CELL_SIZE / 2, y + CELL_SIZE / 2 + 1);
               }
             }
           } else {
-            // 닫힌 칸 (화이트 글래스 버튼 느낌)
+            // 닫힌 칸 (화이트 글래스 버튼)
             ctx.fillStyle = '#e2e8f0';
             ctx.fillRect(x + 1, y + 1, CELL_SIZE - 2, CELL_SIZE - 2);
 
-            // 상단/좌측 하이라이트
-            ctx.fillStyle = '#f8fafc';
+            // 입체 하이라이트
+            ctx.fillStyle = '#ffffff';
             ctx.fillRect(x + 1, y + 1, CELL_SIZE - 2, 2);
             ctx.fillRect(x + 1, y + 1, 2, CELL_SIZE - 2);
 
@@ -740,92 +878,213 @@
           }
 
           // 격자선
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.05)';
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
           ctx.lineWidth = 1;
           ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
         }
       }
+
+      // 전체 맵 외곽 테두리
+      ctx.strokeStyle = 'rgba(2, 132, 199, 0.4)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(0, 0, mapW, mapH);
+
+      ctx.restore();
     }
 
     // ========================================================
-    // 👆 터치 & 클릭 조작 핸들러
+    // 👆 스마트 터치 제스처 & 마우스 조작 (패닝 / 탭 / 핀치줌)
     // ========================================================
+    let isDragging = false;
+    let startPointerPos = { x: 0, y: 0 };
+    let lastPointerPos = { x: 0, y: 0 };
     let longPressTimer = null;
-    let isLongPressTriggered = false;
-    let touchStartPos = null;
+    let isLongPressFired = false;
+    let initialPinchDistance = null;
+    let initialZoomScale = 1.0;
 
-    canvas.addEventListener('pointerdown', (e) => {
-      if (isGameOver) return;
-      const rect = canvas.getBoundingClientRect();
-      const clientX = e.clientX;
-      const clientY = e.clientY;
-      const c = Math.floor((clientX - rect.left) / CELL_SIZE);
-      const r = Math.floor((clientY - rect.top) / CELL_SIZE);
+    function screenToBoardCoords(screenX, screenY) {
+      const rect = container.getBoundingClientRect();
+      const clickX = screenX - rect.left;
+      const clickY = screenY - rect.top;
 
-      if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+      const boardX = (clickX - panOffsetX) / zoomScale;
+      const boardY = (clickY - panOffsetY) / zoomScale;
 
-      touchStartPos = { r, c, clientX, clientY };
-      isLongPressTriggered = false;
+      const c = Math.floor(boardX / CELL_SIZE);
+      const r = Math.floor(boardY / CELL_SIZE);
+      return { r, c };
+    }
 
-      // 모바일 길게 누르기(280ms)로 깃발 토글
-      longPressTimer = setTimeout(() => {
-        isLongPressTriggered = true;
-        toggleFlag(r, c);
-        triggerHaptic(45);
-        draw();
-      }, 280);
-    });
+    // 마우스 휠 줌 (커서 위치 기준)
+    container.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const rect = container.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
 
-    canvas.addEventListener('pointermove', (e) => {
-      if (!touchStartPos) return;
-      const dist = Math.hypot(e.clientX - touchStartPos.clientX, e.clientY - touchStartPos.clientY);
-      if (dist > 10) {
+      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+      const newZoom = Math.max(0.4, Math.min(2.5, zoomScale * zoomFactor));
+
+      panOffsetX = mouseX - (mouseX - panOffsetX) * (newZoom / zoomScale);
+      panOffsetY = mouseY - (mouseY - panOffsetY) * (newZoom / zoomScale);
+      zoomScale = newZoom;
+
+      clampPanOffset();
+      updateStatusDisplay();
+      draw();
+    }, { passive: false });
+
+    // 멀티 터치 핀치 줌 & 싱글 터치 패닝/탭 이벤트
+    container.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        // 핀치 줌 시작
         clearTimeout(longPressTimer);
-      }
-    });
-
-    canvas.addEventListener('pointerup', (e) => {
-      clearTimeout(longPressTimer);
-      if (isGameOver || isLongPressTriggered || !touchStartPos) {
-        touchStartPos = null;
+        isLongPressFired = true;
+        isDragging = false;
+        initialPinchDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        initialZoomScale = zoomScale;
         return;
       }
 
-      const rect = canvas.getBoundingClientRect();
-      const c = Math.floor((e.clientX - rect.left) / CELL_SIZE);
-      const r = Math.floor((e.clientY - rect.top) / CELL_SIZE);
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        startPointerPos = { x: touch.clientX, y: touch.clientY };
+        lastPointerPos = { x: touch.clientX, y: touch.clientY };
+        isDragging = false;
+        isLongPressFired = false;
 
-      if (r === touchStartPos.r && c === touchStartPos.c) {
-        if (e.button === 2 || interactionMode === "FLAG") {
-          // 우클릭 or 깃발 모드
-          toggleFlag(r, c);
-        } else {
-          // 좌클릭 or 열기 모드
-          handleClickCell(r, c);
+        const coords = screenToBoardCoords(touch.clientX, touch.clientY);
+
+        // 260ms 길게 누르면 깃발 꽂기
+        longPressTimer = setTimeout(() => {
+          if (!isDragging && coords.r >= 0 && coords.r < ROWS && coords.c >= 0 && coords.c < COLS) {
+            isLongPressFired = true;
+            toggleFlag(coords.r, coords.c);
+            triggerHaptic(45);
+            draw();
+          }
+        }, 260);
+      }
+    }, { passive: false });
+
+    container.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2 && initialPinchDistance) {
+        // 핀치 줌 계산
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const factor = dist / initialPinchDistance;
+        zoomScale = Math.max(0.4, Math.min(2.5, initialZoomScale * factor));
+        clampPanOffset();
+        updateStatusDisplay();
+        draw();
+        return;
+      }
+
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        const dx = touch.clientX - lastPointerPos.x;
+        const dy = touch.clientY - lastPointerPos.y;
+        const totalDist = Math.hypot(touch.clientX - startPointerPos.x, touch.clientY - startPointerPos.y);
+
+        if (totalDist > 8) {
+          clearTimeout(longPressTimer);
+          isDragging = true;
+          panOffsetX += dx;
+          panOffsetY += dy;
+          clampPanOffset();
+          draw();
         }
+        lastPointerPos = { x: touch.clientX, y: touch.clientY };
+      }
+    }, { passive: false });
+
+    container.addEventListener('touchend', (e) => {
+      clearTimeout(longPressTimer);
+      if (e.touches.length === 0) {
+        if (!isDragging && !isLongPressFired) {
+          // 탭 이벤트 발생!
+          const coords = screenToBoardCoords(startPointerPos.x, startPointerPos.y);
+          if (coords.r >= 0 && coords.r < ROWS && coords.c >= 0 && coords.c < COLS) {
+            if (interactionMode === "FLAG") {
+              toggleFlag(coords.r, coords.c);
+            } else {
+              handleClickCell(coords.r, coords.c);
+            }
+            draw();
+          }
+        }
+        isDragging = false;
+        initialPinchDistance = null;
+      }
+    });
+
+    // PC 마우스 드래그 & 클릭 이벤트
+    let isMouseDown = false;
+
+    container.addEventListener('mousedown', (e) => {
+      isMouseDown = true;
+      isDragging = false;
+      startPointerPos = { x: e.clientX, y: e.clientY };
+      lastPointerPos = { x: e.clientX, y: e.clientY };
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isMouseDown) return;
+      const dx = e.clientX - lastPointerPos.x;
+      const dy = e.clientY - lastPointerPos.y;
+      const totalDist = Math.hypot(e.clientX - startPointerPos.x, e.clientY - startPointerPos.y);
+
+      if (totalDist > 6) {
+        isDragging = true;
+        panOffsetX += dx;
+        panOffsetY += dy;
+        clampPanOffset();
         draw();
       }
-      touchStartPos = null;
+      lastPointerPos = { x: e.clientX, y: e.clientY };
     });
 
-    canvas.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
+    window.addEventListener('mouseup', (e) => {
+      if (!isMouseDown) return;
+      isMouseDown = false;
+      if (!isDragging && e.target.closest('#canvas-container')) {
+        const coords = screenToBoardCoords(e.clientX, e.clientY);
+        if (coords.r >= 0 && coords.r < ROWS && coords.c >= 0 && coords.c < COLS) {
+          if (e.button === 2 || interactionMode === "FLAG") {
+            toggleFlag(coords.r, coords.c);
+          } else {
+            handleClickCell(coords.r, coords.c);
+          }
+          draw();
+        }
+      }
+      isDragging = false;
     });
 
-    // 🚩 깃발 토글
+    container.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // ========================================================
+    // 🚩 깃발 & 🔍 칸 열기 & Chord
+    // ========================================================
     function toggleFlag(r, c) {
-      if (board[r][c].isOpen) return;
+      if (isGameOver || board[r][c].isOpen) return;
       board[r][c].isFlag = !board[r][c].isFlag;
       flagsPlaced += board[r][c].isFlag ? 1 : -1;
       triggerHaptic(25);
       updateStatusDisplay();
     }
 
-    // 🔍 칸 열기 또는 Chord(주변 개방)
     function handleClickCell(r, c) {
+      if (isGameOver) return;
       const cell = board[r][c];
 
-      // 1) 이미 열린 숫자 칸 탭 -> 주변 깃발 수가 일치하면 주변 미개봉 칸 일괄 오픈 (Chord 기능)
+      // 1) 이미 열린 숫자 칸 탭 -> 주변 깃발 수가 일치하면 미개봉 칸 일괄 오픈 (Chord)
       if (cell.isOpen && cell.count > 0) {
         let flagCount = 0;
         for (let dr = -1; dr <= 1; dr++) {
@@ -853,7 +1112,7 @@
 
       if (cell.isOpen || cell.isFlag) return;
 
-      // 2) 첫 클릭 처리
+      // 2) 첫 클릭 안전 처리
       if (isFirstClick) {
         isFirstClick = false;
         plantMines(r, c);
@@ -864,7 +1123,6 @@
       checkWinCondition();
     }
 
-    // 칸 열기 (0이면 연쇄 BFS 오픈)
     function openCell(r, c) {
       if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
       const cell = board[r][c];
@@ -925,7 +1183,6 @@
       isGameWon = true;
       triggerHaptic([60, 50, 80, 60, 160]);
 
-      // 남은 지뢰 칸 깃발 일괄 처리
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
           if (board[r][c].isMine) board[r][c].isFlag = true;
@@ -963,7 +1220,6 @@
       isGameOver = true;
       triggerHaptic([100, 80, 120]);
 
-      // 모든 지뢰 공개
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
           if (board[r][c].isMine) board[r][c].isOpen = true;
@@ -995,12 +1251,13 @@
       }
     }
 
-    window.onload = generateStage;
+    window.onload = () => {
+      generateStage();
+    };
+
     window.onresize = () => {
-      CELL_SIZE = calculateBestCellSize();
-      canvas.width = COLS * CELL_SIZE;
-      canvas.height = ROWS * CELL_SIZE;
-      syncBoardWidths();
+      resizeCanvas();
+      clampPanOffset();
       draw();
     };
   </script>
