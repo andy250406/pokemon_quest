@@ -4197,6 +4197,32 @@
       }
     }
 
+    // ========================================================
+    // ☁️ 구글 시트 백엔드 실시간 100% 경험치 & 포켓몬 동기화 엔진
+    // ========================================================
+    function syncCurrentPokemonStatsToBackend() {
+      const p = appState.pokemon || { id: 1, gender: "♂", nature: "고집" };
+      const s = appState.userStats || { level: 1, currentXp: 0 };
+      const pId = (appState.isEgg || !p.id) ? 0 : p.id;
+
+      try {
+        fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "cheatSetPokemon",
+            pokemonId: pId,
+            isEgg: Boolean(appState.isEgg),
+            level: s.level || 1,
+            currentXp: s.currentXp || 0,
+            resetAll: false,
+            gender: p.gender || "♂",
+            nature: p.nature || "고집"
+          })
+        }).catch(() => {});
+      } catch(e) {}
+    }
+
     function applyBackendDataToAppState(data) {
       if (!data) return;
       if (data.quests && Array.isArray(data.quests)) {
@@ -4226,25 +4252,15 @@
         const localLevel = Number(appState.userStats.level) || 1;
         const localXp = Number(appState.userStats.currentXp) || 0;
 
-        // 🌟 [경험치 역행/초기화 방어]: 로컬이 백엔드보다 더 높으면 로컬 최신 경험치를 우선 보존하고 백엔드를 최신화!
+        // 🌟 [PC-모바일 다중 기기 실시간 동기화 & 롤백 방지]
         const localTotalScore = localLevel * 10000 + localXp;
         const backendTotalScore = backendLevel * 10000 + backendXp;
 
         if (localTotalScore > backendTotalScore) {
-          // 로컬 데이터 우선 유지 & 백엔드로 즉시 동기화 전송
-          try {
-            fetch(GAS_API_URL, {
-              method: "POST",
-              headers: { "Content-Type": "text/plain;charset=utf-8" },
-              body: JSON.stringify({
-                action: "syncStats",
-                level: localLevel,
-                currentXp: localXp
-              })
-            }).catch(() => {});
-          } catch(e) {}
+          // 1) 이 기기에서 새로 경험치를 올린 상태라면 -> 로컬 데이터 유지 & 구글 시트로 즉시 전송
+          syncCurrentPokemonStatsToBackend();
         } else {
-          // 백엔드가 더 높거나 같으면 백엔드 최신 값 적용
+          // 2) 다른 기기(예: PC)에서 경험치를 올려 구글 시트가 더 높다면 -> 최신 백엔드 값으로 즉시 동기화!
           appState.userStats.level = backendLevel;
           appState.userStats.currentXp = backendXp;
         }
@@ -5844,18 +5860,8 @@
       // 3) 로컬 캐시 동기화
       saveLocalFullCache();
 
-      // 4) 🌟 백엔드에 비동기 경험치 및 현재 레벨/경험치 다이렉트 즉시 저장
-      try {
-        fetch(GAS_API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            action: "syncStats",
-            level: stats.level,
-            currentXp: stats.currentXp
-          })
-        }).catch(() => {});
-      } catch(e) {}
+      // 4) 🌟 백엔드(구글 시트)에 현재 확정 레벨/경험치 즉각 100% 저장
+      syncCurrentPokemonStatsToBackend();
     }
 
     function updateXpBarUI() {
