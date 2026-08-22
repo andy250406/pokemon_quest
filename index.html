@@ -206,16 +206,15 @@
       z-index: 20;
     }
 
-    /* 🌟 포켓몬 상태바: 가운데 영역을 넘지 않도록 가로폭 컴팩트화 (max-width: 250px) & 1.2배 확대 */
+    /* 🌟 포켓몬 상태바: 1.6배 시원하게 확장된 가로폭 & 1.2배 타이포그래피 */
     .pokemon-card {
       background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(10px);
       padding: 7px 13px;
       border-radius: 18px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-      flex: 0 1 auto;
-      width: auto;
-      max-width: clamp(210px, 52%, 260px); /* 가운데 영역을 절대 넘지 않는 단정하고 컴팩트한 폭 */
+      flex: 1;
+      max-width: calc(100% - 95px); /* 우측 필수 뱃지와 조화로운 1.6배 확장폭 */
     }
 
     .card-top {
@@ -642,20 +641,22 @@
       box-shadow: 0 6px 20px rgba(37,99,235,0.5);
     }
 
-    /* 하단 네비게이션 바 (1.2배 확대 및 3개 탭 최적화) */
+    /* 하단 네비게이션 바 (투명도 50% + 블러 16px 글래스모피즘 & 1.2배 확대) */
     .bottom-nav {
       position: absolute;
       bottom: max(14px, env(safe-area-inset-bottom));
       left: max(14px, env(safe-area-inset-left));
       right: max(14px, env(safe-area-inset-right));
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(14px);
+      background: rgba(255, 255, 255, 0.5); /* 🌟 투명도 50% */
+      backdrop-filter: blur(16px);          /* 🌟 블러 효과 */
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.35);
       border-radius: 26px;
       padding: 10px 16px;
       display: flex;
       justify-content: space-around;
       align-items: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
       z-index: 20;
     }
 
@@ -4430,6 +4431,87 @@
     }
 
     // ========================================================
+    // 📱 [요청 4]: 안드로이드 / PWA 스마트폰 뒤로가기 제스처·물리 버튼 연동 시스템
+    // ========================================================
+    let isHandlingPopState = false;
+
+    function pushModalHistory(stateName) {
+      if (typeof window !== "undefined" && window.history && !isHandlingPopState) {
+        window.history.pushState({ modal: stateName, time: Date.now() }, "");
+      }
+    }
+
+    // 초기 진입 시 최상위 root 상태 등록
+    if (typeof window !== "undefined" && window.history) {
+      try {
+        if (!window.history.state || !window.history.state.root) {
+          window.history.replaceState({ root: true }, "");
+        }
+      } catch(e) {}
+    }
+
+    window.addEventListener('popstate', (e) => {
+      isHandlingPopState = true;
+
+      // 1) 치트 모달 닫기
+      const cheatModal = document.getElementById('cheatModal');
+      if (cheatModal && cheatModal.classList.contains('open')) {
+        closeCheatModal();
+        setTimeout(() => { isHandlingPopState = false; }, 50);
+        return;
+      }
+
+      // 2) 퀘스트 추가/수정 모달 닫기
+      const addQuestModal = document.getElementById('addQuestModal');
+      if (addQuestModal && addQuestModal.classList.contains('open')) {
+        closeAddQuestModal();
+        setTimeout(() => { isHandlingPopState = false; }, 50);
+        return;
+      }
+
+      // 3) 도감 상세 전문 모달 닫기
+      const dexDetailModal = document.getElementById('pokedexDetailModal');
+      if (dexDetailModal && dexDetailModal.classList.contains('open')) {
+        closePokedexDetailModal();
+        setTimeout(() => { isHandlingPopState = false; }, 50);
+        return;
+      }
+
+      // 4) 진화 축하 오버레이 닫기
+      const evolveOverlay = document.getElementById('evolveOverlay');
+      if (evolveOverlay && evolveOverlay.classList.contains('active')) {
+        closeEvolveOverlay();
+        setTimeout(() => { isHandlingPopState = false; }, 50);
+        return;
+      }
+
+      // 5) 성격 팝오버 닫기
+      const naturePopover = document.getElementById('naturePopover');
+      if (naturePopover && naturePopover.classList.contains('show')) {
+        hideNaturePopover();
+        setTimeout(() => { isHandlingPopState = false; }, 50);
+        return;
+      }
+
+      // 6) 모바일 퀘스트/작업창 패널 닫기
+      const workPane = document.getElementById('workspacePane');
+      if (workPane && workPane.classList.contains('open')) {
+        const streakView = document.getElementById('paneStreakView');
+        const notifView = document.getElementById('paneNotifView');
+        // 서브 탭(기록, 알림)에 있었다면 퀘스트 탭으로 먼저 복귀
+        if ((streakView && streakView.style.display === 'block') || (notifView && notifView.style.display === 'block')) {
+          switchWorkspaceTab('QUEST', true);
+        } else {
+          closeMobileWorkspace();
+        }
+        setTimeout(() => { isHandlingPopState = false; }, 50);
+        return;
+      }
+
+      setTimeout(() => { isHandlingPopState = false; }, 50);
+    });
+
+    // ========================================================
     // 📱 스마트폰 기울기(자이로스코프) 포켓몬 인터랙티브 모션 엔진
     // ========================================================
     let currentTiltX = 0, currentTiltY = 0;
@@ -4631,6 +4713,7 @@
     }
 
     function openAddQuestModal() {
+      pushModalHistory('addQuestModal');
       document.getElementById('editingQuestId').value = '';
       document.getElementById('modalTitleText').innerText = '🌱 새로운 퀘스트 추가';
       document.getElementById('btnSubmitQuest').innerText = 'Google Tasks & 포켓Tasks에 등록';
@@ -4659,6 +4742,7 @@
     }
 
     function openEditQuestModal(questId) {
+      pushModalHistory('editQuestModal');
       const q = appState.quests.find(x => x.id === questId);
       if (!q) return;
 
@@ -4915,9 +4999,13 @@
     }
 
 
-    function switchWorkspaceTab(tab) {
+    function switchWorkspaceTab(tab, isFromHistory = false) {
       const workPane = document.getElementById('workspacePane');
       workPane.classList.add('open');
+
+      if (!isFromHistory) {
+        pushModalHistory(`tab_${tab}`);
+      }
 
       document.getElementById('paneQuestView').style.display = 'none';
       document.getElementById('paneStreakView').style.display = 'none';
@@ -4925,11 +5013,20 @@
       document.getElementById('panePokedexView').style.display = 'none';
       document.getElementById('paneNotifView').style.display = 'none';
 
-      // 상단 헤더 버튼 활성화 하이라이트
+      // 🌟 [요청 3]: 퀘스트 기록(📊) & 알림설정(🔔) 버튼은 'QUEST' 탭에서만 노출!
       const btnStreak = document.getElementById('btnHeaderStreak');
       const btnNotif = document.getElementById('btnHeaderNotif');
-      if (btnStreak) btnStreak.style.background = (tab === 'STREAK') ? '#2563eb' : 'rgba(255,255,255,0.12)';
-      if (btnNotif) btnNotif.style.background = (tab === 'NOTIF') ? '#2563eb' : 'rgba(255,255,255,0.12)';
+      if (btnStreak && btnNotif) {
+        if (tab === 'QUEST') {
+          btnStreak.style.display = 'flex';
+          btnNotif.style.display = 'flex';
+          btnStreak.style.background = 'rgba(255,255,255,0.12)';
+          btnNotif.style.background = 'rgba(255,255,255,0.12)';
+        } else {
+          btnStreak.style.display = 'none';
+          btnNotif.style.display = 'none';
+        }
+      }
 
       // 하단 네비 버튼 활성화 하이라이트
       document.querySelectorAll('.bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
@@ -4984,11 +5081,24 @@
         return;
       }
 
-      // 필수 퀘스트 카운트
+      // 🌟 [요청 5]: 필수 퀘스트 카운트 정확한 계산 (오늘 유효한 필수 퀘스트 기준)
+      const todayStr = new Date().toISOString().split('T')[0];
       quests.forEach(q => {
-        if (q.isRequired) {
+        if (!q.isRequired) return;
+        const rec = (q.recurrence || '').toUpperCase().trim();
+        const isSingle = (!rec || rec === 'NONE' || rec === '일회성');
+        const timing = evaluateQuestTimingState(q);
+
+        if (isSingle) {
+          if (!timing.isDoneToday) {
+            reqTotal++;
+          } else if (q.lastCompletedDate === todayStr) {
+            reqTotal++;
+            reqDone++;
+          }
+        } else {
           reqTotal++;
-          if (q.isCompletedToday) reqDone++;
+          if (timing.isDoneToday) reqDone++;
         }
       });
       document.getElementById('questText').innerText = `${reqDone}/${reqTotal}`;
@@ -5599,6 +5709,7 @@
       renderDexHistoryTab(pokeId, monRecord);
       switchDexModalTab(1);
 
+      pushModalHistory('pokedexDetailModal');
       const modal = document.getElementById('pokedexDetailModal');
       if (modal) modal.classList.add('open');
     }
@@ -6193,6 +6304,7 @@
     // 🕹️ 5x5 치트 콘솔 팝업 모달 관리 & 백엔드 영구 저장
     // ========================================================
     function openCheatModal() {
+      pushModalHistory('cheatModal');
       document.getElementById('cheatModal').classList.add('open');
     }
 
