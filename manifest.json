@@ -1,0 +1,32 @@
+{
+  "name": "포켓Tasks (Pocket Tasks)",
+  "short_name": "포켓Tasks",
+  "description": "포켓몬과 함께하는 일일 퀘스트 및 습관 실천 육성 웹 앱",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#060913",
+  "theme_color": "#101622",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["productivity", "games", "lifestyle"]
+}

@@ -4,8 +4,15 @@
   <meta charset="UTF-8">
   <title>포켓Tasks</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link rel="icon" type="image/png" href="./images/items/poke-ball.png">
-  <link rel="apple-touch-icon" href="./images/items/poke-ball.png">
+  <!-- 🌟 PWA Manifest & App Icons (크로미움 & 삼성 인터넷 단독 구동 필수 요구조건) -->
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/png" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <meta name="theme-color" content="#101622">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="포켓Tasks">
 
   <!-- OneSignal Web SDK v16 -->
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
@@ -1346,8 +1353,27 @@
           <div class="pokedex-grid-container" id="pokedexGrid"></div>
         </div>
 
-        <!-- 5. OneSignal 알림 설정 & 실시간 진단 콘솔 -->
+        <!-- 5. OneSignal 알림 설정 & 실시간 진단 콘솔 & PWA 앱 설치 -->
         <div id="paneNotifView" style="display:none;">
+          <!-- 📲 PWA 앱 설치 카드 (크로미움 & 삼성 인터넷 단독 실행) -->
+          <div style="background:linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95)); border-radius:14px; padding:16px; margin-bottom:14px; border:1.5px solid #38bdf8; box-shadow: 0 4px 16px rgba(56,189,248,0.15);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <div style="font-size:15px; font-weight:900; color:white; display:flex; align-items:center; gap:6px;">
+                <span>📲</span> <span>홈 화면에 앱으로 설치 (단독 실행)</span>
+              </div>
+              <span id="pwaInstallBadge" style="background:#0ea5e9; color:white; font-size:11px; font-weight:900; padding:2px 8px; border-radius:10px;">PWA 지원</span>
+            </div>
+            <p style="font-size:11px; color:#94a3b8; line-height:1.4; margin-bottom:12px;">
+              스마트폰 홈 화면이나 PC 바탕화면에 설치하면 <b>주소창 없는 풀스크린 단독 앱</b>으로 실행되며 최상의 퍼포먼스를 제공합니다.
+            </p>
+            <button id="btnInstallPwa" onclick="triggerPwaInstallPrompt()" style="width:100%; background:linear-gradient(135deg, #0ea5e9, #0284c7); color:white; border:none; padding:11px; border-radius:10px; font-size:13px; font-weight:800; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:6px; box-shadow: 0 4px 12px rgba(14,165,233,0.3);">
+              <span>📲</span> <span>포켓Tasks 앱으로 설치하기</span>
+            </button>
+            <div id="pwaManualGuide" style="display:none; font-size:11px; color:#cbd5e1; margin-top:10px; padding:8px 10px; background:rgba(255,255,255,0.05); border-radius:8px; line-height:1.4;">
+              💡 <b>삼성 브라우저/크롬 직접 설치</b>: 브라우저 메뉴(≡) 또는 주소창 우측의 <b>[홈 화면에 추가]</b> 또는 <b>[앱 설치(+)]</b>를 누르시면 단독 앱으로 즉시 설치됩니다.
+            </div>
+          </div>
+
           <div style="background:#1e293b; border-radius:14px; padding:16px; margin-bottom:14px; border:1.5px solid #38bdf8;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
               <div style="font-size:15px; font-weight:900; color:white;">🔔 스마트폰 웹 푸시 수신</div>
@@ -4195,6 +4221,69 @@
       } catch (err) {
         logDebug("시트 데이터 최신화 알림: 로컬 캐시 유지 중", "info");
       }
+    }
+
+    // ========================================================
+    // 📲 PWA (Progressive Web App) 설치 & 단독 구동 엔진
+    // ========================================================
+    let deferredPwaPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // 브라우저 기본 미니 배너 방지 및 이벤트 저장
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      logDebug("📲 PWA 앱 설치 가능 상태 감지 (Installable)", "success");
+
+      const badge = document.getElementById('pwaInstallBadge');
+      if (badge) {
+        badge.innerText = "설치 가능";
+        badge.style.background = "#22c55e";
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPwaPrompt = null;
+      logDebug("🎉 포켓Tasks PWA 단독 앱 설치 완료!", "success");
+      const badge = document.getElementById('pwaInstallBadge');
+      if (badge) {
+        badge.innerText = "설치됨 (단독 실행 중)";
+        badge.style.background = "#3b82f6";
+      }
+      const btn = document.getElementById('btnInstallPwa');
+      if (btn) {
+        btn.innerText = "✅ 이미 앱으로 설치되었습니다";
+        btn.disabled = true;
+        btn.style.opacity = "0.7";
+      }
+    });
+
+    function triggerPwaInstallPrompt() {
+      if (deferredPwaPrompt) {
+        deferredPwaPrompt.prompt();
+        deferredPwaPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            logDebug("사용자가 PWA 앱 설치를 수락했습니다.", "success");
+          } else {
+            logDebug("사용자가 PWA 앱 설치를 취소했습니다.", "info");
+          }
+          deferredPwaPrompt = null;
+        });
+      } else {
+        const guide = document.getElementById('pwaManualGuide');
+        if (guide) guide.style.display = 'block';
+        alert("💡 [앱 설치 안내]\n\n삼성 브라우저/크롬 화면 우측 하단 메뉴(≡) 또는 상단 주소창의 [홈 화면에 추가] 또는 [앱 설치(+)] 버튼을 누르시면 단독 앱으로 즉시 설치됩니다!");
+      }
+    }
+
+    // 서비스 워커 등록 (PWA 설치 검증 필수)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+          logDebug("🚀 PWA Service Worker 활성화 완료", "info");
+        }).catch(err => {
+          console.warn("Service Worker 등록 실패:", err);
+        });
+      });
     }
 
     // ========================================================
