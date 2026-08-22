@@ -40,7 +40,7 @@
       margin: 0;
     }
 
-    /* 📱 메인 앱 프레임: 세로/가로 모바일 및 PC 화면을 여백 없이 100% 꽉 채우도록 설정 */
+    /* 📱 메인 앱 프레임 기본 설정 */
     .app-screen {
       position: relative;
       width: 100%;
@@ -50,20 +50,19 @@
       overflow: hidden;
       display: flex;
       flex-direction: row;
-      border-radius: 0;
-      box-shadow: none;
+      transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* 💻 PC / 태블릿 / 폴더블 가로 2열 분할 UI (🌟 좌측: 메인 서식지 50% | 우측: 메뉴 작업창 50% 완벽 1:1 반반 분할!) */
+    /* 💻 PC / 태블릿 / 대형 모니터 화면 (모바일 2개 너비인 960px 한도로 예쁘게 고정 & 다크 배경 액자형 UI) */
     @media (min-width: 840px) {
       .app-screen {
-        width: 100vw !important;
-        height: 100vh !important;
-        height: 100dvh !important;
-        max-width: 100vw !important;
-        max-height: 100dvh !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
+        width: 100% !important;
+        max-width: 960px !important; /* 모바일 세로 480px의 정확히 2배 한도 */
+        height: 820px !important;
+        max-height: 90vh !important;
+        max-height: 90dvh !important;
+        border-radius: 28px !important;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.09) !important;
       }
       /* 👈 좌측 메인 서식지 (정확히 50% 1:1) */
       .habitat-pane {
@@ -92,15 +91,16 @@
       }
     }
 
-    /* 📱 스마트폰 전용 세로 모드 (좌우 여백 없이 100% 꽉 채움) */
+    /* 📱 스마트폰 모바일 화면 (화면 폭이 작을 때는 여백 없이 100% 꽉 찬 풀스크린!) */
     @media (max-width: 839px) {
       body {
         background: #181c24;
       }
       .app-screen {
+        width: 100vw !important;
         max-width: 100vw !important;
-        max-height: 100dvh !important;
         height: 100dvh !important;
+        max-height: 100dvh !important;
         border-radius: 0 !important;
         box-shadow: none !important;
       }
