@@ -514,7 +514,7 @@
 <body>
   <div class="game-screen" id="gameScreen">
 
-    <!-- 🏷️ 1행: 최상단 네비게이션 (뒤로가기 / 게임제목 / 기록) -->
+    <!-- 🏷️ 1행: 최상단 네비게이션 (뒤로가기 / 게임제목 / 저장 / 기록) -->
     <div class="top-nav">
       <button class="btn-nav icon-only" onclick="closeGameAndReturn()" title="포켓Tasks로 복귀" style="font-size:18px; font-weight:900;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
@@ -525,9 +525,14 @@
       <div class="header-title">
         🧩 Sudoku
       </div>
-      <button class="btn-nav icon-only" onclick="openRecordsModal()" title="난이도별 연승 기록">
-        🏆
-      </button>
+      <div class="top-nav-right" style="display:flex; align-items:center; gap:6px;">
+        <button class="btn-nav icon-only" onclick="saveCurrentFullStage(true)" title="현재 진행 상태 저장">
+          💾
+        </button>
+        <button class="btn-nav icon-only" onclick="openRecordsModal()" title="난이도별 연승 기록">
+          🏆
+        </button>
+      </div>
     </div>
 
     <!-- 🕹️ 2행: 게임 정보 & 난이도 선택 & 새로고침 바구니 칸 -->
@@ -678,9 +683,9 @@
       return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     }
 
-    function startTimer() {
+    function startTimer(isResume = false, initialSec = 0) {
       stopTimer();
-      gameTimerSeconds = 0;
+      gameTimerSeconds = isResume ? initialSec : 0;
       updateTimerDisplay();
       gameTimerInterval = setInterval(() => {
         gameTimerSeconds++;
@@ -698,6 +703,78 @@
     function updateTimerDisplay() {
       const el = document.getElementById('gameTimerText');
       if (el) el.innerText = `⏱️ ${formatTime(gameTimerSeconds)}`;
+    }
+
+    // ========================================================
+    // 💾 스테이지 전체 영구 저장 & 복원 시스템 (localStorage)
+    // ========================================================
+    function saveCurrentFullStage(isUserExplicit = false) {
+      if (!initialBoard || initialBoard.length === 0) return;
+      try {
+        const serializedUserBoard = userBoard.map(row =>
+          row.map(cell => ({
+            val: cell.val,
+            notes: Array.from(cell.notes || [])
+          }))
+        );
+
+        const state = {
+          currentStageKey,
+          initialBoard,
+          solutionBoard,
+          userBoard: serializedUserBoard,
+          isXModeActive,
+          gameTimerSeconds,
+          timestamp: Date.now()
+        };
+        localStorage.setItem('sudoku_saved_full_stage_v1', JSON.stringify(state));
+        if (isUserExplicit) {
+          showToast('💾 진행 상태가 저장되었습니다!');
+          triggerHaptic(30);
+        }
+      } catch(e) {}
+    }
+
+    function loadSavedFullStage() {
+      try {
+        const data = localStorage.getItem('sudoku_saved_full_stage_v1');
+        if (!data) return false;
+        const parsed = JSON.parse(data);
+        if (parsed.initialBoard && Array.isArray(parsed.initialBoard) && parsed.initialBoard.length === 9) {
+          currentStageKey = parsed.currentStageKey || "hard";
+          document.getElementById('stageSelect').value = currentStageKey;
+          initialBoard = parsed.initialBoard;
+          solutionBoard = parsed.solutionBoard || [];
+          isXModeActive = parsed.isXModeActive || false;
+          gameTimerSeconds = parsed.gameTimerSeconds || 0;
+
+          userBoard = parsed.userBoard.map(row =>
+            row.map(cell => ({
+              val: cell.val || 0,
+              notes: new Set(cell.notes || [])
+            }))
+          );
+
+          selectedCell = null;
+          selectedNumber = null;
+          highlightNum = null;
+
+          syncBoardWidths();
+          renderBoard();
+          renderKeypad();
+          updateStatusDisplay();
+          updateRestoreButtonState();
+          startTimer(true, gameTimerSeconds);
+          return true;
+        }
+      } catch(e) {}
+      return false;
+    }
+
+    function clearSavedFullStage() {
+      try {
+        localStorage.removeItem('sudoku_saved_full_stage_v1');
+      } catch(e) {}
     }
 
     function loadGameRecords() {
@@ -1014,6 +1091,7 @@
 
     // 🧠 4) 🌟 100% 유일해 & 논리적 풀이 보장 스테이지 생성
     function generateStage() {
+      clearSavedFullStage();
       document.getElementById('clearModal').classList.remove('show');
       document.getElementById('recordsModal').classList.remove('show');
 
@@ -1542,6 +1620,7 @@
 
       // 세션 누적 경험치 가산 & 로컬 저장
       sessionTotalEarnedXp += rewardXp;
+      clearSavedFullStage();
       try {
         localStorage.setItem('SUDOKU_PENDING_XP', sessionTotalEarnedXp);
       } catch(e) {}
@@ -1551,6 +1630,8 @@
     // 🚪 포켓Tasks로 복귀 (모아둔 경험치 한 번에 전달!)
     // ========================================================
     function closeGameAndReturn() {
+      saveCurrentFullStage(false); // 나가기 직전 자동 저장
+
       if (window.parent && window.parent !== window) {
         window.parent.postMessage({
           type: 'GAME_FINISHED_RETURN',
@@ -1567,7 +1648,11 @@
       }
     }
 
-    window.onload = generateStage;
+    window.onload = () => {
+      if (!loadSavedFullStage()) {
+        generateStage();
+      }
+    };
     window.onresize = syncBoardWidths;
   </script>
 </body>

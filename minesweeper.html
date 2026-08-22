@@ -272,12 +272,27 @@
       transform: scale(0.92);
       background: rgba(226, 232, 240, 0.8);
     }
-    .zoom-text {
-      font-size: 11px;
+    /* 🍞 인게임 토스트 알림 */
+    #gameToast {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(15, 23, 42, 0.9);
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 13px;
       font-weight: 800;
-      color: #64748b;
-      min-width: 48px;
-      text-align: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      z-index: 120;
+      white-space: nowrap;
+    }
+    #gameToast.show {
+      opacity: 1;
     }
 
     /* ✨ 클리어 / 실패 / 기록 모달 공통 */
@@ -415,7 +430,7 @@
 <body>
   <div class="game-screen">
 
-    <!-- 🏷️ 1행: 최상단 네비게이션 -->
+    <!-- 🏷️ 1행: 최상단 네비게이션 (뒤로가기 / 제목 / 저장 / 기록) -->
     <div class="top-nav">
       <button class="btn-nav icon-only" onclick="closeGameAndReturn()" title="포켓Tasks로 복귀" style="font-size:18px; font-weight:900;">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
@@ -426,9 +441,14 @@
       <div class="header-title">
         💣 Minesweeper
       </div>
-      <button class="btn-nav icon-only" onclick="openRecordsModal()" title="난이도별 연승 기록">
-        🏆
-      </button>
+      <div class="top-nav-right" style="display:flex; align-items:center; gap:6px;">
+        <button class="btn-nav icon-only" onclick="saveCurrentStage(true)" title="현재 진행 상태 저장">
+          💾
+        </button>
+        <button class="btn-nav icon-only" onclick="openRecordsModal()" title="난이도별 연승 기록">
+          🏆
+        </button>
+      </div>
     </div>
 
     <!-- 🕹️ 2행: 남은 지뢰 수 & 칸 크기 & 난이도 & 새로고침 바구니 칸 -->
@@ -493,6 +513,9 @@
         <button class="btn-modal-retry" onclick="generateStage()">다시 도전 🔄</button>
       </div>
     </div>
+
+    <!-- 🍞 인게임 토스트 -->
+    <div id="gameToast"></div>
 
     <!-- 🏆 난이도별 연승 기록 모달 -->
     <div class="modal-overlay" id="recordsModal">
@@ -580,12 +603,89 @@
     const ctx = canvas.getContext('2d');
 
     // ========================================================
-    // 📳 햅틱 진동
+    // 📳 햅틱 진동 & 토스트 알림
     // ========================================================
     function triggerHaptic(pattern = 30) {
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         try { navigator.vibrate(pattern); } catch(e) {}
       }
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById('gameToast');
+      if (!el) return;
+      el.innerText = msg;
+      el.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        el.classList.remove('show');
+      }, 1400);
+    }
+
+    // ========================================================
+    // 💾 스테이지 통째로 저장 & 복원 시스템 (localStorage)
+    // ========================================================
+    function saveCurrentStage(isUserExplicit = false) {
+      if (isGameOver || !board || board.length === 0) return;
+      try {
+        const sizeKey = document.getElementById('sizeSelect').value;
+        const diffKey = document.getElementById('diffSelect').value;
+        const state = {
+          sizeKey,
+          diffKey,
+          COLS,
+          ROWS,
+          totalMines,
+          flagsPlaced,
+          isFirstClick,
+          zoomScale,
+          panOffsetX,
+          panOffsetY,
+          board,
+          timestamp: Date.now()
+        };
+        localStorage.setItem('minesweeper_saved_stage_v1', JSON.stringify(state));
+        if (isUserExplicit) {
+          showToast('💾 진행 상태가 저장되었습니다!');
+          triggerHaptic(30);
+        }
+      } catch(e) {}
+    }
+
+    function loadSavedStage() {
+      try {
+        const data = localStorage.getItem('minesweeper_saved_stage_v1');
+        if (!data) return false;
+        const parsed = JSON.parse(data);
+        if (parsed.board && Array.isArray(parsed.board) && parsed.board.length > 0) {
+          document.getElementById('sizeSelect').value = parsed.sizeKey || "20x30";
+          document.getElementById('diffSelect').value = parsed.diffKey || "normal";
+          COLS = parsed.COLS;
+          ROWS = parsed.ROWS;
+          totalMines = parsed.totalMines;
+          flagsPlaced = parsed.flagsPlaced;
+          isFirstClick = parsed.isFirstClick;
+          zoomScale = parsed.zoomScale || 1.0;
+          panOffsetX = parsed.panOffsetX || 0;
+          panOffsetY = parsed.panOffsetY || 0;
+          board = parsed.board;
+          isGameOver = false;
+          isGameWon = false;
+
+          resizeCanvas();
+          updateStatusDisplay();
+          draw();
+          return true;
+        }
+      } catch(e) {}
+      return false;
+    }
+
+    function clearSavedStage() {
+      try {
+        localStorage.removeItem('minesweeper_saved_stage_v1');
+      } catch(e) {}
     }
 
     // ========================================================
@@ -742,6 +842,7 @@
     // 🔄 맵 생성 및 초기화
     // ========================================================
     function generateStage() {
+      clearSavedStage();
       document.getElementById('clearModal').classList.remove('show');
       document.getElementById('failModal').classList.remove('show');
       document.getElementById('recordsModal').classList.remove('show');
@@ -1010,14 +1111,8 @@
         if (!isDragging && !isLongPressFired) {
           // 탭 이벤트 발생!
           const coords = screenToBoardCoords(startPointerPos.x, startPointerPos.y);
-          if (coords.r >= 0 && coords.r < ROWS && coords.c >= 0 && coords.c < COLS) {
-            if (interactionMode === "FLAG") {
-              toggleFlag(coords.r, coords.c);
-            } else {
-              handleClickCell(coords.r, coords.c);
-            }
-            draw();
-          }
+          handleCellTapOrClick(coords.r, coords.c, false);
+          draw();
         }
         isDragging = false;
         initialPinchDistance = null;
@@ -1055,14 +1150,8 @@
       isMouseDown = false;
       if (!isDragging && e.target.closest('#canvas-container')) {
         const coords = screenToBoardCoords(e.clientX, e.clientY);
-        if (coords.r >= 0 && coords.r < ROWS && coords.c >= 0 && coords.c < COLS) {
-          if (e.button === 2 || interactionMode === "FLAG") {
-            toggleFlag(coords.r, coords.c);
-          } else {
-            handleClickCell(coords.r, coords.c);
-          }
-          draw();
-        }
+        handleCellTapOrClick(coords.r, coords.c, e.button === 2);
+        draw();
       }
       isDragging = false;
     });
@@ -1072,6 +1161,23 @@
     // ========================================================
     // 🚩 깃발 & 🔍 칸 열기 & Chord
     // ========================================================
+    function handleCellTapOrClick(r, c, isRightClick = false) {
+      if (isGameOver || r < 0 || r >= ROWS || c < 0 || c >= COLS) return;
+      const cell = board[r][c];
+
+      // 🌟 [요청 1]: 이미 열려있는 숫자 칸을 탭한 경우, 깃발 모드이든 아니든 무조건 Chord(주변 8칸 일괄 개방) 동작!
+      if (cell.isOpen && cell.count > 0) {
+        handleClickCell(r, c);
+        return;
+      }
+
+      // 닫힌 칸인 경우
+      if (isRightClick || interactionMode === "FLAG") {
+        toggleFlag(r, c);
+      } else {
+        handleClickCell(r, c);
+      }
+    }
     function toggleFlag(r, c) {
       if (isGameOver || board[r][c].isOpen) return;
       board[r][c].isFlag = !board[r][c].isFlag;
@@ -1211,6 +1317,7 @@
 
       // 세션 누적 경험치 가산 & 로컬 저장
       sessionTotalEarnedXp += totalReward;
+      clearSavedStage();
       try {
         localStorage.setItem('MINESWEEPER_PENDING_XP', sessionTotalEarnedXp);
       } catch(e) {}
@@ -1218,6 +1325,7 @@
 
     function handleGameFail() {
       isGameOver = true;
+      clearSavedStage();
       triggerHaptic([100, 80, 120]);
 
       for (let r = 0; r < ROWS; r++) {
@@ -1235,6 +1343,8 @@
     // 🚪 포켓Tasks로 복귀 (모아둔 경험치 한 번에 전달!)
     // ========================================================
     function closeGameAndReturn() {
+      saveCurrentStage(false); // 나가기 직전 자동 저장
+
       if (window.parent && window.parent !== window) {
         window.parent.postMessage({
           type: 'GAME_FINISHED_RETURN',
@@ -1252,7 +1362,9 @@
     }
 
     window.onload = () => {
-      generateStage();
+      if (!loadSavedStage()) {
+        generateStage();
+      }
     };
 
     window.onresize = () => {

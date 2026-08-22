@@ -311,6 +311,29 @@
       font-weight: 900;
       cursor: pointer;
     }
+    /* 🍞 인게임 토스트 알림 */
+    #gameToast {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(15, 23, 42, 0.9);
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      z-index: 120;
+      white-space: nowrap;
+    }
+    #gameToast.show {
+      opacity: 1;
+    }
+
     /* 🏆 기록 리스트 팝업 모달 (화이트 테마) */
     .record-box {
       width: 88%;
@@ -361,7 +384,7 @@
 <body>
   <div class="game-screen">
 
-  <!-- 🏷️ 1행: 최상단 네비게이션 (뒤로가기 / 게임제목 / 기록) -->
+  <!-- 🏷️ 1행: 최상단 네비게이션 (뒤로가기 / 게임제목 / 저장 / 기록) -->
   <div class="top-nav">
     <button class="btn-nav icon-only" onclick="closeGameAndReturn()" title="포켓Tasks로 복귀" style="font-size:18px; font-weight:900;">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
@@ -372,9 +395,14 @@
     <div class="header-title">
       🧩 Snake Point
     </div>
-    <button class="btn-nav icon-only" onclick="openRecordsModal()" title="난이도별 연승 기록">
-      🏆
-    </button>
+    <div class="top-nav-right" style="display:flex; align-items:center; gap:6px;">
+      <button class="btn-nav icon-only" onclick="saveCurrentStage(true)" title="현재 진행 상태 저장">
+        💾
+      </button>
+      <button class="btn-nav icon-only" onclick="openRecordsModal()" title="난이도별 연승 기록">
+        🏆
+      </button>
+    </div>
   </div>
 
   <!-- 🕹️ 2행: 게임 정보 & 난이도 선택 & 새로고침 바구니 칸 -->
@@ -600,11 +628,80 @@
       return Math.max(9, Math.min(Math.floor(availableW / COLS), Math.floor(availableH / ROWS)));
     }
 
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById('gameToast');
+      if (!el) return;
+      el.innerText = msg;
+      el.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        el.classList.remove('show');
+      }, 1400);
+    }
+
+    // ========================================================
+    // 💾 스테이지 통째로 저장 & 복원 시스템 (localStorage)
+    // ========================================================
+    function saveCurrentStage(isUserExplicit = false) {
+      if (isGameOver || !snakes || snakes.length === 0) return;
+      try {
+        const state = {
+          currentStageKey,
+          moveCount,
+          totalInitialSnakes,
+          COLS,
+          ROWS,
+          snakes,
+          timestamp: Date.now()
+        };
+        localStorage.setItem('snake_saved_stage_v1', JSON.stringify(state));
+        if (isUserExplicit) {
+          showToast('💾 진행 상태가 저장되었습니다!');
+          triggerHaptic(30);
+        }
+      } catch(e) {}
+    }
+
+    function loadSavedStage() {
+      try {
+        const data = localStorage.getItem('snake_saved_stage_v1');
+        if (!data) return false;
+        const parsed = JSON.parse(data);
+        if (parsed.snakes && Array.isArray(parsed.snakes) && parsed.snakes.length > 0) {
+          currentStageKey = parsed.currentStageKey || "20x30";
+          document.getElementById('stageSelect').value = currentStageKey;
+          moveCount = parsed.moveCount || 0;
+          totalInitialSnakes = parsed.totalInitialSnakes || parsed.snakes.length;
+          COLS = parsed.COLS;
+          ROWS = parsed.ROWS;
+          snakes = parsed.snakes;
+          isGameOver = false;
+
+          CELL = calculateBestCellSize();
+          canvas.width = COLS * CELL;
+          canvas.height = ROWS * CELL;
+          syncBoardWidths();
+          updateStatusDisplay();
+          draw();
+          return true;
+        }
+      } catch(e) {}
+      return false;
+    }
+
+    function clearSavedStage() {
+      try {
+        localStorage.removeItem('snake_saved_stage_v1');
+      } catch(e) {}
+    }
+
     // ========================================================
     // 🔄 스테이지 생성 및 초기화
     // ========================================================
     function generateStage() {
       if (isAnimating) return;
+      clearSavedStage();
       document.getElementById('clearModal').classList.remove('show');
       document.getElementById('failModal').classList.remove('show');
       document.getElementById('recordsModal').classList.remove('show');
@@ -1107,6 +1204,7 @@
 
       // 세션 누적 경험치 가산
       sessionTotalEarnedXp += totalReward;
+      clearSavedStage();
       try {
         localStorage.setItem('SNAKE_PENDING_XP', sessionTotalEarnedXp);
       } catch(e) {}
@@ -1118,6 +1216,7 @@
     function handleGameFail() {
       if (timerInterval) clearInterval(timerInterval);
       isGameOver = true;
+      clearSavedStage();
       resetStreakOnFail(currentStageKey);
       updateStatusDisplay();
       document.getElementById('failModal').classList.add('show');
@@ -1127,6 +1226,8 @@
     // 🚪 포켓Tasks로 복귀 (모아둔 경험치 한 번에 전달!)
     // ========================================================
     function closeGameAndReturn() {
+      saveCurrentStage(false); // 나가기 직전 자동 저장
+
       if (window.parent && window.parent !== window) {
         window.parent.postMessage({
           type: 'GAME_FINISHED_RETURN',
@@ -1143,7 +1244,11 @@
       }
     }
 
-    window.onload = generateStage;
+    window.onload = () => {
+      if (!loadSavedStage()) {
+        generateStage();
+      }
+    };
     window.onresize = () => {
       if (!isAnimating) {
         CELL = calculateBestCellSize();
