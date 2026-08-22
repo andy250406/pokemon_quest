@@ -40,36 +40,46 @@
       margin: 0;
     }
 
-    /* 📱 메인 앱 프레임 (기본 세로 모드: 16:10 비율 최적화 크기 제한) */
+    /* 📱 메인 앱 프레임: 세로/가로 모바일 및 PC 화면을 여백 없이 100% 꽉 채우도록 설정 */
     .app-screen {
       position: relative;
       width: 100%;
       height: 100vh;
       height: 100dvh;
-      max-width: 500px; /* 16:10 비율 기준 세로 최적 폭 한도 */
-      max-height: 840px;
       background: #181c24;
       overflow: hidden;
       display: flex;
       flex-direction: row;
-      border-radius: 28px;
-      box-shadow: 0 25px 65px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.08);
-      transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 0;
+      box-shadow: none;
     }
 
-    /* 💻 PC / 태블릿 가로 2열 분할 UI (와이드 모드: 세로폭 2배인 1040px 제한) */
+    /* 💻 PC / 태블릿 / 폴더블 가로 2열 분할 UI (🌟 좌측: 메인 서식지 50% | 우측: 메뉴 작업창 50% 완벽 1:1 반반 분할!) */
     @media (min-width: 840px) {
       .app-screen {
-        max-width: 1040px !important; /* 세로 기본폭(520px)의 정확히 2배 한도 */
-        max-height: 800px !important;
-        border-radius: 28px !important;
-        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.09) !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        max-width: 100vw !important;
+        max-height: 100dvh !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
       }
-      .workspace-pane {
-        display: flex !important;
-        flex: 1.15 !important;
+      /* 👈 좌측 메인 서식지 (정확히 50% 1:1) */
+      .habitat-pane {
+        order: 1 !important;
+        flex: 1 !important;
+        width: 50% !important;
         height: 100% !important;
-        border-right: 1px solid rgba(255,255,255,0.08) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+      }
+      /* 👉 우측 메뉴 작업창 (정확히 50% 1:1) */
+      .workspace-pane {
+        order: 2 !important;
+        display: flex !important;
+        flex: 1 !important;
+        width: 50% !important;
+        height: 100% !important;
         position: relative !important;
         transform: none !important;
         visibility: visible !important;
@@ -77,17 +87,13 @@
         pointer-events: auto !important;
         z-index: 10 !important;
       }
-      .habitat-pane {
-        flex: 0.85 !important;
-        height: 100% !important;
-      }
       .mobile-close-btn {
         display: none !important;
       }
     }
 
-    /* 📱 스마트폰 전용 풀스크린 (화면 폭이 작을 때는 여백 없이 꽉 채움) */
-    @media (max-width: 520px) {
+    /* 📱 스마트폰 전용 세로 모드 (좌우 여백 없이 100% 꽉 채움) */
+    @media (max-width: 839px) {
       body {
         background: #181c24;
       }
@@ -98,10 +104,14 @@
         border-radius: 0 !important;
         box-shadow: none !important;
       }
-    }
-
-    @media (max-width: 839px) {
+      .habitat-pane {
+        order: 1;
+        flex: 1;
+        width: 100%;
+        height: 100%;
+      }
       .workspace-pane {
+        order: 2;
         position: absolute !important;
         top: 0; left: 0; right: 0; bottom: 0;
         z-index: 100;
@@ -116,11 +126,6 @@
         visibility: visible !important;
         opacity: 1 !important;
         pointer-events: auto !important;
-      }
-      .habitat-pane {
-        flex: 1;
-        width: 100%;
-        height: 100%;
       }
       .mobile-close-btn {
         display: flex !important;
@@ -1285,7 +1290,121 @@
 
   <div class="app-screen" id="appScreen">
 
-    <!-- 👈 왼쪽 작업창 -->
+    <!-- 👈 왼쪽 메인 서식지 (50% 1:1 반반 분할) -->
+    <div class="habitat-pane" id="habitatPane">
+      
+      <!-- 상단 헤더 카드 -->
+      <div class="top-header">
+        <div class="pokemon-card">
+          <div class="card-top">
+            <span class="level-badge" id="lvBadge">Lv.1</span>
+            <span class="pokemon-name" id="pokeName">이상해씨 <span class="gender-symbol male" id="genderSymbol">♂</span></span>
+          </div>
+          
+          <div class="type-nature-row" style="position:relative;">
+            <div class="type-icons-row" id="typeIconsRow"></div>
+            <div style="display:flex; align-items:center; gap:4px;">
+              <span class="growth-tag" id="growthTag" style="display:none;">보통느림</span>
+              <span class="nature-tag" id="natureTag" onclick="toggleNaturePopover(event)">고집</span>
+            </div>
+
+            <!-- ℹ️ 성격 & 성장속도 클릭 팝오버 창 -->
+            <div class="nature-popover" id="naturePopover" onclick="event.stopPropagation()">
+              <div class="nature-popover-title">
+                <span id="popoverNatureName">고집 성격</span>
+                <span style="font-size:10px; color:#94a3b8; cursor:pointer;" onclick="hideNaturePopover()">닫기 ✕</span>
+              </div>
+              <div class="nature-popover-row" id="popoverNatureDesc">
+                • <b>성격 효과</b>: 공격 +10%, 특수공격 -10%
+              </div>
+              <div class="nature-popover-row" id="popoverGrowthDesc">
+                • <b>성장 속도</b>: 보통느림 (표준 경험치)
+              </div>
+            </div>
+          </div>
+
+          <div class="xp-text">
+            <span>EXP</span>
+            <span id="xpValues">0 / 100</span>
+          </div>
+          <div class="xp-bar-bg">
+            <div class="xp-bar-fill" id="xpBarFill"></div>
+          </div>
+        </div>
+
+        <div class="quest-badge" id="questBadge" onclick="switchWorkspaceTab('QUEST')">
+          필수 <span id="questText">0/0</span>
+        </div>
+      </div>
+
+      <!-- 🌾 배경별 인터랙티브 파밍 레이어 (터치/클릭 우선순위 z-index: 18) -->
+      <div class="berry-harvest-layer" id="berryLayer"></div>
+
+      <!-- 🍒 우측 하단 아이템 수확 위젯 -->
+      <div class="berry-basket-widget" id="berryBasketWidget">
+        <span style="font-size:14px;" id="basketIcon">🍒</span>
+        <span class="basket-xp" id="pendingBerryXpText">+0 XP</span>
+        <button class="btn-eat-berries" onclick="onFeedAccumulatedBerries()">섭취</button>
+      </div>
+
+      <!-- 🌟 중앙 서식지 & 캐릭터 위치 영역 (DB altitude 하/중/상 동적 결정) -->
+      <div class="stage-area ground-mode" id="stageArea">
+        <div class="speech-bubble" id="speechBubble">씨-익! 🍃</div>
+        
+        <!-- 🌟 점프 애니메이션 래퍼 (스케일과 독립) -->
+        <div class="sprite-hop-wrapper" id="spriteHopWrapper" onclick="triggerSpriteHopAnimation()">
+          <!-- 🌟 상하좌우 8~15px 고도별 자연스러운 유휴 애니메이션 래퍼 -->
+          <div class="idle-wander-ground" id="idleWanderWrapper">
+            <div class="pokemon-sprite-container">
+              <img 
+                id="pokemonImage" 
+                class="pokemon-sprite" 
+                src="./images/pokemon/showdown/1.gif" 
+                alt="포켓몬"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✨ 자동 진화 축하 연출 팝업 모달 -->
+      <div class="evolve-overlay" id="evolveOverlay">
+        <div class="evolve-title" id="evolveTitleText">✨ 축하합니다! 포켓몬 진화! ✨</div>
+        <img id="evolveSpriteImg" class="evolve-sprite" src="" alt="진화 포켓몬">
+        <div class="evolve-desc" id="evolveDescText">포켓몬이 새로운 모습으로 진화했습니다!</div>
+        <button class="btn-evolve-confirm" onclick="closeEvolveOverlay()">멋져요! 확인 👍</button>
+      </div>
+
+      <!-- 🛠️ 좌측 하단 치트 콘솔 트리거 -->
+      <button class="dev-toggle-trigger" onclick="openCheatModal()">🕹️ 치트 콘솔</button>
+
+      <!-- 하단 네비게이션 메뉴 바 -->
+      <div class="bottom-nav">
+        <button class="nav-btn active" onclick="switchWorkspaceTab('QUEST')">
+          <span class="icon">📋</span>
+          <span>퀘스트</span>
+        </button>
+        <button class="nav-btn" onclick="switchWorkspaceTab('STREAK')">
+          <span class="icon">📊</span>
+          <span>기록</span>
+        </button>
+        <button class="nav-btn" onclick="switchWorkspaceTab('ARCADE')">
+          <span class="icon">🎮</span>
+          <span>미니게임</span>
+        </button>
+        <button class="nav-btn" onclick="switchWorkspaceTab('DEX')">
+          <span class="icon">📖</span>
+          <span>도감</span>
+        </button>
+        <button class="nav-btn" onclick="switchWorkspaceTab('NOTIF')">
+          <span class="icon">🔔</span>
+          <span>알림</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- 👉 오른쪽 메뉴 작업창 (50% 1:1 반반 분할) -->
     <div class="workspace-pane" id="workspacePane">
       <div class="pane-header">
         <div class="pane-title" id="paneTitleText">📋 퀘스트 목록</div>
@@ -1413,120 +1532,6 @@
         </div>
 
       </div>
-    </div>
-
-    <!-- 👉 오른쪽 메인 서식지 -->
-    <div class="habitat-pane" id="habitatPane">
-      
-      <!-- 상단 헤더 카드 -->
-      <div class="top-header">
-        <div class="pokemon-card">
-          <div class="card-top">
-            <span class="level-badge" id="lvBadge">Lv.1</span>
-            <span class="pokemon-name" id="pokeName">이상해씨 <span class="gender-symbol male" id="genderSymbol">♂</span></span>
-          </div>
-          
-          <div class="type-nature-row" style="position:relative;">
-            <div class="type-icons-row" id="typeIconsRow"></div>
-            <div style="display:flex; align-items:center; gap:4px;">
-              <span class="growth-tag" id="growthTag" style="display:none;">보통느림</span>
-              <span class="nature-tag" id="natureTag" onclick="toggleNaturePopover(event)">고집</span>
-            </div>
-
-            <!-- ℹ️ 성격 & 성장속도 클릭 팝오버 창 -->
-            <div class="nature-popover" id="naturePopover" onclick="event.stopPropagation()">
-              <div class="nature-popover-title">
-                <span id="popoverNatureName">고집 성격</span>
-                <span style="font-size:10px; color:#94a3b8; cursor:pointer;" onclick="hideNaturePopover()">닫기 ✕</span>
-              </div>
-              <div class="nature-popover-row" id="popoverNatureDesc">
-                • <b>성격 효과</b>: 공격 +10%, 특수공격 -10%
-              </div>
-              <div class="nature-popover-row" id="popoverGrowthDesc">
-                • <b>성장 속도</b>: 보통느림 (표준 경험치)
-              </div>
-            </div>
-          </div>
-
-          <div class="xp-text">
-            <span>EXP</span>
-            <span id="xpValues">0 / 100</span>
-          </div>
-          <div class="xp-bar-bg">
-            <div class="xp-bar-fill" id="xpBarFill"></div>
-          </div>
-        </div>
-
-        <div class="quest-badge" id="questBadge" onclick="switchWorkspaceTab('QUEST')">
-          필수 <span id="questText">0/0</span>
-        </div>
-      </div>
-
-      <!-- 🌾 배경별 인터랙티브 파밍 레이어 (터치/클릭 우선순위 z-index: 18) -->
-      <div class="berry-harvest-layer" id="berryLayer"></div>
-
-      <!-- 🍒 우측 하단 아이템 수확 위젯 -->
-      <div class="berry-basket-widget" id="berryBasketWidget">
-        <span style="font-size:14px;" id="basketIcon">🍒</span>
-        <span class="basket-xp" id="pendingBerryXpText">+0 XP</span>
-        <button class="btn-eat-berries" onclick="onFeedAccumulatedBerries()">섭취</button>
-      </div>
-
-      <!-- 🌟 중앙 서식지 & 캐릭터 위치 영역 (DB altitude 하/중/상 동적 결정) -->
-      <div class="stage-area ground-mode" id="stageArea">
-        <div class="speech-bubble" id="speechBubble">씨-익! 🍃</div>
-        
-        <!-- 🌟 점프 애니메이션 래퍼 (스케일과 독립) -->
-        <div class="sprite-hop-wrapper" id="spriteHopWrapper" onclick="triggerSpriteHopAnimation()">
-          <!-- 🌟 상하좌우 8~15px 고도별 자연스러운 유휴 애니메이션 래퍼 -->
-          <div class="idle-wander-ground" id="idleWanderWrapper">
-            <div class="pokemon-sprite-container">
-              <img 
-                id="pokemonImage" 
-                class="pokemon-sprite" 
-                src="./images/pokemon/showdown/1.gif" 
-                alt="포켓몬"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ✨ 자동 진화 축하 연출 팝업 모달 -->
-      <div class="evolve-overlay" id="evolveOverlay">
-        <div class="evolve-title" id="evolveTitleText">✨ 축하합니다! 포켓몬 진화! ✨</div>
-        <img id="evolveSpriteImg" class="evolve-sprite" src="" alt="진화 포켓몬">
-        <div class="evolve-desc" id="evolveDescText">포켓몬이 새로운 모습으로 진화했습니다!</div>
-        <button class="btn-evolve-confirm" onclick="closeEvolveOverlay()">멋져요! 확인 👍</button>
-      </div>
-
-      <!-- 🛠️ 좌측 하단 치트 콘솔 트리거 -->
-      <button class="dev-toggle-trigger" onclick="openCheatModal()">🕹️ 치트 콘솔</button>
-
-      <!-- 하단 네비게이션 메뉴 바 -->
-      <div class="bottom-nav">
-        <button class="nav-btn active" onclick="switchWorkspaceTab('QUEST')">
-          <span class="icon">📋</span>
-          <span>퀘스트</span>
-        </button>
-        <button class="nav-btn" onclick="switchWorkspaceTab('STREAK')">
-          <span class="icon">📊</span>
-          <span>기록</span>
-        </button>
-        <button class="nav-btn" onclick="switchWorkspaceTab('ARCADE')">
-          <span class="icon">🎮</span>
-          <span>미니게임</span>
-        </button>
-        <button class="nav-btn" onclick="switchWorkspaceTab('DEX')">
-          <span class="icon">📖</span>
-          <span>도감</span>
-        </button>
-        <button class="nav-btn" onclick="switchWorkspaceTab('NOTIF')">
-          <span class="icon">🔔</span>
-          <span>알림</span>
-        </button>
-      </div>
-
     </div>
 
   </div>
