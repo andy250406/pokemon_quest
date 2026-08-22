@@ -212,7 +212,7 @@
       z-index: 20;
     }
 
-    /* 🌟 포켓몬 상태바: 메뉴바와 동일한 투명도 50% + 블러 16px 글래스모피즘 & 메인화면 50% 엄격 한계치 */
+    /* 🌟 포켓몬 상태바: 메뉴바와 동일한 투명도 50% + 블러 16px 글래스모피즘 & 58% 황금 비율 폭 고정 */
     .pokemon-card {
       background: rgba(255, 255, 255, 0.5); /* 🌟 투명도 50% */
       backdrop-filter: blur(16px);          /* 🌟 블러 16px */
@@ -221,9 +221,10 @@
       padding: 7px 13px;
       border-radius: 18px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-      flex: 0 1 auto;
-      width: auto;
-      max-width: 50% !important; /* 🌟 메인화면 절반 크기를 절대 넘지 않음 */
+      flex: 0 0 58%;
+      width: 58% !important;
+      max-width: 58% !important; /* 🌟 메인 화면의 약 절반(58%)으로 시원하고 안정되게 고정 */
+      box-sizing: border-box;
     }
 
     .card-top {
@@ -758,49 +759,54 @@
     .streak-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .streak-badge { background: linear-gradient(135deg, #FF9800, #F57C00); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 900; }
 
-    /* 📖 도감 그리드 (화이트 글래스모피즘) */
+    /* 📖 도감 그리드 (가로 5개 고정 정렬 & 화이트 글래스모피즘) */
     .pokedex-grid-container {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-      gap: 10px;
-      padding: 4px;
+      grid-template-columns: repeat(5, 1fr) !important; /* 🌟 가로 5개 정렬 고정 */
+      gap: 8px;
+      padding: 2px;
     }
     .dex-card {
       background: rgba(255, 255, 255, 0.65);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border-radius: 14px; padding: 10px 4px;
+      border-radius: 14px; padding: 8px 2px;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.7); transition: all 0.2s ease;
       position: relative;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
     }
     .dex-card:active { transform: scale(0.95); border-color: #3b82f6; }
-    .dex-sprite { width: 64px; height: 64px; object-fit: contain; image-rendering: pixelated; }
+    .dex-sprite { width: 56px; height: 56px; object-fit: contain; image-rendering: pixelated; }
     .dex-sprite.locked { filter: brightness(0); opacity: 0.25; }
     .dex-num { font-size: 10px; font-weight: 800; color: #64748b; margin-top: 2px; }
-    .dex-name { font-size: 11px; font-weight: 800; color: #0f172a; margin-top: 2px; }
+    .dex-name { font-size: 11.5px; font-weight: 800; color: #0f172a; margin-top: 2px; text-align: center; word-break: keep-all; }
     .dex-unlocked-dot {
       width: 6px; height: 6px; border-radius: 50%; background: #4ade80;
-      position: absolute; top: 6px; right: 6px;
+      position: absolute; top: 5px; right: 5px;
     }
 
-    /* 📖 도감 상세 전문 팝업 모달 */
+    /* 📖 도감 상세 전문 팝업 모달 (화이트 글래스모피즘 테마 일체화) */
     .dex-detail-modal-content {
-      background: #18202c; border: 2px solid #3b82f6; border-radius: 20px;
-      padding: 16px; width: 100%; max-width: 420px; max-height: 90vh;
-      overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.85);
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      border-radius: 24px;
+      padding: 18px; width: 100%; max-width: 420px; max-height: 90vh;
+      overflow-y: auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      color: #0f172a;
     }
     .dex-tab-header {
-      display: flex; background: #111620; border-radius: 12px; padding: 3px;
+      display: flex; background: rgba(0, 0, 0, 0.06); border-radius: 12px; padding: 3px;
       margin-bottom: 14px; gap: 4px;
     }
     .dex-tab-btn {
-      flex: 1; background: none; border: none; color: #94a3b8; font-size: 12px;
+      flex: 1; background: none; border: none; color: #64748b; font-size: 12px;
       font-weight: 800; padding: 8px 0; border-radius: 9px; cursor: pointer; transition: all 0.2s ease;
     }
     .dex-tab-btn.active {
-      background: #2563eb; color: white; box-shadow: 0 2px 8px rgba(37,99,235,0.4);
+      background: #2563eb; color: white; box-shadow: 0 2px 8px rgba(37,99,235,0.35);
     }
 
     /* 3D 플립 카드 컨테이너 */
@@ -815,42 +821,43 @@
     .flip-card-front, .flip-card-back {
       position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden;
       backface-visibility: hidden; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; background: #232c3d; border-radius: 20px; border: 2px solid #3b485d; padding: 8px;
+      justify-content: center; background: rgba(248, 250, 252, 0.9); border-radius: 20px; border: 2px solid rgba(0, 0, 0, 0.08); padding: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
     }
     .flip-card-back { transform: rotateY(180deg); border-color: #f472b6; }
     .flip-img { width: 95px; height: 95px; object-fit: contain; image-rendering: pixelated; }
-    .flip-img.locked { filter: brightness(0); opacity: 0.55; }
+    .flip-img.locked { filter: brightness(0); opacity: 0.25; }
     .flip-gender-tag {
       position: absolute; top: 6px; left: 8px; font-size: 11px; font-weight: 900; padding: 2px 6px; border-radius: 6px;
     }
-    .flip-gender-tag.male { background: #1e3a8a; color: #60a5fa; }
-    .flip-gender-tag.female { background: #831843; color: #f472b6; }
-    .flip-gender-tag.none { background: #334155; color: #94a3b8; }
-    .flip-hint-badge { font-size: 9.5px; color: #94a3b8; margin-top: 4px; text-align: center; }
+    .flip-gender-tag.male { background: #dbeafe; color: #1d4ed8; }
+    .flip-gender-tag.female { background: #fce7f3; color: #be185d; }
+    .flip-gender-tag.none { background: #f1f5f9; color: #475569; }
+    .flip-hint-badge { font-size: 10px; color: #64748b; font-weight: 600; margin-top: 4px; text-align: center; }
 
     .dex-desc-box {
-      background: #111620; border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;
-      border-left: 3px solid #38bdf8;
+      background: rgba(241, 245, 249, 0.85); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;
+      border-left: 4px solid #0284c7;
     }
-    .dex-desc-genus { font-size: 12px; font-weight: 800; color: #38bdf8; margin-bottom: 4px; }
-    .dex-desc-text { font-size: 12.5px; line-height: 1.5; color: #e2e8f0; word-break: keep-all; }
+    .dex-desc-genus { font-size: 12px; font-weight: 800; color: #0284c7; margin-bottom: 4px; }
+    .dex-desc-text { font-size: 12.5px; line-height: 1.5; color: #334155; word-break: keep-all; }
 
     .dex-info-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;
     }
-    .dex-info-item { background: #232c3d; padding: 8px 10px; border-radius: 10px; font-size: 11.5px; }
-    .dex-info-item span:first-child { color: #94a3b8; font-weight: 700; display: block; margin-bottom: 2px; }
-    .dex-info-item span:last-child { color: white; font-weight: 800; }
+    .dex-info-item { background: rgba(241, 245, 249, 0.85); padding: 8px 10px; border-radius: 10px; font-size: 11.5px; }
+    .dex-info-item span:first-child { color: #64748b; font-weight: 700; display: block; margin-bottom: 2px; }
+    .dex-info-item span:last-child { color: #0f172a; font-weight: 800; }
 
     /* 육성 히스토리 목록 */
     .history-card-item {
-      background: #232c3d; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px;
-      border-left: 3px solid #4CAF50;
+      background: rgba(241, 245, 249, 0.85); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px;
+      border-left: 4px solid #16a34a;
     }
-    .history-card-item.evolved { border-left-color: #38bdf8; }
-    .history-card-item.graduated { border-left-color: #eab308; }
-    .history-card-title { font-size: 13px; font-weight: 800; color: white; display: flex; justify-content: space-between; margin-bottom: 4px; }
-    .history-card-meta { font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; }
+    .history-card-item.evolved { border-left-color: #0284c7; }
+    .history-card-item.graduated { border-left-color: #ca8a04; }
+    .history-card-title { font-size: 13px; font-weight: 800; color: #0f172a; display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .history-card-meta { font-size: 11px; color: #64748b; display: flex; justify-content: space-between; }
 
     
     /* 📋 퀘스트 등록 모달 2개 탭 스타일 */
@@ -1457,11 +1464,11 @@
         <div id="paneQuestView">
           <div class="quest-toolbar">
             <div class="quest-toolbar-left">
-              <button id="btnRefreshQuests" class="btn-quest-done" style="background:#374151; padding:7px 12px;" onclick="syncWithGasBackend()">동기화</button>
-              <button class="btn-quest-add" id="btnAddQuest" style="padding:7px 12px;" onclick="openAddQuestModal()">➕</button>
+              <button id="btnRefreshQuests" class="btn-quest-done" style="background:rgba(255,255,255,0.85); color:#334155; border:1px solid rgba(0,0,0,0.12); padding:7px 12px; box-shadow:0 2px 5px rgba(0,0,0,0.05); font-weight:800;" onclick="syncWithGasBackend()">동기화</button>
+              <button class="btn-quest-add" id="btnAddQuest" style="background:#2563eb; color:white; padding:7px 12px; box-shadow:0 2px 6px rgba(37,99,235,0.3); font-weight:800;" onclick="openAddQuestModal()">➕</button>
             </div>
             <div class="quest-toolbar-right">
-              <button class="btn-quest-batch-del" id="btnToggleBatchDelete" style="padding:7px 12px;" onclick="toggleBatchDeleteMode()">삭제</button>
+              <button class="btn-quest-batch-del" id="btnToggleBatchDelete" style="background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; padding:7px 12px; font-weight:800;" onclick="toggleBatchDeleteMode()">삭제</button>
               <button class="btn-quest-batch-exec" id="btnExecBatchDelete" onclick="executeBatchDelete()">❌ 삭제 실행 (0)</button>
               <button class="btn-quest-batch-cancel" id="btnCancelBatchDelete" onclick="cancelBatchDeleteMode()">취소</button>
             </div>
@@ -1474,56 +1481,62 @@
           <div id="streakListContainer"></div>
         </div>
 
-        <!-- 3. 120Hz 미니게임 아케이드 -->
+        <!-- 3. 120Hz 미니게임 아케이드 (🌟 [요청 5]: 스도쿠, 뱀, 지뢰, 스파이더, 2048, 수박 순 정렬) -->
         <div id="paneArcadeView" style="display:none;">
           <div class="arcade-grid-3col">
-            <div class="mini-game-card highlight" onclick="openArcadeGame('snake_untangle')">
-              <div class="mini-game-icon">🧩</div>
-              <div class="mini-game-title">Snake Point</div>
-            </div>
-            <div class="mini-game-card" onclick="alert('🍉 Watermelon 준비 완료!')">
-              <div class="mini-game-icon">🍉</div>
-              <div class="mini-game-title">Watermelon</div>
-            </div>
-            <div class="mini-game-card" onclick="alert('🔢 2048 준비 완료!')">
-              <div class="mini-game-icon">🔢</div>
-              <div class="mini-game-title">2048</div>
-            </div>
+            <!-- 1. 스도쿠 -->
             <div class="mini-game-card highlight" onclick="openArcadeGame('sudoku')">
               <div class="mini-game-icon">🔢</div>
               <div class="mini-game-title">Sudoku</div>
             </div>
+            <!-- 2. 뱀 (Snake Point) -->
+            <div class="mini-game-card highlight" onclick="openArcadeGame('snake_untangle')">
+              <div class="mini-game-icon">🐍</div>
+              <div class="mini-game-title">Snake Point</div>
+            </div>
+            <!-- 3. 지뢰찾기 -->
             <div class="mini-game-card" onclick="alert('💣 Minesweeper 준비 완료!')">
               <div class="mini-game-icon">💣</div>
               <div class="mini-game-title">Minesweeper</div>
             </div>
+            <!-- 4. 스파이더 솔리테어 -->
             <div class="mini-game-card" onclick="alert('🃏 Spider Solitaire 준비 완료!')">
               <div class="mini-game-icon">🃏</div>
               <div class="mini-game-title">Spider Solitaire</div>
+            </div>
+            <!-- 5. 2048 -->
+            <div class="mini-game-card" onclick="alert('🔢 2048 준비 완료!')">
+              <div class="mini-game-icon">2️⃣</div>
+              <div class="mini-game-title">2048</div>
+            </div>
+            <!-- 6. 수박게임 -->
+            <div class="mini-game-card" onclick="alert('🍉 Watermelon 준비 완료!')">
+              <div class="mini-game-icon">🍉</div>
+              <div class="mini-game-title">Watermelon</div>
             </div>
           </div>
         </div>
 
         <!-- 4. 도감 -->
         <div id="panePokedexView" style="display:none;">
-          <div style="font-size:12px; color:#94a3b8; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-size:12px; color:#475569; font-weight:600; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
             <span>포켓몬을 탭하여 도감 설명과 역대 육성 기록을 확인하세요.</span>
-            <span id="pokedexCountText" style="font-weight:900; color:#38bdf8;">0 / 151</span>
+            <span id="pokedexCountText" style="font-weight:900; color:#0284c7;">0 / 151</span>
           </div>
           <div class="pokedex-grid-container" id="pokedexGrid"></div>
         </div>
 
         <!-- 5. OneSignal 알림 설정 & 실시간 진단 콘솔 & PWA 앱 설치 -->
         <div id="paneNotifView" style="display:none;">
-          <!-- 📲 PWA 앱 설치 카드 (크로미움 & 삼성 인터넷 단독 실행) -->
-          <div style="background:linear-gradient(135deg, rgba(30,41,59,0.9), rgba(15,23,42,0.95)); border-radius:14px; padding:16px; margin-bottom:14px; border:1.5px solid #38bdf8; box-shadow: 0 4px 16px rgba(56,189,248,0.15);">
+          <!-- 📲 PWA 앱 설치 카드 (화이트 글래스모피즘 테마) -->
+          <div style="background:rgba(255,255,255,0.75); backdrop-filter:blur(16px); border-radius:14px; padding:16px; margin-bottom:14px; border:1px solid rgba(255,255,255,0.8); box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <div style="font-size:15px; font-weight:900; color:white; display:flex; align-items:center; gap:6px;">
+              <div style="font-size:15px; font-weight:900; color:#0f172a; display:flex; align-items:center; gap:6px;">
                 <span>📲</span> <span>홈 화면에 앱으로 설치 (단독 실행)</span>
               </div>
               <span id="pwaInstallBadge" style="background:#0ea5e9; color:white; font-size:11px; font-weight:900; padding:2px 8px; border-radius:10px;">PWA 지원</span>
             </div>
-            <p style="font-size:11px; color:#94a3b8; line-height:1.4; margin-bottom:12px;">
+            <p style="font-size:12px; color:#475569; line-height:1.4; margin-bottom:12px;">
               스마트폰 홈 화면이나 PC 바탕화면에 설치하면 <b>주소창 없는 풀스크린 단독 앱</b>으로 실행되며 최상의 퍼포먼스를 제공합니다.
             </p>
             <button id="btnInstallPwa" onclick="triggerPwaInstallPrompt()" style="width:100%; background:linear-gradient(135deg, #0ea5e9, #0284c7); color:white; border:none; padding:11px; border-radius:10px; font-size:13px; font-weight:800; cursor:pointer; display:flex; justify-content:center; align-items:center; gap:6px; box-shadow: 0 4px 12px rgba(14,165,233,0.3);">
@@ -5342,8 +5355,8 @@
         recLabel = q.days;
       }
 
-      // 3) [3번째 줄] 상세 설명/메모 (크기 0.5~0.75)
-      const descHtml = q.description ? `<div class="quest-desc" style="font-size:10.5px; color:#94a3b8; line-height:1.35; margin-top:3px; word-break:break-word;">${q.description}</div>` : '';
+      // 3) [3번째 줄] 상세 설명/메모
+      const descHtml = q.description ? `<div class="quest-desc" style="font-size:11px; color:#334155; font-weight:500; line-height:1.35; margin-top:3px; word-break:break-word;">${q.description}</div>` : '';
 
       // 우측 완료 버튼 상태 구성
       let btnHtml = '';
@@ -5352,18 +5365,18 @@
       } else if (timing.isActionableNow) {
         btnHtml = `<button class="btn-quest-done" onclick="completeQuestDirect('${q.id}')">+${q.rewardXp} XP</button>`;
       } else if (timing.isWaitingForTime) {
-        btnHtml = `<button class="btn-quest-done disabled" style="background:#334155; color:#94a3b8; border:1px solid #475569;" onclick="alert('⏰ [${q.name}]\\n해당 퀘스트는 설정된 시간(${q.notifyTime})부터 오늘 24:00까지 수행 가능합니다!')">${q.notifyTime || '00:00'} 대기</button>`;
+        btnHtml = `<button class="btn-quest-done disabled" style="background:rgba(0,0,0,0.06); color:#64748b; border:1px solid rgba(0,0,0,0.08);" onclick="alert('⏰ [${q.name}]\\n해당 퀘스트는 설정된 시간(${q.notifyTime})부터 오늘 24:00까지 수행 가능합니다!')">${q.notifyTime || '00:00'} 대기</button>`;
       } else {
-        btnHtml = `<button class="btn-quest-done disabled" style="background:#1e293b; color:#64748b;" onclick="alert('📅 해당 퀘스트는 ${q.dueDate} ${q.notifyTime || ''}에 활성화됩니다!')">대기 중</button>`;
+        btnHtml = `<button class="btn-quest-done disabled" style="background:rgba(0,0,0,0.06); color:#64748b; border:1px solid rgba(0,0,0,0.08);" onclick="alert('📅 해당 퀘스트는 ${q.dueDate} ${q.notifyTime || ''}에 활성화됩니다!')">대기 중</button>`;
       }
 
       card.innerHTML = `
         <div class="quest-card-left" style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
           <input type="checkbox" class="quest-batch-cb" data-id="${q.id}" style="${isBatchDeleteMode ? 'display:inline-block;' : 'display:none;'}" onchange="onQuestCheckboxChange()">
           <div class="quest-info" style="flex:1; min-width:0;">
-            ${topMetaText ? `<div class="quest-top-meta" style="font-size:11.2px; font-weight:600; color:#8892a0; margin-bottom:3px; letter-spacing:0.2px;">${topMetaText}</div>` : ''}
-            <div class="quest-title" style="font-size:14px; font-weight:800; color:#ffffff; line-height:1.35; margin-bottom:2px; word-break:break-word;">
-              <span style="color:#38bdf8; font-weight:800; margin-right:4px;">[${recLabel}]</span>${q.name}${q.isRequired ? ' <span class="req-tag" style="background:#FF9800; color:white; font-size:10px; font-weight:900; padding:1px 5px; border-radius:4px; margin-left:4px;">필수</span>' : ''}
+            ${topMetaText ? `<div class="quest-top-meta" style="font-size:11.5px; font-weight:700; color:#475569; margin-bottom:3px; letter-spacing:0.2px;">${topMetaText}</div>` : ''}
+            <div class="quest-title" style="font-size:14.5px; font-weight:900; color:#0f172a; line-height:1.35; margin-bottom:2px; word-break:break-word;">
+              <span style="color:#0284c7; font-weight:900; margin-right:4px;">[${recLabel}]</span>${q.name}${q.isRequired ? ' <span class="req-tag" style="background:#FF9800; color:white; font-size:10px; font-weight:900; padding:1px 5px; border-radius:4px; margin-left:4px;">필수</span>' : ''}
             </div>
             ${descHtml}
           </div>
