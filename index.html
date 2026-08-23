@@ -6462,10 +6462,14 @@
         leveledUp = true;
       }
 
-      // 1) 레벨업 시 미니 별 연출 및 진화 검사
+      // 1) 레벨업 시 알 부화 또는 진화 검사
       if (leveledUp) {
         triggerMiniLevelUpEffect(stats.level);
-        checkAutoEvolution(appState.pokemon?.id, stats.level);
+        if (appState.isEgg) {
+          hatchCurrentEgg();
+        } else {
+          checkAutoEvolution(appState.pokemon?.id, stats.level);
+        }
       }
 
       // 2) 경험치바 & 레벨 뱃지 UI 갱신
@@ -6514,6 +6518,54 @@
         syncCurrentPokemonStatsToBackend();
       }
       updateXpBarUI();
+    }
+
+    // 🐣 알 부화 탄생 처리 엔진 (퀘스트/경험치로 첫 레벨업 달성 시 발동!)
+    function hatchCurrentEgg() {
+      if (!appState.isEgg) return;
+
+      const currentTier = appState.eggTier || 2;
+      const drawn = drawPokemonFromEggTier(currentTier);
+      const hatched = getPokemonData(drawn.id);
+      if (!hatched) return;
+
+      let hatchedGender = "♂";
+      if (hatched.genderType === 'GENDERLESS') hatchedGender = " ";
+      else if (hatched.genderType === 'FEMALE_ONLY') hatchedGender = "♀";
+      else if (hatched.genderType === 'MALE_ONLY') hatchedGender = "♂";
+      else hatchedGender = Math.random() < 0.5 ? "♂" : "♀";
+
+      const natures = ["고집", "조심", "명랑", "겁쟁이", "장난꾸러기", "신중", "대담", "차분", "외로움", "용감", "의젓", "냉정"];
+      const hatchedNature = natures[Math.floor(Math.random() * natures.length)];
+
+      const natureBuffMap = {
+        "고집": "+공격", "조심": "+특공", "명랑": "+스피드", "겁쟁이": "+스피드",
+        "장난꾸러기": "+방어", "신중": "+특방", "대담": "+방어", "차분": "+특방",
+        "외로움": "+공격", "용감": "+공격", "의젓": "+특공", "냉정": "+특공"
+      };
+
+      appState.isEgg = false;
+      appState.pokemon = {
+        id: drawn.id,
+        name: hatched.name,
+        gender: hatchedGender,
+        nature: hatchedNature,
+        natureBuff: natureBuffMap[hatchedNature] || "균형",
+        type: hatched.type,
+        growth: hatched.growth,
+        idleGif: `./images/pokemon/showdown/${drawn.id}.gif`
+      };
+      appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, hatched.growth);
+
+      recordCurrentPokemonToHistory("HATCHED");
+      saveLocalFullCache();
+      initUI(appState);
+
+      // 백엔드 시트 동기화
+      syncCheatToGasBackend(drawn.id, false, appState.userStats.level, appState.userStats.currentXp, false, hatchedGender, hatchedNature);
+
+      // 🐣 부화 축하 팡파르 시네마틱 모달 발동!
+      triggerEvolutionOverlay(drawn.tierName, `[${drawn.category}] ${hatched.name}`, drawn.id, appState.userStats.level, "HATCH");
     }
 
     function checkAutoEvolution(pokemonId, currentLevel) {
