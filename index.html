@@ -4502,11 +4502,24 @@
       }
     }
 
-    // 서비스 워커 등록 (PWA 설치 검증 필수)
+    // 🚀 서비스 워커 등록 및 PWA 실시간 최신 버전 자동 업데이트 엔진
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js').then(reg => {
           logDebug("🚀 PWA Service Worker 활성화 완료", "info");
+          // 🌟 앱 실행 시마다 백엔드 최신 변경사항 즉시 체크
+          reg.update();
+          reg.onupdatefound = () => {
+            const installingWorker = reg.installing;
+            if (installingWorker) {
+              installingWorker.onstatechange = () => {
+                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  logDebug("🔄 PWA 앱 최신 버전 감지! 1초 만에 자동 최신화 적용", "success");
+                  window.location.reload();
+                }
+              };
+            }
+          };
         }).catch(err => {
           console.warn("Service Worker 등록 실패:", err);
         });
@@ -6776,30 +6789,67 @@
       currentGraduationData = null;
     }
 
-    // 🌟 [자동 정산 감지]: 일요일 22:00 이후 접속 시 자동으로 주간 정산 및 알 지급 시네마틱 실행
+    // 🌟 현재 일요일 22시 기준 주간 고유 사이클 키 계산 (일요일 22:00 ~ 다음 주 일요일 21:59 = 1사이클)
+    function getSundayGraduationCycleKey() {
+      const now = new Date();
+      const d = new Date(now);
+      const day = d.getDay(); // 0 = 일요일
+      const hours = d.getHours();
+
+      let targetSunday = new Date(d);
+      if (day === 0 && hours < 22) {
+        // 일요일인데 아직 22시 전이면 지난주 일요일 사이클
+        targetSunday.setDate(d.getDate() - 7);
+      } else if (day > 0) {
+        // 월~토요일이면 직전 일요일 날짜 사이클
+        targetSunday.setDate(d.getDate() - day);
+      }
+      const yyyy = targetSunday.getFullYear();
+      const mm = String(targetSunday.getMonth() + 1).padStart(2, '0');
+      const dd = String(targetSunday.getDate()).padStart(2, '0');
+      return `SUNDAY_GRAD_CYCLE_${yyyy}-${mm}-${dd}_2200`;
+    }
+
+    // 🌟 [자동 정산 감지]: 일요일 22:00 주간 1회 한정 정산 & 알 지급 시네마틱 실행 (무한반복 100% 차단)
     function checkSundayWeeklyGraduation() {
       const now = new Date();
       const day = now.getDay(); // 0 = 일요일
       const hours = now.getHours();
-      
-      const isPastSunday10PM = (day === 0 && hours >= 22);
-      const isAlivePokemon = !appState.isEgg && appState.pokemon && appState.pokemon.id > 0;
 
-      if (isPastSunday10PM && isAlivePokemon) {
-        logDebug("🏆 일요일 22시 주간 정산 감지! 백엔드 정산 요청...", "info");
-        fetch(GAS_API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "sundayGraduation" })
-        })
-        .then(r => r.json())
-        .then(res => {
-          if (res.success && res.data) {
-            triggerSundayGraduationSequence(res.data.graduatedPokemon, res.data.newEgg);
-          }
-        })
-        .catch(err => console.warn("주간 정산 요청 오류:", err));
+      const isPastSunday10PM = (day === 0 && hours >= 22);
+      if (!isPastSunday10PM) return;
+
+      const cycleKey = getSundayGraduationCycleKey();
+      const lastProcessedCycle = localStorage.getItem('LAST_PROCESSED_SUNDAY_GRAD_CYCLE');
+
+      // 🛑 이미 이번 주차(오늘 일요일 22시)에 정산을 마쳤다면 다음 주 일요일 22시까지 절대 실행하지 않음!
+      if (lastProcessedCycle === cycleKey) {
+        return;
       }
+
+      const isAlivePokemon = !appState.isEgg && appState.pokemon && appState.pokemon.id > 0;
+      if (!isAlivePokemon) {
+        // 이미 알 상태인 경우 이번 주차 정산 완료 플래그 기록 후 종료
+        localStorage.setItem('LAST_PROCESSED_SUNDAY_GRAD_CYCLE', cycleKey);
+        return;
+      }
+
+      // 이번 주차 정산 락 즉시 설정 (중복 호출 100% 방지)
+      localStorage.setItem('LAST_PROCESSED_SUNDAY_GRAD_CYCLE', cycleKey);
+
+      logDebug("🏆 [주간 1회 한정] 일요일 22시 정산 실행! 백엔드 정산 요청...", "info");
+      fetch(GAS_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "sundayGraduation" })
+      })
+      .then(r => r.json())
+      .then(res => {
+        if (res.success && res.data) {
+          triggerSundayGraduationSequence(res.data.graduatedPokemon, res.data.newEgg);
+        }
+      })
+      .catch(err => console.warn("주간 정산 요청 오류:", err));
     }
 
     function highlightXpBar() {
