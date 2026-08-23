@@ -4425,6 +4425,11 @@
           initUI(appState);
           logDebug(`⚡ 시트 데이터 고속 최신화 완료 (퀘스트 ${appState.quests.length}개)`, "success");
 
+          // 🐣 [알 부화 감지]: 이미 레벨 2 이상 달성한 알은 즉시 부화 시네마틱 실행!
+          if (appState.isEgg && appState.userStats.level >= 2) {
+            hatchCurrentEgg();
+          }
+
           // 🏆 [일요일 22시 주간 정산 감지]: 일요일 22시 이후 접속 시 자동 정산 & 알 지급 시네마틱 실행!
           checkSundayWeeklyGraduation();
         }
@@ -6512,6 +6517,10 @@
         stats.level += 1;
         stats.requiredXp = calculateRequiredXpForLevel(stats.level, growth);
         leveled = true;
+      }
+      if (appState.isEgg && stats.level >= 2) {
+        hatchCurrentEgg();
+        return;
       }
       if (leveled) {
         saveLocalFullCache();
