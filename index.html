@@ -627,6 +627,24 @@
       100% { transform: translate(var(--tx, 0px), var(--ty, -70px)) scale(0.7) rotate(90deg); opacity: 0; }
     }
 
+    /* 🌟 열매 섭취 시 뿜어져 나오는 +5 XP 플로팅 텍스트 팝 효과 */
+    .floating-xp-gain {
+      position: fixed;
+      pointer-events: none;
+      z-index: 10000;
+      font-size: 16px;
+      font-weight: 900;
+      color: #fde047;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 0 14px rgba(250,204,21,0.85);
+      animation: floatUpXp 0.9s ease-out forwards;
+    }
+    @keyframes floatUpXp {
+      0% { transform: translate(-50%, 0px) scale(0.6); opacity: 0; }
+      25% { transform: translate(-50%, -12px) scale(1.3); opacity: 1; }
+      75% { transform: translate(-50%, -36px) scale(1.1); opacity: 1; }
+      100% { transform: translate(-50%, -58px) scale(0.85); opacity: 0; }
+    }
+
     /* ✨ 미니게임 보상 획득 시 포켓몬에게 살짝 도는 은은하고 화사한 황금빛 오라 연출 */
     .pokemon-sprite.game-reward-glow {
       animation: pokemonRewardAura 1.6s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
@@ -4832,6 +4850,19 @@
       }
     }
 
+    // 🌟 경험치 팝 플로팅 텍스트 (+5 XP)
+    function showFloatingXpGain(text, x, y) {
+      const el = document.createElement('div');
+      el.className = 'floating-xp-gain';
+      el.innerText = text;
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      document.body.appendChild(el);
+      setTimeout(() => {
+        if (el.parentNode) el.parentNode.removeChild(el);
+      }, 900);
+    }
+
     // 🎁 포켓몬 섭취 공통 처리 (하얀 빛 섬광 폭발 + 별 파티클 + 즉시 +5 XP 지급!)
     function executePokemonFeedReward(sourceItemEl) {
       const spriteImg = document.getElementById('pokemonImage');
@@ -4842,6 +4873,11 @@
       const itemCenterX = itemRect.left + itemRect.width / 2;
       const itemCenterY = itemRect.top + itemRect.height / 2;
       triggerWhiteLightBurst(itemCenterX, itemCenterY);
+      showFloatingXpGain("+5 XP", itemCenterX, itemCenterY - 15);
+
+      // 열매 즉시 시각적 소멸
+      sourceItemEl.style.opacity = '0';
+      sourceItemEl.style.display = 'none';
 
       // 2) 포켓몬 위치에 순수 별 이모지 파티클!
       const monRect = spriteImg.getBoundingClientRect();
@@ -4856,7 +4892,7 @@
       setTimeout(() => spriteImg.classList.remove('mon-glow-eat'), 350);
 
       // 4) 찰진 햅틱 진동
-      triggerHaptic([35, 45, 25]);
+      triggerHaptic([40, 50, 25]);
 
       // 5) 말풍선 리액션
       const greetings = ["냠냠! ⭐", "맛있다! ✨", "행복해! 🌟", "기운 펄펄! 💫"];
@@ -4871,21 +4907,27 @@
     // 🍒 포켓몬을 드래그하여 열매에 닿았을 때 즉시 섭취하는 바운딩 박스 충돌 검사
     function checkPokemonBerryDirectFeed(spriteImg) {
       const monRect = spriteImg.getBoundingClientRect();
+      const monCenterX = monRect.left + monRect.width / 2;
+      const monCenterY = monRect.top + monRect.height / 2;
 
       const berries = document.querySelectorAll('#berryLayer .berry-item');
       berries.forEach(berry => {
         if (berry.dataset.consumed === 'true') return;
         const bRect = berry.getBoundingClientRect();
+        const bCenterX = bRect.left + bRect.width / 2;
+        const bCenterY = bRect.top + bRect.height / 2;
 
-        // 🌟 [충돌 판정]: 포켓몬 Bounding Box와 열매 Bounding Box가 20px 마진 내로 닿거나 교차하면 섭취!
-        const isHit = !(
+        const dist = Math.hypot(monCenterX - bCenterX, monCenterY - bCenterY);
+
+        // 🌟 [충돌 판정]: 포켓몬 Bounding Box와 열매 Bounding Box가 20px 마진 내로 닿거나 중심거리 90px 이내면 섭취!
+        const isOverlap = !(
           monRect.right < bRect.left - 20 ||
           monRect.left > bRect.right + 20 ||
           monRect.bottom < bRect.top - 20 ||
           monRect.top > bRect.bottom + 20
         );
 
-        if (isHit) {
+        if (dist < 90 || isOverlap) {
           berry.dataset.consumed = 'true';
           
           // 슬롯 스폰 정보 백업
@@ -5390,7 +5432,7 @@
       return false;
     }
 
-    // 🌟 우측 상단 필수 퀘스트 뱃지 계산 & UI 갱신 (실제 오늘 유효한 퀘스트 목록 기준 100% 일치)
+    // 🌟 우측 상단 필수 퀘스트 뱃지 계산 & UI 갱신 (퀘스트 목록 창에 표시되는 활성 퀘스트와 100% 일치)
     function updateQuestBadge(quests) {
       const badgeText = document.getElementById('questText');
       if (!badgeText) return;
@@ -5400,27 +5442,20 @@
         return;
       }
 
-      const now = new Date();
-      const todayStr = now.toISOString().split('T')[0];
-
-      // 1) 🔁 반복 퀘스트 목록
+      // 1) 🔁 활성 반복 퀘스트 목록
       const recurringQuests = quests.filter(q => {
         const rec = (q.recurrence || '').toUpperCase().trim();
         return rec && rec !== 'NONE' && rec !== '일회성';
       });
 
-      // 2) ⚡ 오늘 유효한 일회성 퀘스트 (오늘 완료되었거나, 아직 미완료인 것만 포함 / 과거 완료분 배제)
+      // 2) ⚡ 진행 중인 미완료 일회성 퀘스트 목록 (완료되어 사라진 일회성 할 일은 배제)
       const singleQuests = quests.filter(q => {
         const rec = (q.recurrence || '').toUpperCase().trim();
         const isSingle = (!rec || rec === 'NONE' || rec === '일회성');
-        if (!isSingle) return false;
-        
-        const isDoneToday = (q.lastCompletedDate === todayStr);
-        const isStillPending = !q.isCompletedToday && (!q.lastCompletedDate || q.lastCompletedDate === todayStr);
-        return isDoneToday || isStillPending;
+        return isSingle && !q.isCompletedToday;
       });
 
-      // 🌟 오늘의 실제 유효 퀘스트 합산
+      // 🌟 퀘스트 목록 창에서 관리되는 현재 전체 활성 퀘스트 합산
       const activeQuestsToday = [...recurringQuests, ...singleQuests];
 
       // 필수 퀘스트만 필터
