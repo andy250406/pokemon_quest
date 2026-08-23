@@ -4185,9 +4185,18 @@
       6: { common: 0, starter: 0, rare: 0, legendary: 100, name: "👑 전설 확정 알 (Lv.90+)" }
     };
 
+    function getRandomInt(min, max) {
+      if (window.crypto && window.crypto.getRandomValues) {
+        const array = new Uint32Array(1);
+        window.crypto.getRandomValues(array);
+        return min + (array[0] % (max - min + 1));
+      }
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
     function drawPokemonFromEggTier(tierNum = 2) {
       const tier = TIER_PROBABILITIES[tierNum] || TIER_PROBABILITIES[2];
-      const roll = Math.random() * 100;
+      const roll = getRandomInt(0, 9999) / 100; // 0.00 ~ 99.99
 
       let chosenCategory = "COMMON";
       if (roll < tier.common) {
@@ -4201,7 +4210,8 @@
       }
 
       const candidateList = POKEMON_GROUPS[chosenCategory] || POKEMON_GROUPS.STARTERS;
-      const chosenId = candidateList[Math.floor(Math.random() * candidateList.length)];
+      const randIdx = getRandomInt(0, candidateList.length - 1);
+      const chosenId = candidateList[randIdx];
       return { id: chosenId, category: chosenCategory, tierName: tier.name };
     }
 
@@ -4427,7 +4437,9 @@
 
           // 🐣 [알 부화 감지]: 이미 레벨 2 이상 달성한 알은 즉시 부화 시네마틱 실행!
           if (appState.isEgg && appState.userStats.level >= 2) {
-            hatchCurrentEgg();
+            setTimeout(() => {
+              hatchCurrentEgg();
+            }, 350);
           }
 
           // 🏆 [일요일 22시 주간 정산 감지]: 일요일 22시 이후 접속 시 자동 정산 & 알 지급 시네마틱 실행!
@@ -4536,19 +4548,35 @@
         appState.pokemonHistory = data.pokemonHistory;
       }
       if (data.pokemon) {
-        const pInfo = getPokemonData(data.pokemon.id);
-        const gender = data.pokemon.gender || (pInfo?.genderType === 'GENDERLESS' ? ' ' : '♂');
-        appState.pokemon = {
-          id: data.pokemon.id,
-          name: data.pokemon.name,
-          gender: gender,
-          nature: data.pokemon.nature || "고집",
-          natureBuff: data.pokemon.natureBuff || "+공격",
-          type: pInfo ? pInfo.type : data.pokemon.type,
-          growth: pInfo ? pInfo.growth : "MEDIUM_SLOW",
-          idleGif: `./images/pokemon/showdown/${data.pokemon.id}.gif`
-        };
-        appState.isEgg = Boolean(data.isEgg);
+        const isEgg = Boolean(data.isEgg);
+        appState.isEgg = isEgg;
+        if (isEgg) {
+          appState.eggTier = Number(data.pokemon.eggTier || data.eggTier) || 2;
+          appState.pokemon = {
+            id: 0,
+            name: data.pokemon.name || "포켓몬 알",
+            gender: " ",
+            nature: " ",
+            natureBuff: "+확률보너스",
+            type: "노말",
+            growth: "MEDIUM_SLOW",
+            idleGif: "./images/items/poke-ball.png"
+          };
+        } else {
+          const pInfo = getPokemonData(data.pokemon.id);
+          const gender = data.pokemon.gender || (pInfo?.genderType === 'GENDERLESS' ? ' ' : '♂');
+          const nature = (data.pokemon.nature && !data.pokemon.nature.includes('알')) ? data.pokemon.nature : "고집";
+          appState.pokemon = {
+            id: data.pokemon.id,
+            name: data.pokemon.name,
+            gender: gender,
+            nature: nature,
+            natureBuff: data.pokemon.natureBuff || "+공격",
+            type: pInfo ? pInfo.type : data.pokemon.type,
+            growth: pInfo ? pInfo.growth : "MEDIUM_SLOW",
+            idleGif: `./images/pokemon/showdown/${data.pokemon.id}.gif`
+          };
+        }
       }
       if (data.userStats) {
         const backendLevel = Number(data.userStats.level) || 1;
