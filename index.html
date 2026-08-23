@@ -576,7 +576,9 @@
       filter: drop-shadow(0 12px 12px rgba(0,0,0,0.42));
       transform-origin: bottom center;
       transition: transform 0.2s ease;
-      pointer-events: auto;
+      pointer-events: none; /* 컨테이너가 드래그를 전담하여 브라우저 이미지 고스트 원천 차단 */
+      user-drag: none;
+      -webkit-user-drag: none;
     }
 
     /* 🧲 드래그 중인 포켓몬 */
@@ -586,9 +588,9 @@
       z-index: 50;
     }
 
-    /* 🚀 손을 놓았을 때 띠요옹~ 원래 자리로 튕겨서 복귀하는 고무줄 스프링 애니메이션 */
+    /* 🚀 손을 놓았을 때 띠요옹~ 원래 자리로 통통 튕겨서 복귀하는 탄성 스프링 애니메이션 */
     .pokemon-sprite.mon-spring-release {
-      transition: transform 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.35) !important;
+      transition: transform 0.52s cubic-bezier(0.175, 0.885, 0.32, 1.48) !important;
     }
 
     /* 😋 포켓몬 냠냠 섭취 팝 애니메이션 */
@@ -1458,15 +1460,17 @@
         <div class="speech-bubble" id="speechBubble">씨-익! 🍃</div>
         
         <!-- 🌟 점프 애니메이션 래퍼 (스케일과 독립) -->
-        <div class="sprite-hop-wrapper" id="spriteHopWrapper" onclick="triggerSpriteHopAnimation()">
-          <!-- 🌟 상하좌우 8~15px 고도별 자연스러운 유휴 애니메이션 래퍼 -->
+        <div class="sprite-hop-wrapper" id="spriteHopWrapper">
+          <!-- 🌟 상하좌우 고도별 자연스러운 유휴 애니메이션 래퍼 -->
           <div class="idle-wander-ground" id="idleWanderWrapper">
-            <div class="pokemon-sprite-container">
+            <div class="pokemon-sprite-container" id="monSpriteContainer">
               <img 
                 id="pokemonImage" 
                 class="pokemon-sprite" 
                 src="./images/pokemon/showdown/1.gif" 
                 alt="포켓몬"
+                draggable="false"
+                ondragstart="return false;"
               />
             </div>
           </div>
@@ -4716,6 +4720,7 @@
 
       const onPointerStart = (e) => {
         if (e.button && e.button !== 0) return;
+        if (e.cancelable) e.preventDefault(); // 브라우저 기본 이미지 드래깅/텍스트 선택 차단!
         
         isDraggingPokemon = true;
         dragDistanceTotal = 0;
@@ -4732,6 +4737,7 @@
 
       const onPointerMove = (e) => {
         if (!isDraggingPokemon) return;
+        if (e.cancelable) e.preventDefault();
 
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -4741,30 +4747,15 @@
         const dist = Math.hypot(rawDx, rawDy);
         dragDistanceTotal = Math.max(dragDistanceTotal, dist);
 
-        // 고무줄 탄성 저항 (최대 180px까지 늘어나며 저항력 적용)
-        const maxStretch = 180;
-        let clampedDist = dist;
-        if (dist > maxStretch) {
-          clampedDist = maxStretch + (dist - maxStretch) * 0.25;
-        }
-        const scaleFactor = dist > 0 ? (clampedDist / dist) : 1;
-        const appliedX = rawDx * scaleFactor;
-        const appliedY = rawDy * scaleFactor;
-
+        // 🌟 [요청 2]: 왜곡 늘어남 없이 형태를 그대로 유지하며, 화면 구석구석 어디든 자유롭게 드래그!
         const baseScale = parseFloat(spriteImg.dataset.baseScale) || 1.0;
-        // 젤리 고무줄 스트레치 텐션 (잡아당기는 방향으로 살짝 늘어남)
-        const stretchAmount = Math.min(0.25, (clampedDist / maxStretch) * 0.25);
-        const stretchScaleX = baseScale * (1 + stretchAmount * 0.8);
-        const stretchScaleY = baseScale * (1 - stretchAmount * 0.45);
-        const angleDeg = Math.atan2(appliedY, appliedX) * (180 / Math.PI) * 0.25;
-
-        spriteImg.style.transform = `translate(${appliedX.toFixed(1)}px, ${appliedY.toFixed(1)}px) rotate(${angleDeg.toFixed(1)}deg) scale(${stretchScaleX.toFixed(2)}, ${stretchScaleY.toFixed(2)})`;
+        spriteImg.style.transform = `translate(${rawDx.toFixed(1)}px, ${rawDy.toFixed(1)}px) scale(${baseScale})`;
 
         // 🌟 [먹이기 기믹]: 화면의 모든 베리/아이템과의 충돌 실시간 감지!
         checkPokemonBerryDirectFeed(spriteImg);
       };
 
-      const onPointerEnd = () => {
+      const onPointerEnd = (e) => {
         if (!isDraggingPokemon) return;
         isDraggingPokemon = false;
 
@@ -4772,29 +4763,28 @@
         spriteImg.classList.remove('mon-dragging');
 
         const baseScale = parseFloat(spriteImg.dataset.baseScale) || 1.0;
-        // 🌟 고무줄 튕김 탄성 복귀 애니메이션 적용
+        // 🌟 고무줄 튕김 탄성 복귀 애니메이션 적용 (통통 튀며 제자리 복귀)
         spriteImg.classList.add('mon-spring-release');
-        spriteImg.style.transform = `translate(0px, 0px) scale(${baseScale}) rotate(0deg)`;
+        spriteImg.style.transform = `translate(0px, 0px) scale(${baseScale})`;
 
-        if (dragDistanceTotal > 18) {
-          triggerHaptic([35, 25]);
+        if (dragDistanceTotal > 12) {
+          triggerHaptic([40, 25]);
         } else {
-          // 단순 가벼운 탭인 경우 점프 애니메이션
+          // 단순 클릭인 경우 점프 홉 애니메이션 실행!
           triggerSpriteHopAnimation();
         }
 
         setTimeout(() => {
           spriteImg.classList.remove('mon-spring-release');
-        }, 450);
+        }, 530);
       };
 
       // 모바일 터치 & PC 마우스 통합 이벤트 등록 (중복 리스너 방지 플래그)
       if (!spriteContainer.dataset.slingshotBound) {
         spriteContainer.dataset.slingshotBound = "true";
-        spriteContainer.addEventListener('pointerdown', onPointerStart, { passive: false });
-        window.addEventListener('pointermove', onPointerMove, { passive: false });
-        window.addEventListener('pointerup', onPointerEnd);
-        window.addEventListener('pointercancel', onPointerEnd);
+        spriteContainer.addEventListener('mousedown', onPointerStart);
+        window.addEventListener('mousemove', onPointerMove);
+        window.addEventListener('mouseup', onPointerEnd);
 
         spriteContainer.addEventListener('touchstart', onPointerStart, { passive: false });
         window.addEventListener('touchmove', onPointerMove, { passive: false });

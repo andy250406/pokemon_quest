@@ -1037,6 +1037,8 @@
     }, { passive: false });
 
     // 멀티 터치 핀치 줌 & 싱글 터치 패닝/탭/롱프레스 깃발 이벤트
+    let lastTouchEndTime = 0;
+
     container.addEventListener('touchstart', (e) => {
       if (e.touches.length === 2) {
         // 핀치 줌 시작
@@ -1060,7 +1062,7 @@
 
         const coords = screenToBoardCoords(touch.clientX, touch.clientY);
 
-        // 🌟 220ms 롱프레스 깃발 꽂기 (손가락 지문 떨림 허용)
+        // 🌟 220ms 롱프레스 깃발 꽂기
         clearTimeout(longPressTimer);
         longPressTimer = setTimeout(() => {
           if (!isDragging && coords.r >= 0 && coords.r < ROWS && coords.c >= 0 && coords.c < COLS) {
@@ -1094,7 +1096,7 @@
         const dy = touch.clientY - lastPointerPos.y;
         const totalDist = Math.hypot(touch.clientX - startPointerPos.x, touch.clientY - startPointerPos.y);
 
-        // 🌟 18px 이상 움직였을 때만 드래그로 판정 (그 전까지는 롱프레스 타이머 유지!)
+        // 🌟 18px 이상 움직였을 때만 드래그로 판정
         if (totalDist > 18) {
           clearTimeout(longPressTimer);
           isDragging = true;
@@ -1108,6 +1110,7 @@
     }, { passive: false });
 
     container.addEventListener('touchend', (e) => {
+      lastTouchEndTime = Date.now(); // 모바일 가상 마우스 중복 이벤트 차단 타임스탬프
       clearTimeout(longPressTimer);
       if (e.touches.length === 0) {
         if (!isDragging && !isLongPressFired) {
@@ -1120,12 +1123,13 @@
         isLongPressFired = false;
         initialPinchDistance = null;
       }
-    });
+    }, { passive: false });
 
-    // PC 마우스 드래그 & 클릭 이벤트
+    // PC 마우스 드래그 & 클릭 이벤트 (모바일 터치 가상 마우스 이벤트 무시)
     let isMouseDown = false;
 
     container.addEventListener('mousedown', (e) => {
+      if (Date.now() - lastTouchEndTime < 600) return; // 터치 후 발생한 가상 마우스 무시!
       isMouseDown = true;
       isDragging = false;
       startPointerPos = { x: e.clientX, y: e.clientY };
@@ -1133,7 +1137,7 @@
     });
 
     window.addEventListener('mousemove', (e) => {
-      if (!isMouseDown) return;
+      if (!isMouseDown || Date.now() - lastTouchEndTime < 600) return;
       const dx = e.clientX - lastPointerPos.x;
       const dy = e.clientY - lastPointerPos.y;
       const totalDist = Math.hypot(e.clientX - startPointerPos.x, e.clientY - startPointerPos.y);
@@ -1149,7 +1153,7 @@
     });
 
     window.addEventListener('mouseup', (e) => {
-      if (!isMouseDown) return;
+      if (!isMouseDown || Date.now() - lastTouchEndTime < 600) return;
       isMouseDown = false;
       if (!isDragging && e.target.closest('#canvas-container')) {
         const coords = screenToBoardCoords(e.clientX, e.clientY);
