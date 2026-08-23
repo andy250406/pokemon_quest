@@ -593,30 +593,44 @@
       transition: transform 0.52s cubic-bezier(0.175, 0.885, 0.32, 1.48) !important;
     }
 
-    /* 😋 포켓몬 냠냠 섭취 팝 애니메이션 */
-    .pokemon-sprite.mon-chomp {
-      animation: monChompAction 0.32s ease-out !important;
-    }
-    @keyframes monChompAction {
-      0% { transform: scale(1); }
-      35% { transform: scale(1.3, 0.82); filter: brightness(1.3) drop-shadow(0 0 20px #fbbf24) !important; }
-      65% { transform: scale(0.92, 1.15); }
-      100% { transform: scale(1); }
+    /* 😋 포켓몬 냠냠 섭취 시 반짝임 (transform을 건드리지 않아 드래그 튐 100% 방지!) */
+    .pokemon-sprite.mon-glow-eat {
+      filter: drop-shadow(0 16px 20px rgba(0,0,0,0.55)) brightness(1.4) drop-shadow(0 0 24px #fde047) !important;
+      transition: filter 0.15s ease !important;
     }
 
-    /* 💖 먹이 섭취 시 뿜어져 나오는 하트 & 반짝이 파티클 */
-    .feed-heart-particle {
+    /* 💥 하얀 빛 섬광 폭발 (White Flash Burst) */
+    .white-light-burst {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 35%, rgba(255,255,255,0) 70%);
+      box-shadow: 0 0 25px rgba(255,255,255,1), 0 0 45px rgba(253,224,71,0.7);
+      transform: translate(-50%, -50%) scale(0.2);
+      animation: whiteBurstAnim 0.38s ease-out forwards;
+    }
+    @keyframes whiteBurstAnim {
+      0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; filter: brightness(2); }
+      50% { transform: translate(-50%, -50%) scale(1.6); opacity: 0.95; filter: brightness(1.5); }
+      100% { transform: translate(-50%, -50%) scale(2.3); opacity: 0; filter: brightness(1); }
+    }
+
+    /* ⭐ 먹이 섭취 시 포켓몬에게서 뿜어져 나오는 순수 별 이모지 파티클 */
+    .feed-star-particle {
       position: fixed;
       pointer-events: none;
       z-index: 9999;
       font-size: 22px;
-      animation: heartFloatUp 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.25));
+      animation: starFloatUp 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      filter: drop-shadow(0 2px 10px rgba(250, 204, 21, 0.8));
     }
-    @keyframes heartFloatUp {
-      0% { transform: translate(0, 0) scale(0.5); opacity: 1; }
-      40% { transform: translate(var(--tx, 0px), var(--ty, -35px)) scale(1.25); opacity: 1; }
-      100% { transform: translate(var(--tx, 0px), var(--ty, -70px)) scale(0.8); opacity: 0; }
+    @keyframes starFloatUp {
+      0% { transform: translate(0, 0) scale(0.4) rotate(0deg); opacity: 1; }
+      40% { transform: translate(var(--tx, 0px), var(--ty, -35px)) scale(1.3) rotate(45deg); opacity: 1; }
+      100% { transform: translate(var(--tx, 0px), var(--ty, -70px)) scale(0.7) rotate(90deg); opacity: 0; }
     }
 
     /* ✨ 미니게임 보상 획득 시 포켓몬에게 살짝 도는 은은하고 화사한 황금빛 오라 연출 */
@@ -1448,8 +1462,8 @@
       <!-- 🌾 배경별 인터랙티브 파밍 레이어 (터치/클릭 우선순위 z-index: 18) -->
       <div class="berry-harvest-layer" id="berryLayer"></div>
 
-      <!-- 🍒 우측 하단 아이템 수확 위젯 -->
-      <div class="berry-basket-widget" id="berryBasketWidget">
+      <!-- 🍒 우측 하단 아이템 수확 위젯 (즉시 섭취 방식으로 개편되어 숨김) -->
+      <div class="berry-basket-widget" id="berryBasketWidget" style="display:none !important;">
         <span style="font-size:14px;" id="basketIcon">🍒</span>
         <span class="basket-xp" id="pendingBerryXpText">+0 XP</span>
         <button class="btn-eat-berries" onclick="onFeedAccumulatedBerries()">섭취</button>
@@ -4793,6 +4807,73 @@
       }
     }
 
+    // 💥 하얀 빛 섬광 폭발 생성 (열매 터지는 위치)
+    function triggerWhiteLightBurst(x, y) {
+      const burst = document.createElement('div');
+      burst.className = 'white-light-burst';
+      burst.style.left = x + 'px';
+      burst.style.top = y + 'px';
+      document.body.appendChild(burst);
+      setTimeout(() => {
+        if (burst.parentNode) burst.parentNode.removeChild(burst);
+      }, 400);
+    }
+
+    // ⭐ 순수 별 이모지 파티클 생성 (포켓몬 주변에서 솟아오름)
+    function spawnFeedStarParticles(x, y) {
+      const starIcons = ["⭐", "🌟", "✨", "💫"];
+      for (let i = 0; i < 5; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'feed-star-particle';
+        particle.innerText = starIcons[Math.floor(Math.random() * starIcons.length)];
+        particle.style.left = (x + (Math.random() * 40 - 20)) + 'px';
+        particle.style.top = (y + (Math.random() * 30 - 25)) + 'px';
+        particle.style.setProperty('--tx', (Math.random() * 60 - 30) + 'px');
+        particle.style.setProperty('--ty', (-(Math.random() * 45 + 35)) + 'px');
+        document.body.appendChild(particle);
+
+        setTimeout(() => {
+          if (particle.parentNode) particle.parentNode.removeChild(particle);
+        }, 850);
+      }
+    }
+
+    // 🎁 포켓몬 섭취 공통 처리 (드래그 먹이기 & 직접 터치 먹이기 둘 다 호출!)
+    function executePokemonFeedReward(sourceItemEl) {
+      const spriteImg = document.getElementById('pokemonImage');
+      if (!spriteImg || !sourceItemEl) return;
+
+      // 1) 열매 위치에 하얀 빛 섬광 폭발!
+      const itemRect = sourceItemEl.getBoundingClientRect();
+      const itemCenterX = itemRect.left + itemRect.width / 2;
+      const itemCenterY = itemRect.top + itemRect.height / 2;
+      triggerWhiteLightBurst(itemCenterX, itemCenterY);
+
+      // 2) 포켓몬 위치에 순수 별 이모지 파티클!
+      const monRect = spriteImg.getBoundingClientRect();
+      const monCenterX = monRect.left + monRect.width / 2;
+      const monCenterY = monRect.top + monRect.height / 2;
+      spawnFeedStarParticles(monCenterX, monCenterY);
+
+      // 3) 포켓몬 은은한 황금빛 반짝임 (transform 건드리지 않아 드래그 튐 100% 방지!)
+      spriteImg.classList.remove('mon-glow-eat');
+      void spriteImg.offsetWidth;
+      spriteImg.classList.add('mon-glow-eat');
+      setTimeout(() => spriteImg.classList.remove('mon-glow-eat'), 350);
+
+      // 4) 찰진 햅틱 진동
+      triggerHaptic([35, 45, 25]);
+
+      // 5) 말풍선 리액션
+      const greetings = ["냠냠! ⭐", "맛있다! ✨", "행복해! 🌟", "기운 펄펄! 💫"];
+      const chosenGreet = greetings[Math.floor(Math.random() * greetings.length)];
+      triggerSpeechBubble(chosenGreet);
+
+      // 6) 🌟 즉시 실시간 경험치 +5 XP 지급 및 경험치바 하이라이트!
+      highlightXpBar();
+      processXpGainAndEvolve(5);
+    }
+
     // 🍒 포켓몬이 드래그되어 아이템에 닿았을 때 즉시 섭취하는 충돌 검사
     function checkPokemonBerryDirectFeed(spriteImg) {
       const monRect = spriteImg.getBoundingClientRect();
@@ -4807,63 +4888,13 @@
         const bCenterY = bRect.top + bRect.height / 2;
 
         const dist = Math.hypot(monCenterX - bCenterX, monCenterY - bCenterY);
-        // 포켓몬과 아이템 거리가 55px 이내로 닿았을 때 냠냠 섭취!
-        if (dist < 55) {
+        // 포켓몬과 아이템 거리가 60px 이내로 닿았을 때 냠냠 섭취!
+        if (dist < 60) {
           berry.dataset.consumed = 'true';
-          feedItemDirectlyToPokemon(berry, spriteImg, monCenterX, monCenterY);
+          executePokemonFeedReward(berry);
+          if (berry.parentNode) berry.parentNode.removeChild(berry);
         }
       });
-    }
-
-    // 💖 포켓몬 직접 섭취 연출 & 하트 파티클 & 즉시 경험치 획득!
-    function feedItemDirectlyToPokemon(berryEl, spriteImg, monX, monY) {
-      triggerHaptic([40, 50, 25]);
-
-      // 아이템이 포켓몬 입 쪽으로 쏙 빨려 들어가는 연출
-      berryEl.style.transition = 'all 0.18s cubic-bezier(0.25, 1, 0.5, 1)';
-      berryEl.style.transform = 'scale(0.1) rotate(180deg)';
-      berryEl.style.opacity = '0';
-      berryEl.style.pointerEvents = 'none';
-
-      setTimeout(() => {
-        if (berryEl.parentNode) berryEl.parentNode.removeChild(berryEl);
-      }, 200);
-
-      // 포켓몬 냠냠 씹는 팝 액션
-      spriteImg.classList.remove('mon-chomp');
-      void spriteImg.offsetWidth;
-      spriteImg.classList.add('mon-chomp');
-      setTimeout(() => spriteImg.classList.remove('mon-chomp'), 320);
-
-      // 💖 하트 & 반짝이 파티클 뿜어내기
-      spawnFeedHeartParticles(monX, monY);
-
-      // 💬 말풍선 기분 좋은 반응
-      const greetings = ["냠냠! 💖", "맛있다! ✨", "행복해! 🍃", "달콤해! 🍓", "기운 펄펄! 🔥"];
-      const chosenGreet = greetings[Math.floor(Math.random() * greetings.length)];
-      triggerSpeechBubble(chosenGreet);
-
-      // 🌟 즉시 경험치 +5 XP 획득 & 하이라이트 & 진화/레벨업 체크
-      highlightXpBar();
-      processXpGainAndEvolve(5);
-    }
-
-    function spawnFeedHeartParticles(x, y) {
-      const icons = ["💖", "✨", "⭐", "💕", "🌸"];
-      for (let i = 0; i < 4; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'feed-heart-particle';
-        particle.innerText = icons[Math.floor(Math.random() * icons.length)];
-        particle.style.left = (x + (Math.random() * 40 - 20)) + 'px';
-        particle.style.top = (y + (Math.random() * 30 - 25)) + 'px';
-        particle.style.setProperty('--tx', (Math.random() * 50 - 25) + 'px');
-        particle.style.setProperty('--ty', (-(Math.random() * 40 + 35)) + 'px');
-        document.body.appendChild(particle);
-
-        setTimeout(() => {
-          if (particle.parentNode) particle.parentNode.removeChild(particle);
-        }, 850);
-      }
     }
 
     // 🌟 [요청 1]: 포켓몬 클릭 시 찰진 햅틱 진동 & 점프 애니메이션 트리거
@@ -6187,7 +6218,7 @@
         }, lifeDuration);
       }
 
-      // 🌟 터치/클릭 즉각 수확 핸들러 (모바일 터치 & PC 마우스 100% 즉시 반응)
+      // 🌟 [요청 1]: 터치/클릭 즉시 포켓몬 섭취 & 하얀 빛 폭발 & 별 파티클 & 즉시 경험치 획득!
       const onHarvest = (e) => {
         if (e) {
           e.preventDefault();
@@ -6196,32 +6227,12 @@
         if (isCollected) return;
         isCollected = true;
 
-        el.style.transform = 'scale(1.35)';
-        el.style.opacity = '0';
-        el.style.pointerEvents = 'none';
+        // 공통 섭취 연출 (하얀 빛 섬광 폭발 + 별 파티클 + 즉시 +5 XP 지급!)
+        executePokemonFeedReward(el);
 
-        setTimeout(() => {
-          if (el.parentNode) el.parentNode.removeChild(el);
-        }, 150);
+        if (el.parentNode) el.parentNode.removeChild(el);
 
-        pendingBerryXp += 5;
-        const xpTextEl = document.getElementById('pendingBerryXpText');
-        if (xpTextEl) xpTextEl.innerText = '+' + pendingBerryXp + ' XP';
-        
-        // 아이콘 동적 변경 (동굴: 💎, 하늘: 🪶, 바다: 🌊, 해변: 🐚, 숲: 🍒)
-        const iconEl = document.getElementById('basketIcon');
-        if (iconEl) {
-          if (bgKey === "PogoCaveBg") iconEl.innerText = "💎";
-          else if (bgKey === "PogoSkyBg") iconEl.innerText = "🪶";
-          else if (bgKey === "PogoOceanBg") iconEl.innerText = "🌊";
-          else if (bgKey === "PogoBeachBg") iconEl.innerText = "🐚";
-          else iconEl.innerText = "🍒";
-        }
-
-        const basket = document.getElementById('berryBasketWidget');
-        if (basket) basket.classList.add('show');
-
-        // 수확 후 다음 스폰 스케줄 등록
+        // 다음 스폰 스케줄 등록
         scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
       };
 
