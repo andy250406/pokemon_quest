@@ -374,6 +374,13 @@
       -webkit-user-drag: none;
     }
 
+    /* 🌟 [경험치 2배] 대왕/골드 큰 열매 연출 */
+    .berry-item.big {
+      width: 58px;
+      height: 58px;
+      filter: drop-shadow(0 0 14px rgba(250, 204, 21, 0.95)) drop-shadow(0 6px 10px rgba(0,0,0,0.45));
+    }
+
     /* 1) 🌳 숲/초원: 가지에 매달림 & 낙하 */
     .berry-item.hanging {
       transform-origin: top center;
@@ -4499,6 +4506,18 @@
         }
 
         appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, appState.pokemon?.growth || "MEDIUM_SLOW");
+
+        // 🌟 [경험치 정규화]: 누적 경험치가 요구 경험치를 초과하면 즉시 레벨업 반영 및 잔여 경험치 산출
+        let autoLeveled = false;
+        while (appState.userStats.currentXp >= appState.userStats.requiredXp && appState.userStats.level < 100) {
+          appState.userStats.currentXp -= appState.userStats.requiredXp;
+          appState.userStats.level += 1;
+          appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, appState.pokemon?.growth || "MEDIUM_SLOW");
+          autoLeveled = true;
+        }
+        if (autoLeveled) {
+          syncCurrentPokemonStatsToBackend();
+        }
       }
     }
 
@@ -4737,6 +4756,7 @@
     // ========================================================
     let isDraggingPokemon = false;
     let dragStartPos = { x: 0, y: 0 };
+    let dragCurrentPos = { x: 0, y: 0 };
     let dragDistanceTotal = 0;
 
     function initPokemonSlingshotEngine() {
@@ -4754,6 +4774,7 @@
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
         dragStartPos = { x: clientX, y: clientY };
+        dragCurrentPos = { x: clientX, y: clientY };
 
         spriteImg.classList.remove('mon-spring-release');
         spriteImg.classList.add('mon-dragging');
@@ -4767,6 +4788,8 @@
 
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        dragCurrentPos = { x: clientX, y: clientY };
 
         const rawDx = clientX - dragStartPos.x;
         const rawDy = clientY - dragStartPos.y;
@@ -4832,16 +4855,16 @@
     }
 
     // ⭐ 순수 별 이모지 파티클 생성 (포켓몬 주변에서 솟아오름)
-    function spawnFeedStarParticles(x, y) {
+    function spawnFeedStarParticles(x, y, count = 5) {
       const starIcons = ["⭐", "🌟", "✨", "💫"];
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < count; i++) {
         const particle = document.createElement('div');
         particle.className = 'feed-star-particle';
         particle.innerText = starIcons[Math.floor(Math.random() * starIcons.length)];
         particle.style.left = (x + (Math.random() * 40 - 20)) + 'px';
         particle.style.top = (y + (Math.random() * 30 - 25)) + 'px';
-        particle.style.setProperty('--tx', (Math.random() * 60 - 30) + 'px');
-        particle.style.setProperty('--ty', (-(Math.random() * 45 + 35)) + 'px');
+        particle.style.setProperty('--tx', (Math.random() * 70 - 35) + 'px');
+        particle.style.setProperty('--ty', (-(Math.random() * 55 + 35)) + 'px');
         document.body.appendChild(particle);
 
         setTimeout(() => {
@@ -4850,7 +4873,7 @@
       }
     }
 
-    // 🌟 경험치 팝 플로팅 텍스트 (+5 XP)
+    // 🌟 경험치 팝 플로팅 텍스트 (+5 XP / +10 XP)
     function showFloatingXpGain(text, x, y) {
       const el = document.createElement('div');
       el.className = 'floating-xp-gain';
@@ -4863,8 +4886,8 @@
       }, 900);
     }
 
-    // 🎁 포켓몬 섭취 공통 처리 (하얀 빛 섬광 폭발 + 별 파티클 + 즉시 +5 XP 지급!)
-    function executePokemonFeedReward(sourceItemEl) {
+    // 🎁 포켓몬 섭취 공통 처리 (하얀 빛 섬광 폭발 + 별 파티클 + 즉시 경험치 지급 & 2배 큰열매 지원!)
+    function executePokemonFeedReward(sourceItemEl, rewardXp = 5) {
       const spriteImg = document.getElementById('pokemonImage');
       if (!spriteImg || !sourceItemEl) return;
 
@@ -4873,7 +4896,9 @@
       const itemCenterX = itemRect.left + itemRect.width / 2;
       const itemCenterY = itemRect.top + itemRect.height / 2;
       triggerWhiteLightBurst(itemCenterX, itemCenterY);
-      showFloatingXpGain("+5 XP", itemCenterX, itemCenterY - 15);
+      
+      const xpText = rewardXp >= 10 ? `+${rewardXp} XP (2배!)` : `+${rewardXp} XP`;
+      showFloatingXpGain(xpText, itemCenterX, itemCenterY - 15);
 
       // 열매 즉시 시각적 소멸
       sourceItemEl.style.opacity = '0';
@@ -4883,7 +4908,7 @@
       const monRect = spriteImg.getBoundingClientRect();
       const monCenterX = monRect.left + monRect.width / 2;
       const monCenterY = monRect.top + monRect.height / 2;
-      spawnFeedStarParticles(monCenterX, monCenterY);
+      spawnFeedStarParticles(monCenterX, monCenterY, rewardXp >= 10 ? 8 : 5);
 
       // 3) 포켓몬 은은한 황금빛 반짝임 (transform 건드리지 않아 드래그 튐 100% 방지!)
       spriteImg.classList.remove('mon-glow-eat');
@@ -4892,23 +4917,28 @@
       setTimeout(() => spriteImg.classList.remove('mon-glow-eat'), 350);
 
       // 4) 찰진 햅틱 진동
-      triggerHaptic([40, 50, 25]);
+      triggerHaptic(rewardXp >= 10 ? [50, 40, 60, 40] : [40, 50, 25]);
 
       // 5) 말풍선 리액션
-      const greetings = ["냠냠! ⭐", "맛있다! ✨", "행복해! 🌟", "기운 펄펄! 💫"];
+      const greetings = rewardXp >= 10 
+        ? ["대박 맛있다! 🌟 (+10XP)", "기운이 솟아나! 💫 (+10XP)", "황금 열매 최고! ⭐"]
+        : ["냠냠! ⭐", "맛있다! ✨", "행복해! 🌟", "기운 펄펄! 💫"];
       const chosenGreet = greetings[Math.floor(Math.random() * greetings.length)];
       triggerSpeechBubble(chosenGreet);
 
-      // 6) 🌟 즉시 실시간 경험치 +5 XP 지급 및 경험치바 하이라이트!
+      // 6) 🌟 즉시 실시간 경험치 지급 및 UI 갱신 & 레벨업 체크!
       highlightXpBar();
-      processXpGainAndEvolve(5);
+      processXpGainAndEvolve(rewardXp);
     }
 
-    // 🍒 포켓몬을 드래그하여 열매에 닿았을 때 즉시 섭취하는 바운딩 박스 충돌 검사
+    // 🍒 포켓몬을 드래그하여 열매에 닿았을 때 즉시 섭취하는 초정밀 3중 충돌 검사
     function checkPokemonBerryDirectFeed(spriteImg) {
       const monRect = spriteImg.getBoundingClientRect();
       const monCenterX = monRect.left + monRect.width / 2;
       const monCenterY = monRect.top + monRect.height / 2;
+
+      const pointerX = dragCurrentPos.x;
+      const pointerY = dragCurrentPos.y;
 
       const berries = document.querySelectorAll('#berryLayer .berry-item');
       berries.forEach(berry => {
@@ -4917,27 +4947,29 @@
         const bCenterX = bRect.left + bRect.width / 2;
         const bCenterY = bRect.top + bRect.height / 2;
 
-        const dist = Math.hypot(monCenterX - bCenterX, monCenterY - bCenterY);
+        const distMon = Math.hypot(monCenterX - bCenterX, monCenterY - bCenterY);
+        const distPointer = Math.hypot(pointerX - bCenterX, pointerY - bCenterY);
 
-        // 🌟 [충돌 판정]: 포켓몬 Bounding Box와 열매 Bounding Box가 20px 마진 내로 닿거나 중심거리 90px 이내면 섭취!
+        // 🌟 [3중 충돌 판정]: 포켓몬 중심 거리 100px OR 마우스/터치 포인터 거리 110px OR 바운딩 박스 오버랩(마진 25px)!
         const isOverlap = !(
-          monRect.right < bRect.left - 20 ||
-          monRect.left > bRect.right + 20 ||
-          monRect.bottom < bRect.top - 20 ||
-          monRect.top > bRect.bottom + 20
+          monRect.right < bRect.left - 25 ||
+          monRect.left > bRect.right + 25 ||
+          monRect.bottom < bRect.top - 25 ||
+          monRect.top > bRect.bottom + 25
         );
 
-        if (dist < 90 || isOverlap) {
+        if (distMon < 100 || distPointer < 110 || isOverlap) {
           berry.dataset.consumed = 'true';
           
-          // 슬롯 스폰 정보 백업
+          // 슬롯 스폰 정보 및 경험치 보상
           const slotIdx = parseInt(berry.dataset.slotIdx) || 0;
-          const minDelay = parseInt(berry.dataset.minDelay) || 10000;
-          const maxDelay = parseInt(berry.dataset.maxDelay) || 15000;
+          const minDelay = parseInt(berry.dataset.minDelay) || 4000;
+          const maxDelay = parseInt(berry.dataset.maxDelay) || 8000;
           const bgKey = berry.dataset.bgKey || currentHabitatBgKey;
+          const rewardXp = parseInt(berry.dataset.rewardXp) || (berry.classList.contains('big') ? 10 : 5);
 
           // 보상 지급 및 이펙트
-          executePokemonFeedReward(berry);
+          executePokemonFeedReward(berry, rewardXp);
 
           // 요소 제거
           if (berry.parentNode) berry.parentNode.removeChild(berry);
@@ -5432,7 +5464,7 @@
       return false;
     }
 
-    // 🌟 우측 상단 필수 퀘스트 뱃지 계산 & UI 갱신 (퀘스트 목록 창에 표시되는 활성 퀘스트와 100% 일치)
+    // 🌟 우측 상단 퀘스트 뱃지 계산 & UI 갱신 (현재 반복 퀘스트 전체 개수 중 완료된 개수 표기)
     function updateQuestBadge(quests) {
       const badgeText = document.getElementById('questText');
       if (!badgeText) return;
@@ -5442,29 +5474,16 @@
         return;
       }
 
-      // 1) 🔁 활성 반복 퀘스트 목록
+      // 🔁 현재 존재하는 모든 반복 퀘스트 항목
       const recurringQuests = quests.filter(q => {
         const rec = (q.recurrence || '').toUpperCase().trim();
         return rec && rec !== 'NONE' && rec !== '일회성';
       });
 
-      // 2) ⚡ 진행 중인 미완료 일회성 퀘스트 목록 (완료되어 사라진 일회성 할 일은 배제)
-      const singleQuests = quests.filter(q => {
-        const rec = (q.recurrence || '').toUpperCase().trim();
-        const isSingle = (!rec || rec === 'NONE' || rec === '일회성');
-        return isSingle && !q.isCompletedToday;
-      });
+      const totalCount = recurringQuests.length;
+      const doneCount = recurringQuests.filter(q => evaluateQuestTimingState(q).isDoneToday).length;
 
-      // 🌟 퀘스트 목록 창에서 관리되는 현재 전체 활성 퀘스트 합산
-      const activeQuestsToday = [...recurringQuests, ...singleQuests];
-
-      // 필수 퀘스트만 필터
-      const requiredQuests = activeQuestsToday.filter(q => isQuestRequired(q));
-
-      const reqTotal = requiredQuests.length;
-      const reqDone = requiredQuests.filter(q => evaluateQuestTimingState(q).isDoneToday).length;
-
-      badgeText.innerText = `${reqDone}/${reqTotal}`;
+      badgeText.innerText = `${doneCount}/${totalCount}`;
     }
 
     function renderQuestList(quests) {
@@ -6204,14 +6223,17 @@
     function startHabitatFarming(bgKey) {
       clearAllBerryTimers();
 
-      // 슬롯 1 (메인): 10초 ~ 15초
-      scheduleHabitatSlot(0, 10000, 15000, bgKey);
+      // 슬롯 1 (메인 빠른 스폰): 2.5초 ~ 5초
+      scheduleHabitatSlot(0, 2500, 5000, bgKey);
 
-      // 슬롯 2 (보조 A): 20초 ~ 30초
-      scheduleHabitatSlot(1, 20000, 30000, bgKey);
+      // 슬롯 2 (보조 A): 4초 ~ 7초
+      scheduleHabitatSlot(1, 4000, 7000, bgKey);
 
-      // 슬롯 3 (보조 B): 20초 ~ 30초
-      scheduleHabitatSlot(2, 20000, 30000, bgKey);
+      // 슬롯 3 (보조 B): 5.5초 ~ 8.5초
+      scheduleHabitatSlot(2, 5500, 8500, bgKey);
+
+      // 슬롯 4 (추가 슬롯 C): 7초 ~ 11초
+      scheduleHabitatSlot(3, 7000, 11000, bgKey);
     }
 
     function scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey) {
@@ -6231,16 +6253,19 @@
       const pool = HABITAT_ITEM_POOLS[bgKey] || HABITAT_ITEM_POOLS["PogoGrasslandBg"];
       const chosenItemImg = pool[Math.floor(Math.random() * pool.length)];
 
+      const isBig = Math.random() < 0.25; // 🌟 25% 확률로 경험치 2배 대왕/골드 큰 열매 스폰!
+
       const el = document.createElement('img');
-      el.className = 'berry-item';
+      el.className = 'berry-item' + (isBig ? ' big' : '');
       el.src = chosenItemImg;
       el.dataset.slotIdx = slotIdx;
       el.dataset.minDelay = minDelay;
       el.dataset.maxDelay = maxDelay;
       el.dataset.bgKey = bgKey;
+      el.dataset.rewardXp = isBig ? "10" : "5";
 
       let isCollected = false;
-      let lifeDuration = 4800;
+      let lifeDuration = 5200;
 
       // 1) 🌳 숲/초원: 양쪽 상단(좌측 나뭇가지 & 우측 나뭇가지) 넓은 랜덤 스폰
       if (bgKey === "PogoGrasslandBg") {
