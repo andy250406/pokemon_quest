@@ -5368,11 +5368,59 @@
       document.getElementById('workspacePane').classList.remove('open');
     }
 
+    // 🌟 필수 퀘스트 판정 헬퍼 (boolean, string "TRUE", isEssential 등 모든 포맷 완벽 대응)
+    function isQuestRequired(q) {
+      if (!q) return false;
+      const v = (q.isRequired !== undefined) ? q.isRequired : ((q.isEssential !== undefined) ? q.isEssential : q.required);
+      if (typeof v === 'boolean') return v;
+      if (typeof v === 'number') return v === 1;
+      if (typeof v === 'string') {
+        const s = v.trim().toUpperCase();
+        return s === 'TRUE' || s === '1' || s === 'Y' || s === 'YES' || s === '필수';
+      }
+      return false;
+    }
+
+    // 🌟 우측 상단 필수 퀘스트 뱃지 계산 & UI 갱신
+    function updateQuestBadge(quests) {
+      const badgeText = document.getElementById('questText');
+      if (!badgeText) return;
+
+      if (!quests || !Array.isArray(quests) || quests.length === 0) {
+        badgeText.innerText = "0/0";
+        return;
+      }
+
+      const now = new Date();
+      const todayStr = now.toISOString().split('T')[0];
+
+      // 오늘 대상인 모든 필수 퀘스트 집계
+      const requiredQuests = quests.filter(q => {
+        if (!isQuestRequired(q)) return false;
+
+        const rec = (q.recurrence || '').toUpperCase().trim();
+        const isRecurring = rec && rec !== 'NONE' && rec !== '일회성';
+
+        if (isRecurring) {
+          return true; // 반복 필수 퀘스트는 매일 집계 대상
+        } else {
+          // 일회성 필수 퀘스트는 오늘 완료되었거나, 오늘까지 마감인 경우 포함
+          const isDoneToday = (q.lastCompletedDate === todayStr) || Boolean(q.isCompletedToday);
+          const isDue = (!q.dueDate || q.dueDate <= todayStr);
+          return isDoneToday || isDue;
+        }
+      });
+
+      const reqTotal = requiredQuests.length;
+      const reqDone = requiredQuests.filter(q => evaluateQuestTimingState(q).isDoneToday).length;
+
+      badgeText.innerText = `${reqDone}/${reqTotal}`;
+    }
+
     function renderQuestList(quests) {
       const container = document.getElementById('questListContainer');
       if (!container) return;
       container.innerHTML = '';
-      let reqDone = 0, reqTotal = 0;
 
       if (!quests || quests.length === 0) {
         container.innerHTML = `
@@ -5382,7 +5430,7 @@
             <div style="font-size:12px;">상단 [➕]를 눌러 첫 할 일을 등록해 보세요!</div>
           </div>
         `;
-        document.getElementById('questText').innerText = "0/0";
+        updateQuestBadge([]);
         return;
       }
 
@@ -5417,12 +5465,8 @@
         return timeA.localeCompare(timeB);
       });
 
-      // 🌟 [요청 3]: 필수 퀘스트 카운트 정확한 계산 (현재 목록에 유효한 필수 퀘스트 기준)
-      const allActiveQuests = [...recurringQuests, ...singleQuests];
-      const requiredQuests = allActiveQuests.filter(q => Boolean(q.isRequired));
-      reqTotal = requiredQuests.length;
-      reqDone = requiredQuests.filter(q => evaluateQuestTimingState(q).isDoneToday).length;
-      document.getElementById('questText').innerText = `${reqDone}/${reqTotal}`;
+      // 🌟 필수 퀘스트 카운트 정확한 계산 & 뱃지 갱신
+      updateQuestBadge(quests);
 
       // --- [1단: 상단 반복성 퀘스트] ---
       const recSection = document.createElement('div');
@@ -5616,7 +5660,7 @@
           <div class="quest-info" style="flex:1; min-width:0;">
             ${topMetaText ? `<div class="quest-top-meta" style="font-size:11.5px; font-weight:700; color:#475569; margin-bottom:3px; letter-spacing:0.2px;">${topMetaText}</div>` : ''}
             <div class="quest-title" style="font-size:14.5px; font-weight:900; color:#0f172a; line-height:1.35; margin-bottom:2px; word-break:break-word;">
-              <span style="color:#0284c7; font-weight:900; margin-right:4px;">[${recLabel}]</span>${q.name}${q.isRequired ? ' <span class="req-tag" style="background:#FF9800; color:white; font-size:10px; font-weight:900; padding:1px 5px; border-radius:4px; margin-left:4px;">필수</span>' : ''}
+              <span style="color:#0284c7; font-weight:900; margin-right:4px;">[${recLabel}]</span>${q.name}${isQuestRequired(q) ? ' <span class="req-tag" style="background:#FF9800; color:white; font-size:10px; font-weight:900; padding:1px 5px; border-radius:4px; margin-left:4px;">필수</span>' : ''}
             </div>
             ${descHtml}
           </div>
@@ -5751,7 +5795,7 @@
                 <div class="streak-card-title">
                   <span style="color:#38bdf8; font-weight:800;">[${recKr}]</span>
                   <span>${q.name}</span>
-                  ${q.isRequired ? '<span class="req-tag" style="font-size:10px;">필수</span>' : ''}
+                  ${isQuestRequired(q) ? '<span class="req-tag" style="font-size:10px;">필수</span>' : ''}
                 </div>
                 <span class="streak-badge">🔥 ${q.consecutiveDays || 0}일째</span>
               </div>
@@ -5804,7 +5848,7 @@
               <div class="single-todo-left">
                 <div class="single-todo-title">
                   <span>${q.name}</span>
-                  ${q.isRequired ? '<span class="req-tag" style="font-size:9.5px;">필수</span>' : ''}
+                  ${isQuestRequired(q) ? '<span class="req-tag" style="font-size:9.5px;">필수</span>' : ''}
                 </div>
                 <div class="single-todo-meta">
                   <span>📅 ${q.lastCompletedDate || q.dueDate || '완료'}</span> • 
