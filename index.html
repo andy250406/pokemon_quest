@@ -363,8 +363,7 @@
 
     .berry-item {
       position: absolute;
-      pointer-events: auto !important;
-      cursor: pointer;
+      pointer-events: none !important; /* 클릭 판정 제거, 오직 포켓몬 직접 이동 먹이기 전용 */
       filter: drop-shadow(0 6px 8px rgba(0,0,0,0.35));
       width: 44px;
       height: 44px;
@@ -373,11 +372,6 @@
       object-fit: contain;
       user-select: none;
       -webkit-user-drag: none;
-      touch-action: manipulation;
-      transition: transform 0.15s ease, opacity 0.15s ease;
-    }
-    .berry-item:active {
-      transform: scale(1.25) !important;
     }
 
     /* 1) 🌳 숲/초원: 가지에 매달림 & 낙하 */
@@ -4838,7 +4832,7 @@
       }
     }
 
-    // 🎁 포켓몬 섭취 공통 처리 (드래그 먹이기 & 직접 터치 먹이기 둘 다 호출!)
+    // 🎁 포켓몬 섭취 공통 처리 (하얀 빛 섬광 폭발 + 별 파티클 + 즉시 +5 XP 지급!)
     function executePokemonFeedReward(sourceItemEl) {
       const spriteImg = document.getElementById('pokemonImage');
       if (!spriteImg || !sourceItemEl) return;
@@ -4874,25 +4868,40 @@
       processXpGainAndEvolve(5);
     }
 
-    // 🍒 포켓몬이 드래그되어 아이템에 닿았을 때 즉시 섭취하는 충돌 검사
+    // 🍒 포켓몬을 드래그하여 열매에 닿았을 때 즉시 섭취하는 바운딩 박스 충돌 검사
     function checkPokemonBerryDirectFeed(spriteImg) {
       const monRect = spriteImg.getBoundingClientRect();
-      const monCenterX = monRect.left + monRect.width / 2;
-      const monCenterY = monRect.top + monRect.height / 2;
 
       const berries = document.querySelectorAll('#berryLayer .berry-item');
       berries.forEach(berry => {
         if (berry.dataset.consumed === 'true') return;
         const bRect = berry.getBoundingClientRect();
-        const bCenterX = bRect.left + bRect.width / 2;
-        const bCenterY = bRect.top + bRect.height / 2;
 
-        const dist = Math.hypot(monCenterX - bCenterX, monCenterY - bCenterY);
-        // 포켓몬과 아이템 거리가 60px 이내로 닿았을 때 냠냠 섭취!
-        if (dist < 60) {
+        // 🌟 [충돌 판정]: 포켓몬 Bounding Box와 열매 Bounding Box가 20px 마진 내로 닿거나 교차하면 섭취!
+        const isHit = !(
+          monRect.right < bRect.left - 20 ||
+          monRect.left > bRect.right + 20 ||
+          monRect.bottom < bRect.top - 20 ||
+          monRect.top > bRect.bottom + 20
+        );
+
+        if (isHit) {
           berry.dataset.consumed = 'true';
+          
+          // 슬롯 스폰 정보 백업
+          const slotIdx = parseInt(berry.dataset.slotIdx) || 0;
+          const minDelay = parseInt(berry.dataset.minDelay) || 10000;
+          const maxDelay = parseInt(berry.dataset.maxDelay) || 15000;
+          const bgKey = berry.dataset.bgKey || currentHabitatBgKey;
+
+          // 보상 지급 및 이펙트
           executePokemonFeedReward(berry);
+
+          // 요소 제거
           if (berry.parentNode) berry.parentNode.removeChild(berry);
+
+          // 다음 열매 스폰 스케줄 등록
+          scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
         }
       });
     }
@@ -5381,7 +5390,7 @@
       return false;
     }
 
-    // 🌟 우측 상단 필수 퀘스트 뱃지 계산 & UI 갱신
+    // 🌟 우측 상단 필수 퀘스트 뱃지 계산 & UI 갱신 (실제 오늘 유효한 퀘스트 목록 기준 100% 일치)
     function updateQuestBadge(quests) {
       const badgeText = document.getElementById('questText');
       if (!badgeText) return;
@@ -5394,22 +5403,28 @@
       const now = new Date();
       const todayStr = now.toISOString().split('T')[0];
 
-      // 오늘 대상인 모든 필수 퀘스트 집계
-      const requiredQuests = quests.filter(q => {
-        if (!isQuestRequired(q)) return false;
-
+      // 1) 🔁 반복 퀘스트 목록
+      const recurringQuests = quests.filter(q => {
         const rec = (q.recurrence || '').toUpperCase().trim();
-        const isRecurring = rec && rec !== 'NONE' && rec !== '일회성';
-
-        if (isRecurring) {
-          return true; // 반복 필수 퀘스트는 매일 집계 대상
-        } else {
-          // 일회성 필수 퀘스트는 오늘 완료되었거나, 오늘까지 마감인 경우 포함
-          const isDoneToday = (q.lastCompletedDate === todayStr) || Boolean(q.isCompletedToday);
-          const isDue = (!q.dueDate || q.dueDate <= todayStr);
-          return isDoneToday || isDue;
-        }
+        return rec && rec !== 'NONE' && rec !== '일회성';
       });
+
+      // 2) ⚡ 오늘 유효한 일회성 퀘스트 (오늘 완료되었거나, 아직 미완료인 것만 포함 / 과거 완료분 배제)
+      const singleQuests = quests.filter(q => {
+        const rec = (q.recurrence || '').toUpperCase().trim();
+        const isSingle = (!rec || rec === 'NONE' || rec === '일회성');
+        if (!isSingle) return false;
+        
+        const isDoneToday = (q.lastCompletedDate === todayStr);
+        const isStillPending = !q.isCompletedToday && (!q.lastCompletedDate || q.lastCompletedDate === todayStr);
+        return isDoneToday || isStillPending;
+      });
+
+      // 🌟 오늘의 실제 유효 퀘스트 합산
+      const activeQuestsToday = [...recurringQuests, ...singleQuests];
+
+      // 필수 퀘스트만 필터
+      const requiredQuests = activeQuestsToday.filter(q => isQuestRequired(q));
 
       const reqTotal = requiredQuests.length;
       const reqDone = requiredQuests.filter(q => evaluateQuestTimingState(q).isDoneToday).length;
@@ -6184,6 +6199,10 @@
       const el = document.createElement('img');
       el.className = 'berry-item';
       el.src = chosenItemImg;
+      el.dataset.slotIdx = slotIdx;
+      el.dataset.minDelay = minDelay;
+      el.dataset.maxDelay = maxDelay;
+      el.dataset.bgKey = bgKey;
 
       let isCollected = false;
       let lifeDuration = 4800;
@@ -6211,12 +6230,12 @@
 
         lifeDuration = 4800;
         setTimeout(() => {
-          if (isCollected || !el.parentNode) return;
+          if (el.dataset.consumed === 'true' || !el.parentNode) return;
           el.classList.remove('hanging');
           el.classList.add('dropping');
           setTimeout(() => {
             if (el.parentNode) el.parentNode.removeChild(el);
-            if (!isCollected) scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
+            if (el.dataset.consumed !== 'true') scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
           }, 1100);
         }, lifeDuration);
       }
@@ -6232,7 +6251,7 @@
         lifeDuration = 5200;
         setTimeout(() => {
           if (el.parentNode) el.parentNode.removeChild(el);
-          if (!isCollected) scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
+          if (el.dataset.consumed !== 'true') scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
         }, lifeDuration);
       }
       // 3) 🕊️ 하늘: 깃털 고공 살랑살랑 낙하
@@ -6245,7 +6264,7 @@
         lifeDuration = 5800;
         setTimeout(() => {
           if (el.parentNode) el.parentNode.removeChild(el);
-          if (!isCollected) scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
+          if (el.dataset.consumed !== 'true') scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
         }, lifeDuration);
       }
       // 4) 🌊 바다: 심해 수중 침강 낙하
@@ -6258,31 +6277,9 @@
         lifeDuration = 6200;
         setTimeout(() => {
           if (el.parentNode) el.parentNode.removeChild(el);
-          if (!isCollected) scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
+          if (el.dataset.consumed !== 'true') scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
         }, lifeDuration);
       }
-
-      // 🌟 [요청 1]: 터치/클릭 즉시 포켓몬 섭취 & 하얀 빛 폭발 & 별 파티클 & 즉시 경험치 획득!
-      const onHarvest = (e) => {
-        if (e) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-        if (isCollected) return;
-        isCollected = true;
-
-        // 공통 섭취 연출 (하얀 빛 섬광 폭발 + 별 파티클 + 즉시 +5 XP 지급!)
-        executePokemonFeedReward(el);
-
-        if (el.parentNode) el.parentNode.removeChild(el);
-
-        // 다음 스폰 스케줄 등록
-        scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
-      };
-
-      el.addEventListener('pointerdown', onHarvest, { passive: false });
-      el.addEventListener('touchstart', onHarvest, { passive: false });
-      el.addEventListener('click', onHarvest, { passive: false });
 
       layer.appendChild(el);
     }
