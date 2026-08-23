@@ -1036,7 +1036,7 @@
       draw();
     }, { passive: false });
 
-    // 멀티 터치 핀치 줌 & 싱글 터치 패닝/탭 이벤트
+    // 멀티 터치 핀치 줌 & 싱글 터치 패닝/탭/롱프레스 깃발 이벤트
     container.addEventListener('touchstart', (e) => {
       if (e.touches.length === 2) {
         // 핀치 줌 시작
@@ -1060,15 +1060,16 @@
 
         const coords = screenToBoardCoords(touch.clientX, touch.clientY);
 
-        // 260ms 길게 누르면 깃발 꽂기
+        // 🌟 220ms 롱프레스 깃발 꽂기 (손가락 지문 떨림 허용)
+        clearTimeout(longPressTimer);
         longPressTimer = setTimeout(() => {
           if (!isDragging && coords.r >= 0 && coords.r < ROWS && coords.c >= 0 && coords.c < COLS) {
             isLongPressFired = true;
             toggleFlag(coords.r, coords.c);
-            triggerHaptic(45);
+            triggerHaptic(50);
             draw();
           }
-        }, 260);
+        }, 220);
       }
     }, { passive: false });
 
@@ -1093,7 +1094,8 @@
         const dy = touch.clientY - lastPointerPos.y;
         const totalDist = Math.hypot(touch.clientX - startPointerPos.x, touch.clientY - startPointerPos.y);
 
-        if (totalDist > 8) {
+        // 🌟 18px 이상 움직였을 때만 드래그로 판정 (그 전까지는 롱프레스 타이머 유지!)
+        if (totalDist > 18) {
           clearTimeout(longPressTimer);
           isDragging = true;
           panOffsetX += dx;
@@ -1115,6 +1117,7 @@
           draw();
         }
         isDragging = false;
+        isLongPressFired = false;
         initialPinchDistance = null;
       }
     });

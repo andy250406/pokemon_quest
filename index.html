@@ -557,6 +557,13 @@
       align-items: flex-end;
       justify-content: center;
       position: relative;
+      touch-action: none;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .pokemon-sprite-container.dragging {
+      cursor: grabbing;
     }
 
     .pokemon-sprite {
@@ -569,6 +576,45 @@
       filter: drop-shadow(0 12px 12px rgba(0,0,0,0.42));
       transform-origin: bottom center;
       transition: transform 0.2s ease;
+      pointer-events: auto;
+    }
+
+    /* 🧲 드래그 중인 포켓몬 */
+    .pokemon-sprite.mon-dragging {
+      transition: none !important;
+      filter: drop-shadow(0 16px 20px rgba(0,0,0,0.55)) brightness(1.08) !important;
+      z-index: 50;
+    }
+
+    /* 🚀 손을 놓았을 때 띠요옹~ 원래 자리로 튕겨서 복귀하는 고무줄 스프링 애니메이션 */
+    .pokemon-sprite.mon-spring-release {
+      transition: transform 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.35) !important;
+    }
+
+    /* 😋 포켓몬 냠냠 섭취 팝 애니메이션 */
+    .pokemon-sprite.mon-chomp {
+      animation: monChompAction 0.32s ease-out !important;
+    }
+    @keyframes monChompAction {
+      0% { transform: scale(1); }
+      35% { transform: scale(1.3, 0.82); filter: brightness(1.3) drop-shadow(0 0 20px #fbbf24) !important; }
+      65% { transform: scale(0.92, 1.15); }
+      100% { transform: scale(1); }
+    }
+
+    /* 💖 먹이 섭취 시 뿜어져 나오는 하트 & 반짝이 파티클 */
+    .feed-heart-particle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      font-size: 22px;
+      animation: heartFloatUp 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.25));
+    }
+    @keyframes heartFloatUp {
+      0% { transform: translate(0, 0) scale(0.5); opacity: 1; }
+      40% { transform: translate(var(--tx, 0px), var(--ty, -35px)) scale(1.25); opacity: 1; }
+      100% { transform: translate(var(--tx, 0px), var(--ty, -70px)) scale(0.8); opacity: 0; }
     }
 
     /* ✨ 미니게임 보상 획득 시 포켓몬에게 살짝 도는 은은하고 화사한 황금빛 오라 연출 */
@@ -4567,37 +4613,38 @@
     });
 
     // ========================================================
-    // 📱 스마트폰 기울기(자이로스코프) 포켓몬 인터랙티브 모션 엔진
+    // 📱 스마트폰 기울기(자이로스코프) 포켓몬 인터랙티브 모션 엔진 (감도 대폭 상향!)
     // ========================================================
     let currentTiltX = 0, currentTiltY = 0;
     let targetTiltX = 0, targetTiltY = 0;
     let currentAltitudeMode = "하";
     let isGyroEngineRunning = false;
 
-    // 고도별 한계 이동 픽셀 (지상: ±9px/±7px, 부유: ±15px/±12px, 비행: ±20px/±16px)
+    // 고도별 한계 이동 픽셀 (지상: ±24px/±18px, 부유: ±38px/±28px, 비행: ±52px/±38px)
     const TILT_LIMITS = {
-      "하": { maxLimitX: 9, maxLimitY: 7, maxRotate: 0 },
-      "중": { maxLimitX: 15, maxLimitY: 12, maxRotate: 2.0 },
-      "상": { maxLimitX: 20, maxLimitY: 16, maxRotate: 3.5 }
+      "하": { maxLimitX: 24, maxLimitY: 18, maxRotate: 2.5 },
+      "중": { maxLimitX: 38, maxLimitY: 28, maxRotate: 4.5 },
+      "상": { maxLimitX: 52, maxLimitY: 38, maxRotate: 6.5 }
     };
 
     function startGyroscopeMotionEngine() {
       if (isGyroEngineRunning) return;
       isGyroEngineRunning = true;
 
-      // 1) 스마트폰 자이로스코프 기울기 이벤트 리스너
+      // 1) 스마트폰 자이로스코프 기울기 이벤트 리스너 (민감도 대폭 상향!)
       if (typeof window !== "undefined" && window.DeviceOrientationEvent) {
         const onDeviceOrientation = (e) => {
           if (e.gamma === null && e.beta === null) return;
+          if (isDraggingPokemon) return; // 드래그 중에는 자이로 오프셋 중단
           
-          // gamma: 좌우 기울기 (-90 ~ +90) -> 약 -30 ~ +30 정규화
-          const gamma = Math.max(-30, Math.min(30, e.gamma || 0));
-          const normX = gamma / 30; // -1.0 ~ +1.0
+          // gamma: 좌우 기울기 (-90 ~ +90) -> ±20° 범위로 더욱 민감하게 정규화
+          const gamma = Math.max(-20, Math.min(20, e.gamma || 0));
+          const normX = gamma / 20; // -1.0 ~ +1.0
 
-          // beta: 앞뒤 기울기 (-180 ~ +180) -> 일반적인 스마트폰 파지 각도 약 45° 기준 (20°~70°)
+          // beta: 앞뒤 기울기 (-180 ~ +180) -> 일반 스마트폰 파지 각도 45° 기준 ±16° 정규화
           const rawBeta = (e.beta !== null) ? e.beta : 45;
-          const deltaBeta = Math.max(-25, Math.min(25, rawBeta - 45));
-          const normY = deltaBeta / 25; // -1.0 ~ +1.0
+          const deltaBeta = Math.max(-16, Math.min(16, rawBeta - 45));
+          const normY = deltaBeta / 16; // -1.0 ~ +1.0
 
           const limits = TILT_LIMITS[currentAltitudeMode] || TILT_LIMITS["하"];
           targetTiltX = normX * limits.maxLimitX;
@@ -4624,6 +4671,7 @@
 
       // 2) PC 마우스 패럴랙스 & 유휴 모션 fallback
       window.addEventListener('mousemove', (e) => {
+        if (isDraggingPokemon) return;
         const cx = window.innerWidth / 2;
         const cy = window.innerHeight / 2;
         const normX = Math.max(-1, Math.min(1, (e.clientX - cx) / (cx || 1)));
@@ -4633,22 +4681,199 @@
         targetTiltY = normY * limits.maxLimitY;
       });
 
-      // 3) 초고속 120Hz 부드러운 보간 렌더 루프
+      // 3) 초고속 120Hz 부드러운 보간 렌더 루프 (더욱 쫀득한 보간 계수 0.14)
       function updateTiltLoop() {
         const wrapper = document.getElementById('idleWanderWrapper');
         if (wrapper) {
-          // Lerp 보간 (0.09)
-          currentTiltX += (targetTiltX - currentTiltX) * 0.09;
-          currentTiltY += (targetTiltY - currentTiltY) * 0.09;
+          if (!isDraggingPokemon) {
+            currentTiltX += (targetTiltX - currentTiltX) * 0.14;
+            currentTiltY += (targetTiltY - currentTiltY) * 0.14;
 
-          const limits = TILT_LIMITS[currentAltitudeMode] || TILT_LIMITS["하"];
-          const rot = limits.maxRotate ? (currentTiltX / limits.maxLimitX) * limits.maxRotate : 0;
+            const limits = TILT_LIMITS[currentAltitudeMode] || TILT_LIMITS["하"];
+            const rot = limits.maxRotate ? (currentTiltX / limits.maxLimitX) * limits.maxRotate : 0;
 
-          wrapper.style.transform = `translate(${currentTiltX.toFixed(2)}px, ${currentTiltY.toFixed(2)}px) rotate(${rot.toFixed(2)}deg)`;
+            wrapper.style.transform = `translate(${currentTiltX.toFixed(2)}px, ${currentTiltY.toFixed(2)}px) rotate(${rot.toFixed(2)}deg)`;
+          } else {
+            wrapper.style.transform = `translate(0px, 0px) rotate(0deg)`;
+          }
         }
         requestAnimationFrame(updateTiltLoop);
       }
       requestAnimationFrame(updateTiltLoop);
+    }
+
+    // ========================================================
+    // 🧲 포켓몬 드래그 & 고무줄 슬링샷 & 직접 먹이기(Feed) 엔진
+    // ========================================================
+    let isDraggingPokemon = false;
+    let dragStartPos = { x: 0, y: 0 };
+    let dragDistanceTotal = 0;
+
+    function initPokemonSlingshotEngine() {
+      const spriteContainer = document.querySelector('.pokemon-sprite-container');
+      const spriteImg = document.getElementById('pokemonImage');
+      if (!spriteContainer || !spriteImg) return;
+
+      const onPointerStart = (e) => {
+        if (e.button && e.button !== 0) return;
+        
+        isDraggingPokemon = true;
+        dragDistanceTotal = 0;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        dragStartPos = { x: clientX, y: clientY };
+
+        spriteImg.classList.remove('mon-spring-release');
+        spriteImg.classList.add('mon-dragging');
+        spriteContainer.classList.add('dragging');
+        triggerHaptic(20);
+      };
+
+      const onPointerMove = (e) => {
+        if (!isDraggingPokemon) return;
+
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        const rawDx = clientX - dragStartPos.x;
+        const rawDy = clientY - dragStartPos.y;
+        const dist = Math.hypot(rawDx, rawDy);
+        dragDistanceTotal = Math.max(dragDistanceTotal, dist);
+
+        // 고무줄 탄성 저항 (최대 180px까지 늘어나며 저항력 적용)
+        const maxStretch = 180;
+        let clampedDist = dist;
+        if (dist > maxStretch) {
+          clampedDist = maxStretch + (dist - maxStretch) * 0.25;
+        }
+        const scaleFactor = dist > 0 ? (clampedDist / dist) : 1;
+        const appliedX = rawDx * scaleFactor;
+        const appliedY = rawDy * scaleFactor;
+
+        const baseScale = parseFloat(spriteImg.dataset.baseScale) || 1.0;
+        // 젤리 고무줄 스트레치 텐션 (잡아당기는 방향으로 살짝 늘어남)
+        const stretchAmount = Math.min(0.25, (clampedDist / maxStretch) * 0.25);
+        const stretchScaleX = baseScale * (1 + stretchAmount * 0.8);
+        const stretchScaleY = baseScale * (1 - stretchAmount * 0.45);
+        const angleDeg = Math.atan2(appliedY, appliedX) * (180 / Math.PI) * 0.25;
+
+        spriteImg.style.transform = `translate(${appliedX.toFixed(1)}px, ${appliedY.toFixed(1)}px) rotate(${angleDeg.toFixed(1)}deg) scale(${stretchScaleX.toFixed(2)}, ${stretchScaleY.toFixed(2)})`;
+
+        // 🌟 [먹이기 기믹]: 화면의 모든 베리/아이템과의 충돌 실시간 감지!
+        checkPokemonBerryDirectFeed(spriteImg);
+      };
+
+      const onPointerEnd = () => {
+        if (!isDraggingPokemon) return;
+        isDraggingPokemon = false;
+
+        spriteContainer.classList.remove('dragging');
+        spriteImg.classList.remove('mon-dragging');
+
+        const baseScale = parseFloat(spriteImg.dataset.baseScale) || 1.0;
+        // 🌟 고무줄 튕김 탄성 복귀 애니메이션 적용
+        spriteImg.classList.add('mon-spring-release');
+        spriteImg.style.transform = `translate(0px, 0px) scale(${baseScale}) rotate(0deg)`;
+
+        if (dragDistanceTotal > 18) {
+          triggerHaptic([35, 25]);
+        } else {
+          // 단순 가벼운 탭인 경우 점프 애니메이션
+          triggerSpriteHopAnimation();
+        }
+
+        setTimeout(() => {
+          spriteImg.classList.remove('mon-spring-release');
+        }, 450);
+      };
+
+      // 모바일 터치 & PC 마우스 통합 이벤트 등록 (중복 리스너 방지 플래그)
+      if (!spriteContainer.dataset.slingshotBound) {
+        spriteContainer.dataset.slingshotBound = "true";
+        spriteContainer.addEventListener('pointerdown', onPointerStart, { passive: false });
+        window.addEventListener('pointermove', onPointerMove, { passive: false });
+        window.addEventListener('pointerup', onPointerEnd);
+        window.addEventListener('pointercancel', onPointerEnd);
+
+        spriteContainer.addEventListener('touchstart', onPointerStart, { passive: false });
+        window.addEventListener('touchmove', onPointerMove, { passive: false });
+        window.addEventListener('touchend', onPointerEnd);
+        window.addEventListener('touchcancel', onPointerEnd);
+      }
+    }
+
+    // 🍒 포켓몬이 드래그되어 아이템에 닿았을 때 즉시 섭취하는 충돌 검사
+    function checkPokemonBerryDirectFeed(spriteImg) {
+      const monRect = spriteImg.getBoundingClientRect();
+      const monCenterX = monRect.left + monRect.width / 2;
+      const monCenterY = monRect.top + monRect.height / 2;
+
+      const berries = document.querySelectorAll('#berryLayer .berry-item');
+      berries.forEach(berry => {
+        if (berry.dataset.consumed === 'true') return;
+        const bRect = berry.getBoundingClientRect();
+        const bCenterX = bRect.left + bRect.width / 2;
+        const bCenterY = bRect.top + bRect.height / 2;
+
+        const dist = Math.hypot(monCenterX - bCenterX, monCenterY - bCenterY);
+        // 포켓몬과 아이템 거리가 55px 이내로 닿았을 때 냠냠 섭취!
+        if (dist < 55) {
+          berry.dataset.consumed = 'true';
+          feedItemDirectlyToPokemon(berry, spriteImg, monCenterX, monCenterY);
+        }
+      });
+    }
+
+    // 💖 포켓몬 직접 섭취 연출 & 하트 파티클 & 즉시 경험치 획득!
+    function feedItemDirectlyToPokemon(berryEl, spriteImg, monX, monY) {
+      triggerHaptic([40, 50, 25]);
+
+      // 아이템이 포켓몬 입 쪽으로 쏙 빨려 들어가는 연출
+      berryEl.style.transition = 'all 0.18s cubic-bezier(0.25, 1, 0.5, 1)';
+      berryEl.style.transform = 'scale(0.1) rotate(180deg)';
+      berryEl.style.opacity = '0';
+      berryEl.style.pointerEvents = 'none';
+
+      setTimeout(() => {
+        if (berryEl.parentNode) berryEl.parentNode.removeChild(berryEl);
+      }, 200);
+
+      // 포켓몬 냠냠 씹는 팝 액션
+      spriteImg.classList.remove('mon-chomp');
+      void spriteImg.offsetWidth;
+      spriteImg.classList.add('mon-chomp');
+      setTimeout(() => spriteImg.classList.remove('mon-chomp'), 320);
+
+      // 💖 하트 & 반짝이 파티클 뿜어내기
+      spawnFeedHeartParticles(monX, monY);
+
+      // 💬 말풍선 기분 좋은 반응
+      const greetings = ["냠냠! 💖", "맛있다! ✨", "행복해! 🍃", "달콤해! 🍓", "기운 펄펄! 🔥"];
+      const chosenGreet = greetings[Math.floor(Math.random() * greetings.length)];
+      triggerSpeechBubble(chosenGreet);
+
+      // 🌟 즉시 경험치 +5 XP 획득 & 하이라이트 & 진화/레벨업 체크
+      highlightXpBar();
+      processXpGainAndEvolve(5);
+    }
+
+    function spawnFeedHeartParticles(x, y) {
+      const icons = ["💖", "✨", "⭐", "💕", "🌸"];
+      for (let i = 0; i < 4; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'feed-heart-particle';
+        particle.innerText = icons[Math.floor(Math.random() * icons.length)];
+        particle.style.left = (x + (Math.random() * 40 - 20)) + 'px';
+        particle.style.top = (y + (Math.random() * 30 - 25)) + 'px';
+        particle.style.setProperty('--tx', (Math.random() * 50 - 25) + 'px');
+        particle.style.setProperty('--ty', (-(Math.random() * 40 + 35)) + 'px');
+        document.body.appendChild(particle);
+
+        setTimeout(() => {
+          if (particle.parentNode) particle.parentNode.removeChild(particle);
+        }, 850);
+      }
     }
 
     // 🌟 [요청 1]: 포켓몬 클릭 시 찰진 햅틱 진동 & 점프 애니메이션 트리거
@@ -4705,7 +4930,11 @@
       const pImg = document.getElementById('pokemonImage');
       pImg.src = data.pokemon.idleGif;
       const scaleFactor = getPokemonScaleFactor(data.pokemon.id, data.isEgg);
+      pImg.dataset.baseScale = scaleFactor;
       pImg.style.transform = `scale(${scaleFactor})`;
+
+      // 🧲 슬링샷 드래그 & 직접 먹이기 엔진 활성화
+      initPokemonSlingshotEngine();
 
       const xpPercent = Math.min(100, Math.floor((data.userStats.currentXp / data.userStats.requiredXp) * 100));
       document.getElementById('xpValues').innerText = `${data.userStats.currentXp} / ${data.userStats.requiredXp}`;
