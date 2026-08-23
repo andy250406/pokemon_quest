@@ -1819,8 +1819,8 @@
 
         <!-- 2행: 6 (주간정산) ~ 10 -->
         <button class="cheat-btn highlight" onclick="executeCheatCustom(6)"><span class="cheat-btn-icon">🏆</span><span class="cheat-btn-label">6. 주간정산</span></button>
-        <button class="cheat-btn empty"><span class="cheat-btn-label">7</span></button>
-        <button class="cheat-btn empty"><span class="cheat-btn-label">8</span></button>
+        <button class="cheat-btn highlight" onclick="executeCheatCustom(7)"><span class="cheat-btn-icon">🌱</span><span class="cheat-btn-label">7. 1단계랜덤</span></button>
+        <button class="cheat-btn danger" onclick="executeCheatCustom(8)"><span class="cheat-btn-icon">🔄</span><span class="cheat-btn-label">8. 현재몬리셋</span></button>
         <button class="cheat-btn empty"><span class="cheat-btn-label">9</span></button>
         <button class="cheat-btn empty"><span class="cheat-btn-label">10</span></button>
 
@@ -7096,6 +7096,71 @@
               syncWithGasBackend();
             }
           }).catch(() => syncWithGasBackend());
+          break;
+
+        case 7: // 7. 1단계(진화 전) 기본 포켓몬 랜덤 교체
+          recordCurrentPokemonToHistory("SWITCHED");
+          const stage1Pool = [
+            1, 4, 7, 10, 13, 16, 19, 21, 23, 25, 27, 29, 32, 35, 37, 39, 41, 43, 46, 48,
+            50, 52, 54, 56, 58, 60, 63, 66, 69, 72, 74, 77, 79, 81, 83, 84, 86, 88, 90, 92,
+            95, 96, 98, 100, 102, 104, 106, 107, 108, 109, 111, 113, 114, 115, 116, 118, 120, 122,
+            123, 124, 125, 126, 127, 128, 129, 131, 132, 133, 137, 138, 140, 142, 143, 144, 145, 146, 147, 150, 151
+          ];
+          const randStage1Id = stage1Pool[getRandomInt(0, stage1Pool.length - 1)];
+          const s1Mon = getPokemonData(randStage1Id);
+          let s1Gender = "♂";
+          if (s1Mon.genderType === 'GENDERLESS') s1Gender = " ";
+          else if (s1Mon.genderType === 'FEMALE_ONLY') s1Gender = "♀";
+          else if (s1Mon.genderType === 'MALE_ONLY') s1Gender = "♂";
+          else s1Gender = Math.random() < 0.5 ? "♂" : "♀";
+
+          const s1Natures = ["고집", "조심", "명랑", "겁쟁이", "장난꾸러기", "신중", "대담", "차분", "외로움", "용감", "의젓", "냉정"];
+          const s1Nature = s1Natures[getRandomInt(0, s1Natures.length - 1)];
+          const s1BuffMap = {
+            "고집": "+공격", "조심": "+특공", "명랑": "+스피드", "겁쟁이": "+스피드",
+            "장난꾸러기": "+방어", "신중": "+특방", "대담": "+방어", "차분": "+특방",
+            "외로움": "+공격", "용감": "+공격", "의젓": "+특공", "냉정": "+특공"
+          };
+
+          appState.isEgg = false;
+          appState.pokemon = {
+            id: randStage1Id,
+            name: s1Mon.name,
+            gender: s1Gender,
+            nature: s1Nature,
+            natureBuff: s1BuffMap[s1Nature] || "균형",
+            type: s1Mon.type,
+            growth: s1Mon.growth,
+            idleGif: `./images/pokemon/showdown/${randStage1Id}.gif`
+          };
+          appState.userStats.level = 1;
+          appState.userStats.currentXp = 0;
+          appState.userStats.requiredXp = calculateRequiredXpForLevel(1, s1Mon.growth);
+          recordCurrentPokemonToHistory("ACTIVE");
+          saveLocalPokemonCache();
+          initUI(appState);
+          syncCheatToGasBackend(randStage1Id, false, 1, 0, false, s1Gender, s1Nature);
+          alert(`🌱 [No.${randStage1Id} ${s1Mon.name} (${s1Gender} ${s1Nature})] 1단계 포켓몬으로 교체되었습니다!\nLv.1부터 새로운 육성을 시작합니다! ✨`);
+          break;
+
+        case 8: // 8. 퀘스트 유지 & 도감 육성기록만 초기화 (현재 포켓몬 그대로 유지하여 Lv.1부터 리셋)
+          if (confirm(`🔄 [현재 포켓몬 유지 리셋]\n\n현재 포켓몬 [${appState.pokemon.name}]과 등록된 퀘스트/할일 목록은 그대로 유지됩니다.\n도감의 육성 히스토리만 초기화하고 Lv.1 (0 XP)부터 깨끗하게 다시 키우시겠습니까?`)) {
+            const currMon = appState.pokemon;
+            appState.userStats = {
+              level: 1,
+              currentXp: 0,
+              requiredXp: calculateRequiredXpForLevel(1, currMon.growth || "MEDIUM_SLOW"),
+              stageName: "1단계"
+            };
+            appState.isEgg = false;
+            appState.eggTier = 2;
+            appState.pokemonHistory = [];
+            recordCurrentPokemonToHistory("ACTIVE");
+            saveLocalPokemonCache();
+            initUI(appState);
+            syncCheatToGasBackend(currMon.id || 1, false, 1, 0, true, currMon.gender || "♂", currMon.nature || "고집");
+            alert(`🧹 퀘스트와 현재 포켓몬 [${currMon.name}]은 그대로 유지되었으며, 도감 기록 초기화 및 Lv.1 (0 XP)부터 새롭게 육성을 시작합니다! ✨`);
+          }
           break;
 
         case 24: // 24. 지금까지 기록 모두 초기화
