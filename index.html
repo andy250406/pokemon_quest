@@ -736,6 +736,27 @@
       box-shadow: 0 6px 20px rgba(37,99,235,0.5);
     }
 
+    /* 🏆 주간 졸업 & 등급 알 수령 시네마틱 오버레이 스타일 */
+    .graduation-overlay {
+      background: radial-gradient(circle, rgba(15, 23, 42, 0.98) 0%, rgba(2, 6, 23, 0.99) 100%) !important;
+    }
+    .graduation-overlay .grad-aura-box {
+      position: relative;
+      margin: 12px 0;
+      padding: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .graduation-overlay .grad-aura-box.egg-glow img {
+      filter: drop-shadow(0 0 24px rgba(250, 204, 21, 0.95)) drop-shadow(0 0 45px rgba(56, 189, 248, 0.7));
+      animation: eggGlowFloat 2s ease-in-out infinite alternate;
+    }
+    @keyframes eggGlowFloat {
+      0% { transform: translateY(0) scale(1); }
+      100% { transform: translateY(-8px) scale(1.06); }
+    }
+
     /* 하단 네비게이션 바 (투명도 50% + 블러 16px 글래스모피즘 & 1.2배 확대) */
     .bottom-nav {
       position: absolute;
@@ -1516,6 +1537,41 @@
         <img id="evolveSpriteImg" class="evolve-sprite" src="" alt="진화 포켓몬">
         <div class="evolve-desc" id="evolveDescText">포켓몬이 새로운 모습으로 진화했습니다!</div>
         <button class="btn-evolve-confirm" onclick="closeEvolveOverlay()">멋져요! 확인 👍</button>
+      </div>
+
+      <!-- 🏆 일요일 22:00 주간 육성 정산 및 등급 알 지급 시네마틱 모달 -->
+      <div class="evolve-overlay graduation-overlay" id="graduationOverlay">
+        <!-- 1단계: 명예의 전당 도감 영구 박제 -->
+        <div id="gradStep1" style="display:flex; flex-direction:column; align-items:center; width:100%;">
+          <div class="evolve-title" style="color:#facc15; font-size:19px;">🏆 이번 주 명예의 전당 졸업!</div>
+          <div class="grad-aura-box">
+            <img id="gradPokemonImg" class="evolve-sprite" src="./images/pokemon/showdown/1.gif" alt="졸업 포켓몬">
+          </div>
+          <div class="evolve-desc" id="gradPokemonDesc" style="color:#f8fafc; font-size:13.5px; line-height:1.5; margin-bottom:18px;">
+            <b id="gradPokemonNameLv" style="font-size:16px; color:#ffffff;">이상해씨 (Lv.13)</b><br>
+            <span id="gradPokemonXpScore" style="color:#38bdf8; font-size:12px; font-weight:800;">누적 성과 점수: 3,485 XP</span><br>
+            <span style="color:#94a3b8; font-size:11.5px; margin-top:3px; display:inline-block;">📖 도감의 [역대 육성 히스토리]에 영구 박제되었습니다!</span>
+          </div>
+          <button class="btn-evolve-confirm" style="background:linear-gradient(135deg, #f59e0b, #d97706); box-shadow:0 4px 15px rgba(245,158,11,0.4);" onclick="goToGraduationStep2()">
+            🎁 주간 보상 등급 알 받기 ➜
+          </button>
+        </div>
+
+        <!-- 2단계: 새로운 등급 알 수령 -->
+        <div id="gradStep2" style="display:none; flex-direction:column; align-items:center; width:100%;">
+          <div class="evolve-title" style="color:#38bdf8; font-size:19px;">✨ 새로운 여정의 시작! ✨</div>
+          <div class="grad-aura-box egg-glow">
+            <img id="gradEggImg" class="evolve-sprite" src="./images/items/poke-ball.png" alt="새로운 알" style="width:110px; height:110px; object-fit:contain;">
+          </div>
+          <div class="evolve-desc" id="gradEggDesc" style="color:#f8fafc; font-size:13.5px; line-height:1.5; margin-bottom:18px;">
+            <b id="gradEggTitle" style="color:#fde047; font-size:16px;">[🥉 브론즈 알 (Tier 2)]</b><br>
+            <span style="color:#cbd5e1; font-size:12px;" id="gradEggRateInfo">스타팅 25% • 희귀 15% • 전설 5%</span><br>
+            <span style="color:#94a3b8; font-size:11.5px; margin-top:4px; display:inline-block;">퀘스트를 완료하여 경험치를 모으고 새로운 포켓몬을 부화시켜 보세요!</span>
+          </div>
+          <button class="btn-evolve-confirm" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); box-shadow:0 4px 15px rgba(37,99,235,0.4);" onclick="finishGraduationAndStartNewEgg()">
+            새로운 알과 함께 출발! 🐣
+          </button>
+        </div>
       </div>
 
       <!-- 🛠️ 좌측 하단 치트 콘솔 트리거 -->
@@ -4368,6 +4424,9 @@
           saveLocalFullCache();
           initUI(appState);
           logDebug(`⚡ 시트 데이터 고속 최신화 완료 (퀘스트 ${appState.quests.length}개)`, "success");
+
+          // 🏆 [일요일 22시 주간 정산 감지]: 일요일 22시 이후 접속 시 자동 정산 & 알 지급 시네마틱 실행!
+          checkSundayWeeklyGraduation();
         }
       } catch (err) {
         logDebug("시트 데이터 최신화 알림: 로컬 캐시 유지 중", "info");
@@ -6540,6 +6599,120 @@
       if (overlay) overlay.classList.remove('active');
     }
 
+    let currentGraduationData = null;
+
+    // 🏆 일요일 22:00 주간 육성 정산 시네마틱 오버레이 시작 (도감 박제 ➜ 새 알 수령 2단계 연출)
+    function triggerSundayGraduationSequence(gradMon, newEgg) {
+      if (!gradMon || !newEgg) return;
+      currentGraduationData = { gradMon, newEgg };
+
+      // 웅장한 다단계 축하 햅틱 진동
+      triggerHaptic([100, 60, 200, 80, 300, 100, 600]);
+
+      const overlay = document.getElementById('graduationOverlay');
+      const step1 = document.getElementById('gradStep1');
+      const step2 = document.getElementById('gradStep2');
+      const pokeImg = document.getElementById('gradPokemonImg');
+      const nameLv = document.getElementById('gradPokemonNameLv');
+      const xpScore = document.getElementById('gradPokemonXpScore');
+
+      if (pokeImg) pokeImg.src = `./images/pokemon/showdown/${gradMon.id || 1}.gif`;
+      if (nameLv) nameLv.innerText = `${gradMon.name} (Lv.${gradMon.level || 1})`;
+      if (xpScore) xpScore.innerText = `누적 성과 점수: ${Number(gradMon.xp || 0).toLocaleString()} XP`;
+
+      if (step1) step1.style.display = 'flex';
+      if (step2) step2.style.display = 'none';
+
+      if (overlay) overlay.classList.add('active');
+    }
+
+    function goToGraduationStep2() {
+      if (!currentGraduationData) return;
+      triggerHaptic([60, 80, 120, 80, 200]);
+
+      const step1 = document.getElementById('gradStep1');
+      const step2 = document.getElementById('gradStep2');
+      const eggTitle = document.getElementById('gradEggTitle');
+      const eggRateInfo = document.getElementById('gradEggRateInfo');
+      const eggImg = document.getElementById('gradEggImg');
+
+      const tier = currentGraduationData.newEgg?.tier || 2;
+      const tierName = currentGraduationData.newEgg?.tierName || "브론즈 알";
+
+      const eggRateMap = {
+        1: "일반 70% • 스타팅 20% • 희귀 9% • 전설 1%",
+        2: "스타팅 25% • 희귀 15% • 전설 5%",
+        3: "스타팅 30% • 희귀 23% • 전설 12%",
+        4: "스타팅 25% • 희귀 35% • 전설 25%",
+        5: "스타팅 15% • 희귀 35% • 전설 50%",
+        6: "👑 전설의 포켓몬 100% 확정!"
+      };
+
+      if (eggTitle) eggTitle.innerText = `[${tierName}]`;
+      if (eggRateInfo) eggRateInfo.innerText = eggRateMap[tier] || "새로운 등급 알";
+      if (eggImg) eggImg.src = "./images/items/poke-ball.png";
+
+      if (step1) step1.style.display = 'none';
+      if (step2) step2.style.display = 'flex';
+    }
+
+    function finishGraduationAndStartNewEgg() {
+      const overlay = document.getElementById('graduationOverlay');
+      if (overlay) overlay.classList.remove('active');
+
+      if (currentGraduationData && currentGraduationData.newEgg) {
+        const tier = currentGraduationData.newEgg.tier || 2;
+        const tierName = currentGraduationData.newEgg.tierName || "브론즈 알";
+
+        appState.isEgg = true;
+        appState.eggTier = tier;
+        appState.pokemon = {
+          id: 0,
+          name: `포켓몬 알 (Tier ${tier})`,
+          gender: " ",
+          nature: tierName,
+          natureBuff: "+확률보너스",
+          type: "노말",
+          growth: "MEDIUM_SLOW",
+          idleGif: "./images/items/poke-ball.png"
+        };
+        appState.userStats.level = 1;
+        appState.userStats.currentXp = 0;
+        appState.userStats.requiredXp = calculateRequiredXpForLevel(1, "MEDIUM_SLOW");
+
+        saveLocalPokemonCache();
+        initUI(appState);
+      }
+
+      currentGraduationData = null;
+    }
+
+    // 🌟 [자동 정산 감지]: 일요일 22:00 이후 접속 시 자동으로 주간 정산 및 알 지급 시네마틱 실행
+    function checkSundayWeeklyGraduation() {
+      const now = new Date();
+      const day = now.getDay(); // 0 = 일요일
+      const hours = now.getHours();
+      
+      const isPastSunday10PM = (day === 0 && hours >= 22);
+      const isAlivePokemon = !appState.isEgg && appState.pokemon && appState.pokemon.id > 0;
+
+      if (isPastSunday10PM && isAlivePokemon) {
+        logDebug("🏆 일요일 22시 주간 정산 감지! 백엔드 정산 요청...", "info");
+        fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "sundayGraduation" })
+        })
+        .then(r => r.json())
+        .then(res => {
+          if (res.success && res.data) {
+            triggerSundayGraduationSequence(res.data.graduatedPokemon, res.data.newEgg);
+          }
+        })
+        .catch(err => console.warn("주간 정산 요청 오류:", err));
+      }
+    }
+
     function highlightXpBar() {
       const xpFill = document.getElementById('xpBarFill');
       if (xpFill) {
@@ -6822,38 +6995,18 @@
           break;
 
         case 6: // 6. 일요일 22:00 주간 육성 정산 및 알 지급 시뮬레이션
-          if (confirm("🏆 [일요일 22시 주간 정산]을 실행하시겠습니까?\n현재 포켓몬의 최종 레벨/경험치에 따라 등급 알이 새로 지급됩니다.")) {
-            fetch(GAS_API_URL, {
-              method: "POST",
-              headers: { "Content-Type": "text/plain;charset=utf-8" },
-              body: JSON.stringify({ action: "sundayGraduation" })
-            }).then(r => r.json()).then(res => {
-              if (res.success && res.data) {
-                const d = res.data;
-                const tier = d.newEgg?.tier || 2;
-                appState.isEgg = true;
-                appState.eggTier = tier;
-                appState.pokemon = {
-                  id: 0,
-                  name: `포켓몬 알 (Tier ${tier})`,
-                  gender: " ",
-                  nature: d.newEgg?.tierName || "브론즈 알",
-                  natureBuff: "+확률보너스",
-                  type: "노말",
-                  growth: "MEDIUM_SLOW",
-                  idleGif: "./images/items/poke-ball.png"
-                };
-                appState.userStats.level = 1;
-                appState.userStats.currentXp = 0;
-                appState.userStats.requiredXp = calculateRequiredXpForLevel(1, "MEDIUM_SLOW");
-                saveLocalPokemonCache();
-                initUI(appState);
-                alert(`🏆 [일요일 22시 정산 완료!]\n\n졸업 포켓몬: ${d.graduatedPokemon?.name} (Lv.${d.graduatedPokemon?.level})\n누적 경험치 점수: ${d.graduatedPokemon?.xp} XP\n새로 획득한 알: [${d.newEgg?.tierName}]\n\n알을 부화시켜 새로운 포켓몬을 만나보세요! ✨`);
-              } else {
-                syncWithGasBackend();
-              }
-            }).catch(() => syncWithGasBackend());
-          }
+          closeCheatModal();
+          fetch(GAS_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "sundayGraduation" })
+          }).then(r => r.json()).then(res => {
+            if (res.success && res.data) {
+              triggerSundayGraduationSequence(res.data.graduatedPokemon, res.data.newEgg);
+            } else {
+              syncWithGasBackend();
+            }
+          }).catch(() => syncWithGasBackend());
           break;
 
         case 24: // 24. 지금까지 기록 모두 초기화
