@@ -4758,15 +4758,22 @@
     let dragStartPos = { x: 0, y: 0 };
     let dragCurrentPos = { x: 0, y: 0 };
     let dragDistanceTotal = 0;
+    let slingshotRafId = null;
 
     function initPokemonSlingshotEngine() {
       const spriteContainer = document.querySelector('.pokemon-sprite-container');
       const spriteImg = document.getElementById('pokemonImage');
       if (!spriteContainer || !spriteImg) return;
 
+      const runSlingshotCollisionLoop = () => {
+        if (!isDraggingPokemon) return;
+        checkPokemonBerryDirectFeed(spriteImg);
+        slingshotRafId = requestAnimationFrame(runSlingshotCollisionLoop);
+      };
+
       const onPointerStart = (e) => {
         if (e.button && e.button !== 0) return;
-        if (e.cancelable) e.preventDefault(); // 브라우저 기본 이미지 드래깅/텍스트 선택 차단!
+        if (e.cancelable) e.preventDefault();
         
         isDraggingPokemon = true;
         dragDistanceTotal = 0;
@@ -4780,6 +4787,9 @@
         spriteImg.classList.add('mon-dragging');
         spriteContainer.classList.add('dragging');
         triggerHaptic(20);
+
+        if (slingshotRafId) cancelAnimationFrame(slingshotRafId);
+        slingshotRafId = requestAnimationFrame(runSlingshotCollisionLoop);
       };
 
       const onPointerMove = (e) => {
@@ -4796,30 +4806,30 @@
         const dist = Math.hypot(rawDx, rawDy);
         dragDistanceTotal = Math.max(dragDistanceTotal, dist);
 
-        // 🌟 [요청 2]: 왜곡 늘어남 없이 형태를 그대로 유지하며, 화면 구석구석 어디든 자유롭게 드래그!
+        // 왜곡 없이 본래 비율 유지하며 자유롭게 드래그
         const baseScale = parseFloat(spriteImg.dataset.baseScale) || 1.0;
         spriteImg.style.transform = `translate(${rawDx.toFixed(1)}px, ${rawDy.toFixed(1)}px) scale(${baseScale})`;
-
-        // 🌟 [먹이기 기믹]: 화면의 모든 베리/아이템과의 충돌 실시간 감지!
-        checkPokemonBerryDirectFeed(spriteImg);
       };
 
       const onPointerEnd = (e) => {
         if (!isDraggingPokemon) return;
         isDraggingPokemon = false;
+        if (slingshotRafId) {
+          cancelAnimationFrame(slingshotRafId);
+          slingshotRafId = null;
+        }
 
         spriteContainer.classList.remove('dragging');
         spriteImg.classList.remove('mon-dragging');
 
         const baseScale = parseFloat(spriteImg.dataset.baseScale) || 1.0;
-        // 🌟 고무줄 튕김 탄성 복귀 애니메이션 적용 (통통 튀며 제자리 복귀)
+        // 고무줄 튕김 탄성 복귀
         spriteImg.classList.add('mon-spring-release');
         spriteImg.style.transform = `translate(0px, 0px) scale(${baseScale})`;
 
         if (dragDistanceTotal > 12) {
           triggerHaptic([40, 25]);
         } else {
-          // 단순 클릭인 경우 점프 홉 애니메이션 실행!
           triggerSpriteHopAnimation();
         }
 
@@ -4828,7 +4838,7 @@
         }, 530);
       };
 
-      // 모바일 터치 & PC 마우스 통합 이벤트 등록 (중복 리스너 방지 플래그)
+      // 모바일 터치 & PC 마우스 통합 리스너
       if (!spriteContainer.dataset.slingshotBound) {
         spriteContainer.dataset.slingshotBound = "true";
         spriteContainer.addEventListener('mousedown', onPointerStart);
@@ -4851,88 +4861,35 @@
       document.body.appendChild(burst);
       setTimeout(() => {
         if (burst.parentNode) burst.parentNode.removeChild(burst);
-      }, 400);
+      }, 350);
     }
 
-    // ⭐ 순수 별 이모지 파티클 생성 (포켓몬 주변에서 솟아오름)
-    function spawnFeedStarParticles(x, y, count = 5) {
-      const starIcons = ["⭐", "🌟", "✨", "💫"];
-      for (let i = 0; i < count; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'feed-star-particle';
-        particle.innerText = starIcons[Math.floor(Math.random() * starIcons.length)];
-        particle.style.left = (x + (Math.random() * 40 - 20)) + 'px';
-        particle.style.top = (y + (Math.random() * 30 - 25)) + 'px';
-        particle.style.setProperty('--tx', (Math.random() * 70 - 35) + 'px');
-        particle.style.setProperty('--ty', (-(Math.random() * 55 + 35)) + 'px');
-        document.body.appendChild(particle);
-
-        setTimeout(() => {
-          if (particle.parentNode) particle.parentNode.removeChild(particle);
-        }, 850);
-      }
-    }
-
-    // 🌟 경험치 팝 플로팅 텍스트 (+5 XP / +10 XP)
-    function showFloatingXpGain(text, x, y) {
-      const el = document.createElement('div');
-      el.className = 'floating-xp-gain';
-      el.innerText = text;
-      el.style.left = x + 'px';
-      el.style.top = y + 'px';
-      document.body.appendChild(el);
-      setTimeout(() => {
-        if (el.parentNode) el.parentNode.removeChild(el);
-      }, 900);
-    }
-
-    // 🎁 포켓몬 섭취 공통 처리 (하얀 빛 섬광 폭발 + 별 파티클 + 즉시 경험치 지급 & 2배 큰열매 지원!)
+    // 🎁 포켓몬 섭취 공통 처리 (하얀 빛 섬광 폭발 + 진동 + 즉각 경험치 바 갱신 & 레벨업)
     function executePokemonFeedReward(sourceItemEl, rewardXp = 5) {
       const spriteImg = document.getElementById('pokemonImage');
-      if (!spriteImg || !sourceItemEl) return;
+      if (!sourceItemEl) return;
 
       // 1) 열매 위치에 하얀 빛 섬광 폭발!
       const itemRect = sourceItemEl.getBoundingClientRect();
       const itemCenterX = itemRect.left + itemRect.width / 2;
       const itemCenterY = itemRect.top + itemRect.height / 2;
       triggerWhiteLightBurst(itemCenterX, itemCenterY);
-      
-      const xpText = rewardXp >= 10 ? `+${rewardXp} XP (2배!)` : `+${rewardXp} XP`;
-      showFloatingXpGain(xpText, itemCenterX, itemCenterY - 15);
 
-      // 열매 즉시 시각적 소멸
+      // 2) 열매 즉시 시각적 소멸
       sourceItemEl.style.opacity = '0';
       sourceItemEl.style.display = 'none';
 
-      // 2) 포켓몬 위치에 순수 별 이모지 파티클!
-      const monRect = spriteImg.getBoundingClientRect();
-      const monCenterX = monRect.left + monRect.width / 2;
-      const monCenterY = monRect.top + monRect.height / 2;
-      spawnFeedStarParticles(monCenterX, monCenterY, rewardXp >= 10 ? 8 : 5);
+      // 3) 찰진 햅틱 진동
+      triggerHaptic(rewardXp >= 10 ? [60, 40, 70] : [45, 30]);
 
-      // 3) 포켓몬 은은한 황금빛 반짝임 (transform 건드리지 않아 드래그 튐 100% 방지!)
-      spriteImg.classList.remove('mon-glow-eat');
-      void spriteImg.offsetWidth;
-      spriteImg.classList.add('mon-glow-eat');
-      setTimeout(() => spriteImg.classList.remove('mon-glow-eat'), 350);
-
-      // 4) 찰진 햅틱 진동
-      triggerHaptic(rewardXp >= 10 ? [50, 40, 60, 40] : [40, 50, 25]);
-
-      // 5) 말풍선 리액션
-      const greetings = rewardXp >= 10 
-        ? ["대박 맛있다! 🌟 (+10XP)", "기운이 솟아나! 💫 (+10XP)", "황금 열매 최고! ⭐"]
-        : ["냠냠! ⭐", "맛있다! ✨", "행복해! 🌟", "기운 펄펄! 💫"];
-      const chosenGreet = greetings[Math.floor(Math.random() * greetings.length)];
-      triggerSpeechBubble(chosenGreet);
-
-      // 6) 🌟 즉시 실시간 경험치 지급 및 UI 갱신 & 레벨업 체크!
+      // 4) 🌟 즉시 실시간 경험치 지급 및 UI 갱신 & 레벨업 체크!
       highlightXpBar();
       processXpGainAndEvolve(rewardXp);
     }
 
     // 🍒 포켓몬을 드래그하여 열매에 닿았을 때 즉시 섭취하는 초정밀 3중 충돌 검사
     function checkPokemonBerryDirectFeed(spriteImg) {
+      if (!spriteImg) return;
       const monRect = spriteImg.getBoundingClientRect();
       const monCenterX = monRect.left + monRect.width / 2;
       const monCenterY = monRect.top + monRect.height / 2;
@@ -4950,7 +4907,7 @@
         const distMon = Math.hypot(monCenterX - bCenterX, monCenterY - bCenterY);
         const distPointer = Math.hypot(pointerX - bCenterX, pointerY - bCenterY);
 
-        // 🌟 [3중 충돌 판정]: 포켓몬 중심 거리 100px OR 마우스/터치 포인터 거리 110px OR 바운딩 박스 오버랩(마진 25px)!
+        // 🌟 [3중 충돌 판정]: 포켓몬 중심 거리 110px OR 포인터 거리 110px OR 바운딩 박스 오버랩(마진 25px)!
         const isOverlap = !(
           monRect.right < bRect.left - 25 ||
           monRect.left > bRect.right + 25 ||
@@ -4958,20 +4915,19 @@
           monRect.top > bRect.bottom + 25
         );
 
-        if (distMon < 100 || distPointer < 110 || isOverlap) {
+        if (distMon < 110 || distPointer < 110 || isOverlap) {
           berry.dataset.consumed = 'true';
           
-          // 슬롯 스폰 정보 및 경험치 보상
           const slotIdx = parseInt(berry.dataset.slotIdx) || 0;
-          const minDelay = parseInt(berry.dataset.minDelay) || 4000;
-          const maxDelay = parseInt(berry.dataset.maxDelay) || 8000;
+          const minDelay = parseInt(berry.dataset.minDelay) || 3000;
+          const maxDelay = parseInt(berry.dataset.maxDelay) || 6000;
           const bgKey = berry.dataset.bgKey || currentHabitatBgKey;
           const rewardXp = parseInt(berry.dataset.rewardXp) || (berry.classList.contains('big') ? 10 : 5);
 
-          // 보상 지급 및 이펙트
+          // 보상 지급 및 섬광 연출
           executePokemonFeedReward(berry, rewardXp);
 
-          // 요소 제거
+          // DOM 제거
           if (berry.parentNode) berry.parentNode.removeChild(berry);
 
           // 다음 열매 스폰 스케줄 등록
@@ -5040,9 +4996,8 @@
       // 🧲 슬링샷 드래그 & 직접 먹이기 엔진 활성화
       initPokemonSlingshotEngine();
 
-      const xpPercent = Math.min(100, Math.floor((data.userStats.currentXp / data.userStats.requiredXp) * 100));
-      document.getElementById('xpValues').innerText = `${data.userStats.currentXp} / ${data.userStats.requiredXp}`;
-      document.getElementById('xpBarFill').style.width = xpPercent + '%';
+      // 🌟 경험치 정규화 & 경험치바 갱신
+      normalizeUserStatsAndLevel();
 
       renderTypeIconsInstant(data.pokemon.type);
       renderQuestList(data.quests);
@@ -6477,6 +6432,29 @@
       if (xpValuesEl) xpValuesEl.innerText = `${stats.currentXp} / ${stats.requiredXp}`;
       if (xpBarFillEl) xpBarFillEl.style.width = xpPercent + '%';
       if (lvBadgeEl) lvBadgeEl.innerText = 'Lv.' + stats.level;
+    }
+
+    // 🌟 비정상 누적 경험치(예: 259/150)를 즉각 정상 레벨과 잔여 경험치로 자동 정규화하는 엔진
+    function normalizeUserStatsAndLevel() {
+      const stats = appState.userStats;
+      if (!stats) return;
+      const growth = appState.pokemon?.growth || "MEDIUM_SLOW";
+      stats.level = Number(stats.level) || 1;
+      stats.currentXp = Number(stats.currentXp) || 0;
+      stats.requiredXp = calculateRequiredXpForLevel(stats.level, growth);
+
+      let leveled = false;
+      while (stats.currentXp >= stats.requiredXp && stats.level < 100) {
+        stats.currentXp -= stats.requiredXp;
+        stats.level += 1;
+        stats.requiredXp = calculateRequiredXpForLevel(stats.level, growth);
+        leveled = true;
+      }
+      if (leveled) {
+        saveLocalFullCache();
+        syncCurrentPokemonStatsToBackend();
+      }
+      updateXpBarUI();
     }
 
     function checkAutoEvolution(pokemonId, currentLevel) {
