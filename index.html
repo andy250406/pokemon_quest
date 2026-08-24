@@ -1821,7 +1821,7 @@
         <button class="cheat-btn highlight" onclick="executeCheatCustom(6)"><span class="cheat-btn-icon">🏆</span><span class="cheat-btn-label">6. 주간정산</span></button>
         <button class="cheat-btn highlight" onclick="executeCheatCustom(7)"><span class="cheat-btn-icon">🌱</span><span class="cheat-btn-label">7. 1단계랜덤</span></button>
         <button class="cheat-btn danger" onclick="executeCheatCustom(8)"><span class="cheat-btn-icon">🔄</span><span class="cheat-btn-label">8. 현재몬리셋</span></button>
-        <button class="cheat-btn empty"><span class="cheat-btn-label">9</span></button>
+        <button class="cheat-btn highlight" onclick="executeCheatCustom(9)"><span class="cheat-btn-icon">⏰</span><span class="cheat-btn-label">9. 트리거설치</span></button>
         <button class="cheat-btn empty"><span class="cheat-btn-label">10</span></button>
 
         <!-- 3행: 11 ~ 15 -->
@@ -7198,6 +7198,20 @@
             syncCheatToGasBackend(currMon.id || 1, false, 1, 0, true, currMon.gender || "♂", currMon.nature || "고집");
             alert(`🧹 퀘스트와 현재 포켓몬 [${currMon.name}]은 그대로 유지되었으며, 도감 기록 초기화 및 Lv.1 (0 XP)부터 새롭게 육성을 시작합니다! ✨`);
           }
+          break;
+
+        case 9: // 9. 백엔드 자동 알림 트리거 즉시 설치 및 재구축
+          fetch(GAS_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "setupTriggers" })
+          }).then(r => r.json()).then(res => {
+            if (res.success) {
+              alert("⏰ [백엔드 트리거 설치 완료!]\n\n구글 서버에 1분 정밀 알림 및 일요일 22시 정산 트리거가 완벽하게 재설치되었습니다! ✨");
+            } else {
+              alert("⚠️ 트리거 설치 응답: " + (res.error || "실패"));
+            }
+          }).catch(err => alert("통신 오류: " + err.message));
           break;
 
         case 24: // 24. 지금까지 기록 모두 초기화
