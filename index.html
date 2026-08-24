@@ -7248,9 +7248,8 @@
           await OneSignal.init({
             appId: "5aaa7314-9ff3-4934-960e-11da2521b448",
             allowLocalhostAsSecureOrigin: true,
-            serviceWorkerPath: "OneSignalSDKWorker.js",
-            serviceWorkerParam: { scope: "/pokemon_quest/" },
-            serviceWorkerUpdaterPath: "OneSignalSDKUpdaterWorker.js",
+            serviceWorkerPath: "sw.js",
+            serviceWorkerParam: { scope: "./" },
             notifyButton: { enable: false }
           });
 

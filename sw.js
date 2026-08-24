@@ -1,5 +1,8 @@
+// 🔔 OneSignal Web SDK v16 푸시 수신 서비스 워커 스크립트 임포트 (충돌 방지 통합)
+importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
+
 // 🌟 포켓Tasks PWA 서비스 워커 (최신 버전 자동 갱신 및 캐시 버스팅)
-const CACHE_NAME = 'pokettasks-pwa-v20260823-3';
+const CACHE_NAME = 'pokettasks-pwa-v20260824-1';
 const ASSETS_TO_CACHE = [
   './manifest.json',
   './icon-192.png',
