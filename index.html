@@ -15,7 +15,7 @@
   <meta name="apple-mobile-web-app-title" content="포켓Tasks">
 
   <!-- OneSignal Web SDK v16 -->
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  
 
   <style>
     * {
@@ -1446,11 +1446,62 @@
     .log-success { color: #4ade80; font-weight: 800; }
     .log-warn { color: #facc15; }
     .log-error { color: #f87171; font-weight: 800; }
+  
+    /* 🌟 지연 경험치 큐잉 미니 토스트 UI */
+    .pending-xp-toast {
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%) translateY(0);
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: #f8fafc;
+      border: 1.5px solid rgba(56, 189, 248, 0.6);
+      border-radius: 24px;
+      padding: 9px 18px;
+      font-size: 12px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 16px rgba(56, 189, 248, 0.4);
+      z-index: 999999;
+      animation: toastPulseGlow 1.8s infinite alternate ease-in-out;
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes toastPulseGlow {
+      0% { transform: translateX(-50%) scale(1); }
+      100% { transform: translateX(-50%) scale(1.04); box-shadow: 0 12px 30px rgba(0,0,0,0.65), 0 0 22px rgba(56, 189, 248, 0.7); }
+    }
+
+    /* 📱 View Transitions API & 네이티브 앱 모달 전환 애니메이션 */
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation-duration: 0.22s;
+    }
+    .modal-backdrop {
+      transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), backdrop-filter 0.25s ease;
+    }
+    .modal-content, .pokedex-modal-content, .cheat-modal-content {
+      animation: modalSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes modalSlideUp {
+      from { opacity: 0; transform: translateY(24px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
   </style>
 </head>
 <body>
 
-  <div class="app-screen" id="appScreen">
+  
+  <!-- 🌟 지연 경험치 큐잉 미니 토스트 UI -->
+  <div id="pendingXpToast" class="pending-xp-toast" style="display:none;">
+    <span style="font-size:15px;">✨</span>
+    <span id="pendingXpToastText">+20 XP 획득 대기 중...</span>
+  </div>
+<div class="app-screen" id="appScreen">
 
     <!-- 👈 왼쪽 메인 서식지 (50% 1:1 반반 분할) -->
     <div class="habitat-pane" id="habitatPane">
@@ -1697,22 +1748,22 @@
 
           <div style="background:#1e293b; border-radius:14px; padding:16px; margin-bottom:14px; border:1.5px solid #38bdf8;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <div style="font-size:15px; font-weight:900; color:white;">🔔 스마트폰 웹 푸시 수신</div>
+              <div style="font-size:15px; font-weight:900; color:white;">🔔 오프라인 스마트폰 자체 알림</div>
               <span id="pushStatusBadge" style="background:#94a3b8; color:#0f172a; font-size:11px; font-weight:900; padding:2px 8px; border-radius:10px;">확인 중...</span>
             </div>
             <p id="pushStatusDesc" style="font-size:11px; color:#94a3b8; line-height:1.4; margin-bottom:12px;">
-              브라우저 알림 권한을 켜고 기기를 구독자로 등록해야 백엔드에서 몬스터볼 알림을 보낼 수 있습니다.
+              서버 통신 없이 안드로이드 OS 자체에 알림을 예약하여, <b>오프라인 상태에서도 정확한 정시에 몬스터볼 알림</b>이 울립니다.
             </p>
-            <button id="btnSubscribePush" onclick="requestPushPermissionDirect()" style="width:100%; background:linear-gradient(135deg, #2563eb, #1d4ed8); color:white; border:none; padding:10px; border-radius:10px; font-size:13px; font-weight:800; cursor:pointer;">
-              🔔 푸시 알림 수신 구독 (1초 완료)
+            <button id="btnSubscribePush" onclick="LocalNotificationManager.requestPermission()" style="width:100%; background:linear-gradient(135deg, #2563eb, #1d4ed8); color:white; border:none; padding:10px; border-radius:10px; font-size:13px; font-weight:800; cursor:pointer;">
+              🔔 스마트폰 알림 권한 허용 및 자체 예약
             </button>
           </div>
 
-          <div style="background:#252b36; border-radius:14px; padding:14px; margin-bottom:14px; border:1px solid #2196F3;">
-            <div style="font-size:14px; font-weight:800; color:white; margin-bottom:6px;">📲 OneSignal 스마트폰 푸시 테스트</div>
-            <p style="font-size:11px; color:#8892a0; margin-bottom:10px;">스마트폰 상단바로 몬스터볼 알림과 햅틱 진동이 즉시 울립니다.</p>
-            <button id="btnTestPush" onclick="triggerTestPushNow()" style="width:100%; background:#4CAF50; color:white; border:none; padding:10px; border-radius:8px; font-size:13px; font-weight:800; cursor:pointer;">
-              ⚡ OneSignal 테스트 푸시 즉시 발송
+          <div style="background:#252b36; border-radius:14px; padding:14px; margin-bottom:14px; border:1px solid #22c55e;">
+            <div style="font-size:14px; font-weight:800; color:white; margin-bottom:6px;">⚡ 알림 & 인터랙티브 액션 테스트</div>
+            <p style="font-size:11px; color:#8892a0; margin-bottom:10px;">상단바 알림에서 [✓ 완료]를 누르면 앱을 켜지 않고도 퀘스트가 처리됩니다.</p>
+            <button id="btnTestPush" onclick="LocalNotificationManager.testImmediateNotification()" style="width:100%; background:#22c55e; color:#0f172a; border:none; padding:10px; border-radius:8px; font-size:13px; font-weight:900; cursor:pointer;">
+              ⚡ 자체 몬스터볼 알림 즉시 테스트
             </button>
           </div>
 
@@ -4370,6 +4421,7 @@
           cachedAt: Date.now()
         };
         localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(cachePayload));
+        PocketTasksIDB.save('full_cache', cachePayload);
       } catch(e) {}
     }
 
@@ -4421,8 +4473,19 @@
       // 🚀 2단계 (백그라운드 비동기): 스프레드시트에서 최신 데이터 조용히 갱신
       fetchLatestDataFromSheet();
 
-      initOneSignal();
-      setTimeout(runDiagnostics, 1500);
+      LocalNotificationManager.updateBadge();
+      LocalNotificationManager.scheduleAllQuestNotifications();
+      handleAppShortcuts();
+
+      // 🌟 포커스 기반 무중단 백그라운드 자동 동기화
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          fetchLatestDataFromSheet();
+        }
+      });
+      window.addEventListener('focus', () => {
+        fetchLatestDataFromSheet();
+      });
     };
 
     async function fetchLatestDataFromSheet() {
@@ -4942,6 +5005,92 @@
         window.addEventListener('touchend', onPointerEnd);
         window.addEventListener('touchcancel', onPointerEnd);
       }
+    }
+
+    function switchWorkspaceTab(tab, isFromHistory = false) {
+      haptic.tick();
+      const workPane = document.getElementById('workspacePane');
+      workPane.classList.add('open');
+
+      if (!isFromHistory) {
+        pushModalHistory(`tab_${tab}`);
+      }
+
+      document.getElementById('paneQuestView').style.display = 'none';
+      document.getElementById('paneStreakView').style.display = 'none';
+      document.getElementById('paneArcadeView').style.display = 'none';
+      document.getElementById('panePokedexView').style.display = 'none';
+      document.getElementById('paneNotifView').style.display = 'none';
+
+      // 🌟 [요청 3]: 퀘스트 기록(📊) & 알림설정(🔔) 버튼은 'QUEST' 탭에서만 노출!
+      const btnStreak = document.getElementById('btnHeaderStreak');
+      const btnNotif = document.getElementById('btnHeaderNotif');
+      if (btnStreak && btnNotif) {
+        if (tab === 'QUEST') {
+          btnStreak.style.display = 'flex';
+          btnNotif.style.display = 'flex';
+          btnStreak.style.background = 'rgba(255,255,255,0.12)';
+          btnNotif.style.background = 'rgba(255,255,255,0.12)';
+        } else {
+          btnStreak.style.display = 'none';
+          btnNotif.style.display = 'none';
+        }
+      }
+
+      // 하단 네비 버튼 활성화 하이라이트
+      document.querySelectorAll('.bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
+      const activeNavBtn = document.querySelector(`.bottom-nav .nav-btn[data-tab="${tab}"]`);
+      if (activeNavBtn) activeNavBtn.classList.add('active');
+
+      const title = document.getElementById('paneTitleText');
+      if (tab === 'QUEST') { 
+        title.innerHTML = "📋 퀘스트 목록"; 
+        document.getElementById('paneQuestView').style.display = 'block'; 
+      }
+      else if (tab === 'STREAK') { 
+        title.innerHTML = `<span style="cursor:pointer; margin-right:4px;" onclick="switchWorkspaceTab('QUEST')">⬅</span> 📊 퀘스트 기록`; 
+        document.getElementById('paneStreakView').style.display = 'block'; 
+        renderStreakList(appState.quests); 
+      }
+      else if (tab === 'ARCADE') { 
+        title.innerHTML = "🎮 미니게임"; 
+        document.getElementById('paneArcadeView').style.display = 'block'; 
+      }
+      else if (tab === 'DEX') {
+        title.innerHTML = "📖 포켓몬 도감";
+        document.getElementById('panePokedexView').style.display = 'block';
+        renderPokedexGrid();
+      }
+      else if (tab === 'NOTIF') {
+        title.innerHTML = `<span style="cursor:pointer; margin-right:4px;" onclick="switchWorkspaceTab('QUEST')">⬅</span> 🔔 알림 & PWA 설정`;
+        document.getElementById('paneNotifView').style.display = 'block';
+        LocalNotificationManager.updateBadge();
+      }
+    }
+
+    function closeMobileWorkspace() {
+      haptic.tick();
+      const workPane = document.getElementById('workspacePane');
+      workPane.classList.remove('open');
+      document.querySelectorAll('.bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
+      const questBtn = document.querySelector('.bottom-nav .nav-btn[data-tab="QUEST"]');
+      if (questBtn) questBtn.classList.add('active');
+      setTimeout(() => DeferredXpQueue.flushIfReady(), 200);
+    }
+
+    function openAddHabitModal() {
+      haptic.tick();
+      openAddQuestModal();
+    }
+
+    function openQuestModal() {
+      haptic.tick();
+      switchWorkspaceTab('QUEST');
+    }
+
+    function openArcadeListModal() {
+      haptic.tick();
+      switchWorkspaceTab('ARCADE');
     }
 
     // 💥 하얀 빛 섬광 폭발 생성 (열매 터지는 위치)
@@ -5820,10 +5969,9 @@
         q.dueDate = calculateNextDueDateClient(q.recurrence, todayStr);
       }
       
-      // 3) 경험치바 1회 하이라이트 & 찰진 성취감 햅틱 진동 & 경험치 지급
-      triggerHaptic([35, 30, 45]);
-      highlightXpBar();
-      processXpGainAndEvolve(q.rewardXp || 20);
+      // 3) 찰진 햅틱 진동 & 지연 경험치 큐잉 (메인 화면 복귀 시 애니메이션 폭발)
+      haptic.complete();
+      DeferredXpQueue.queueOrApply(q.rewardXp || 20, q.name);
 
       // 4) 퀘스트 목록 & 기록 탭 즉각 재렌더링
       renderQuestList(appState.quests);
@@ -5838,6 +5986,28 @@
           body: JSON.stringify({ action: "completeQuest", questId: cleanId })
         }).catch(() => {});
       } catch (e) {}
+    }
+
+    function handleDirectQuestComplete(questId, rewardXp) {
+      if (!questId) return;
+      const cleanId = String(questId).trim();
+      const q = appState.quests.find(x => String(x.id).trim() === cleanId);
+      if (!q) return;
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const isRecurring = q.recurrence && q.recurrence !== "NONE" && q.recurrence !== "일회성";
+
+      q.isCompletedToday = true;
+      q.lastCompletedDate = todayStr;
+      q.consecutiveDays = (q.consecutiveDays || 0) + 1;
+      if (isRecurring) {
+        q.dueDate = calculateNextDueDateClient(q.recurrence, todayStr);
+      }
+
+      DeferredXpQueue.queueOrApply(rewardXp || q.rewardXp || 20, q.name);
+      saveLocalFullCache();
+      renderQuestList(appState.quests);
+      renderStreakList(appState.quests);
     }
 
         function renderStreakList(quests) {
@@ -7247,150 +7417,313 @@
     }
 
     // ========================================================
-    // 🔔 OneSignal Web SDK v16 모바일/PC 통합 초기화
+    
     // ========================================================
-    function initOneSignal() {
-      checkBrowserNotificationState();
+    // 📳 정밀 다단계 햅틱 피드백 시스템 (Tiered Vibration API)
+    // ========================================================
+    const haptic = {
+      tick() { triggerHaptic(10); },
+      select() { triggerHaptic([12, 20]); },
+      complete() { triggerHaptic([30, 40, 60]); },
+      feed() { triggerHaptic([40, 50, 100]); },
+      gameClear() { triggerHaptic([50, 50, 100, 50, 150]); },
+      evolve() { triggerHaptic([100, 50, 150, 60, 200, 80, 300, 100, 500, 150, 800]); }
+    };
 
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      window.OneSignalDeferred.push(async function(OneSignal) {
-        try {
-          if (OneSignal.Debug && OneSignal.Debug.setLogLevel) {
-            OneSignal.Debug.setLogLevel('warn');
-          }
-
-          await OneSignal.init({
-            appId: "5aaa7314-9ff3-4934-960e-11da2521b448",
-            allowLocalhostAsSecureOrigin: true,
-            serviceWorkerPath: "sw.js",
-            serviceWorkerParam: { scope: "./" },
-            notifyButton: { enable: false }
-          });
-
-          updateOneSignalStatus();
-
-          if (OneSignal.User && OneSignal.User.PushSubscription) {
-            OneSignal.User.PushSubscription.addEventListener("change", function(event) {
-              updateOneSignalStatus();
-              if (event.current && (event.current.token || event.current.id)) {
-                fetch(GAS_API_URL, {
-                  method: "POST",
-                  headers: { "Content-Type": "text/plain;charset=utf-8" },
-                  body: JSON.stringify({
-                    action: "savePushToken",
-                    token: event.current.token || event.current.id,
-                    playerId: event.current.id,
-                    platform: "Web_Browser"
-                  })
-                }).catch(() => {});
-              }
-            });
-          }
-        } catch (err) {}
-      });
-    }
-
-    function checkBrowserNotificationState() {
-      const badge = document.getElementById('pushStatusBadge');
-      if (!badge) return;
-
-      if (!("Notification" in window)) {
-        badge.innerText = "지원 안 됨";
-        badge.style.background = "#ef4444";
-        badge.style.color = "white";
-        return;
-      }
-
-      if (Notification.permission === "granted") {
-        badge.innerText = "브라우저 허용됨";
-        badge.style.background = "#38bdf8";
-        badge.style.color = "#0f172a";
+    // ========================================================
+    // 🎬 View Transitions API 부드러운 화면 전환 래퍼
+    // ========================================================
+    function smoothTransition(domUpdateCallback) {
+      if (document.startViewTransition) {
+        document.startViewTransition(domUpdateCallback);
       } else {
-        badge.innerText = "미등록";
-        badge.style.background = "#94a3b8";
-        badge.style.color = "#0f172a";
+        domUpdateCallback();
       }
     }
 
-    async function updateOneSignalStatus() {
-      window.OneSignalDeferred = window.OneSignalDeferred || [];
-      window.OneSignalDeferred.push(async function(OneSignal) {
+    // ========================================================
+    // 🌟 지연 경험치 큐잉 & 메인 화면 순차 애니메이션 제어 엔진
+    // ========================================================
+    const DeferredXpQueue = {
+      pendingXp: 0,
+      sources: [],
+
+      isAnyModalOpen() {
+        const modalIds = [
+          'questModal', 'pokedexModal', 'arcadeGameModal',
+          'arcadeListModal', 'addHabitModal', 'settingsModal', 'cheatModal'
+        ];
+        return modalIds.some(id => {
+          const el = document.getElementById(id);
+          return el && (el.style.display === 'flex' || el.style.display === 'block' || el.classList.contains('active'));
+        });
+      },
+
+      queueOrApply(xp, sourceName = "퀘스트") {
+        if (!xp || isNaN(xp) || xp <= 0) return;
+        const numXp = Number(xp);
+
+        if (this.isAnyModalOpen()) {
+          this.pendingXp += numXp;
+          if (!this.sources.includes(sourceName)) this.sources.push(sourceName);
+          this.showToast(`✨ +${this.pendingXp} XP 획득 대기 중... (메인 화면에서 지급)`);
+          haptic.tick();
+        } else {
+          this.applyNow(numXp, sourceName);
+        }
+      },
+
+      showToast(msg) {
+        const toast = document.getElementById('pendingXpToast');
+        const text = document.getElementById('pendingXpToastText');
+        if (toast && text) {
+          text.innerText = msg;
+          toast.style.display = 'flex';
+          toast.style.opacity = '1';
+        }
+      },
+
+      hideToast() {
+        const toast = document.getElementById('pendingXpToast');
+        if (toast) {
+          toast.style.opacity = '0';
+          setTimeout(() => { toast.style.display = 'none'; }, 300);
+        }
+      },
+
+      flushIfReady() {
+        if (this.pendingXp <= 0) return;
+        // 다른 모달이 아직 열려 있으면 대기
+        if (this.isAnyModalOpen()) return;
+
+        const totalXp = this.pendingXp;
+        const srcText = this.sources.join(", ") || "퀘스트/게임";
+        this.pendingXp = 0;
+        this.sources = [];
+        this.hideToast();
+
+        // 🌟 모달이 완전히 닫히고 포켓몬이 보이는 순간 경험치 폭발 연출
+        setTimeout(() => {
+          this.applyNow(totalXp, srcText);
+        }, 220);
+      },
+
+      applyNow(xp, sourceName) {
+        highlightXpBar();
+        triggerPokemonRewardGlow();
+        triggerSpriteHopAnimation();
+        haptic.complete();
+        processXpGainAndEvolve(Number(xp));
+        showGameRewardToast(`🎉 [${sourceName}] 총 +${xp} XP 획득 완료! ✨`);
+      }
+    };
+
+    // ========================================================
+    // 🔔 자체 오프라인 로컬 알림 매니저 (LocalNotificationManager)
+    // ========================================================
+    const LocalNotificationManager = {
+      async requestPermission() {
+        if (!("Notification" in window)) {
+          alert("이 브라우저는 알림 기능을 지원하지 않습니다.");
+          return false;
+        }
+        haptic.tick();
+        const perm = await Notification.requestPermission();
+        this.updateBadge();
+        if (perm === 'granted') {
+          this.scheduleAllQuestNotifications();
+          alert("🔔 스마트폰 자체 알림이 활성화되었습니다!\n\n오프라인 상태에서도 설정한 시간에 몬스터볼 알림이 정확히 울립니다.");
+        }
+        return perm === 'granted';
+      },
+
+      updateBadge() {
         const badge = document.getElementById('pushStatusBadge');
         const desc = document.getElementById('pushStatusDesc');
         if (!badge) return;
 
-        const subId = OneSignal.User?.PushSubscription?.id;
-        const isOptedIn = OneSignal.User?.PushSubscription?.optedIn;
+        if (!("Notification" in window)) {
+          badge.innerText = "지원 안 됨";
+          badge.style.background = "#ef4444";
+          badge.style.color = "white";
+          return;
+        }
 
-        if (subId || isOptedIn) {
-          badge.innerText = "구독 완료 (OneSignal 연동 성공) ✓";
-          badge.style.background = "#4ade80";
+        if (Notification.permission === 'granted') {
+          badge.innerText = "자체 알림 켜짐 ✓";
+          badge.style.background = "#22c55e";
           badge.style.color = "#0f172a";
-          if (desc) desc.innerHTML = `✅ OneSignal 서버 등록 완료!<br><span style="font-size:10px; color:#67e8f9;">기기 ID: ${subId || '연결됨'}</span>`;
+          if (desc) desc.innerHTML = "✅ 안드로이드 OS 자체 예약 알림 가동 중<br><span style='font-size:10px; color:#38bdf8;'>오프라인에서도 정시에 몬스터볼 알림이 울립니다.</span>";
         } else {
-          checkBrowserNotificationState();
+          badge.innerText = "알림 꺼짐";
+          badge.style.background = "#94a3b8";
+          badge.style.color = "#0f172a";
+          if (desc) desc.innerHTML = "알림 권한을 켜면 앱이 꺼져 있어도 설정한 시간에 알림을 보내드립니다.";
         }
-      });
-    }
+      },
 
-    async function requestPushPermissionDirect() {
-      const btn = document.getElementById('btnSubscribePush');
-      if (btn) btn.innerText = "⏳ OneSignal 서버 등록 중...";
-      logDebug("--- [🔔 푸시 구독 등록 프로세스 시작] ---", "warn");
+      // 퀘스트 시간표 기반 안드로이드 OS 자체 알림 스케줄링
+      scheduleAllQuestNotifications() {
+        if (!("Notification" in window) || Notification.permission !== 'granted') return;
 
-      if ("Notification" in window) {
-        if (Notification.permission !== "granted") {
-          try {
-            await Notification.requestPermission();
-          } catch (e) {}
-        }
-        checkBrowserNotificationState();
-      }
-
-      const executeOptIn = async (OneSignalInstance) => {
-        try {
-          if (OneSignalInstance.User && OneSignalInstance.User.PushSubscription) {
-            try {
-              await Promise.race([
-                OneSignalInstance.User.PushSubscription.optIn(),
-                new Promise(res => setTimeout(res, 2500))
-              ]);
-            } catch(e) {}
+        const quests = appState.quests || [];
+        quests.forEach(q => {
+          if (q.notifyTime && !q.isCompletedToday) {
+            this.scheduleSingleQuest(q);
           }
+        });
+      },
 
-          let checkCount = 0;
-          const pollInterval = setInterval(async () => {
-            checkCount++;
-            const subId = OneSignalInstance.User?.PushSubscription?.id;
-            const token = OneSignalInstance.User?.PushSubscription?.token;
+      scheduleSingleQuest(quest) {
+        if (!quest.notifyTime || !quest.notifyTime.includes(':')) return;
+        const [h, m] = quest.notifyTime.split(':').map(Number);
+        const now = new Date();
+        const target = new Date();
+        target.setHours(h, m, 0, 0);
 
-            if (subId || token) {
-              clearInterval(pollInterval);
-              if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
-              logDebug(`🎉 모바일 기기 등록 대성공! ID = ${subId}`, "success");
-              updateOneSignalStatus();
-              alert(`🎉 스마트폰 기기 등록이 성공했습니다!\n\n기기 ID: ${subId || '연결 완료'}\n\n이제 [OneSignal 테스트 푸시 즉시 발송]을 눌러보세요!`);
-            } else if (checkCount >= 8) {
-              clearInterval(pollInterval);
-              if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
-              updateOneSignalStatus();
-            }
-          }, 800);
-
-        } catch (err) {
-          if (btn) btn.innerText = "🔔 푸시 알림 수신 구독 (1초 완료)";
+        if (target.getTime() <= now.getTime()) {
+          target.setDate(target.getDate() + 1);
         }
-      };
 
-      if (window.OneSignal && window.OneSignal.User) {
-        executeOptIn(window.OneSignal);
-      } else {
-        window.OneSignalDeferred = window.OneSignalDeferred || [];
-        window.window.OneSignalDeferred.push(executeOptIn);
+        const delayMs = target.getTime() - now.getTime();
+
+        // 1) Notification Triggers API 지원 시 (안드로이드 OS 레벨 오프라인 알람 예약)
+        if ('showTrigger' in Notification.prototype && typeof TimestampTrigger !== 'undefined') {
+          navigator.serviceWorker.ready.then(reg => {
+            reg.showNotification(`⏰ [포켓Tasks] ${quest.name}`, {
+              body: `'${quest.name}' 실천할 시간입니다! 완료하고 포켓몬에게 XP를 선물하세요! 🎁`,
+              icon: './icon-192.png',
+              badge: './icon-192.png',
+              tag: `quest_${quest.id}`,
+              showTrigger: new TimestampTrigger(target.getTime()),
+              vibrate: [200, 100, 200, 100, 300],
+              actions: [
+                { action: 'complete', title: '✓ 완료 (+XP)' },
+                { action: 'later', title: '✕ 10분 뒤' }
+              ],
+              data: { questId: quest.id, rewardXp: quest.rewardXp }
+            });
+          });
+        } else {
+          // 2) Fallback: 서비스 워커 메시지 타이머
+          setTimeout(() => {
+            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+              navigator.serviceWorker.controller.postMessage({
+                type: 'SHOW_NOTIFICATION',
+                title: `⏰ [포켓Tasks] ${quest.name}`,
+                body: `'${quest.name}' 실천할 시간입니다! 완료하고 포켓몬에게 XP를 선물하세요! 🎁`,
+                tag: `quest_${quest.id}`,
+                questId: quest.id,
+                rewardXp: quest.rewardXp
+              });
+            }
+          }, delayMs);
+        }
+      },
+
+      async testImmediateNotification() {
+        haptic.feed();
+        if (!("Notification" in window) || Notification.permission !== 'granted') {
+          const granted = await this.requestPermission();
+          if (!granted) return;
+        }
+
+        if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'SHOW_NOTIFICATION',
+            title: '⚡ [포켓Tasks] 스마트폰 자체 알림 테스트',
+            body: '🎉 몬스터볼 자체 알림이 정상 작동합니다! [✓ 완료] 버튼을 눌러보세요! ✨',
+            tag: 'test_local_notification',
+            questId: 'TEST',
+            rewardXp: 50
+          });
+          alert('🎉 스마트폰 상단바로 몬스터볼 알림이 도착했습니다!\n알림창의 [✓ 완료] 버튼도 테스트해 보세요!');
+        } else {
+          new Notification('⚡ [포켓Tasks] 스마트폰 자체 알림 테스트', {
+            body: '🎉 몬스터볼 자체 알림이 정상 작동합니다!',
+            icon: './icon-192.png'
+          });
+        }
       }
+    };
+
+    // ========================================================
+    // 📲 App Shortcuts (바탕화면 롱프레스 바로가기) 처리기
+    // ========================================================
+    function handleAppShortcuts() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const action = params.get('action');
+        if (!action) return;
+
+        // URL 깔끔하게 정리
+        window.history.replaceState({}, document.title, window.location.pathname);
+
+        setTimeout(() => {
+          if (action === 'add_task') {
+            openAddHabitModal();
+          } else if (action === 'quest_list') {
+            openQuestModal();
+          } else if (action === 'arcade') {
+            openArcadeListModal();
+          }
+        }, 350);
+      } catch(e) {}
     }
 
-    
+    // ========================================================
+    // 💾 IndexedDB 기반 Offline-First 로컬 영구 스토리지 엔진
+    // ========================================================
+    const PocketTasksIDB = {
+      dbName: 'pokettasks_offline_db',
+      version: 1,
+      db: null,
+
+      async open() {
+        if (this.db) return this.db;
+        return new Promise((resolve, reject) => {
+          const req = indexedDB.open(this.dbName, this.version);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('app_cache')) {
+              db.createObjectStore('app_cache', { keyPath: 'key' });
+            }
+          };
+          req.onsuccess = (e) => {
+            this.db = e.target.result;
+            resolve(this.db);
+          };
+          req.onerror = () => resolve(null);
+        });
+      },
+
+      async save(key, value) {
+        try {
+          const db = await this.open();
+          if (!db) return;
+          const tx = db.transaction('app_cache', 'readwrite');
+          const store = tx.objectStore('app_cache');
+          store.put({ key: key, value: value, updatedAt: Date.now() });
+        } catch(e) {}
+      },
+
+      async load(key) {
+        try {
+          const db = await this.open();
+          if (!db) return null;
+          return new Promise((resolve) => {
+            const tx = db.transaction('app_cache', 'readonly');
+            const store = tx.objectStore('app_cache');
+            const req = store.get(key);
+            req.onsuccess = () => resolve(req.result ? req.result.value : null);
+            req.onerror = () => resolve(null);
+          });
+        } catch(e) {
+          return null;
+        }
+      }
+    };
+
     // ========================================================
     // 🎮 미니게임 아케이드 실행 및 XP 누적 보상 연동 시스템
     // ========================================================
@@ -7421,6 +7754,7 @@
     }
 
     function closeArcadeGame() {
+      setTimeout(() => DeferredXpQueue.flushIfReady(), 150);
       const modal = document.getElementById('arcadeGameModal');
       const iframe = document.getElementById('arcadeGameIframe');
       if (modal) modal.style.display = 'none';
@@ -7430,21 +7764,7 @@
     // 🌟 메인 화면 복귀 시 모아둔 미니게임 경험치 일괄 지급 및 황금빛 오라 연출
     function applyGameSessionReward(earnedXp, gameName = "Snake Point") {
       if (!earnedXp || isNaN(earnedXp) || earnedXp <= 0) return;
-
-      // 1) 경험치바 1회 하이라이트
-      highlightXpBar();
-
-      // 2) 포켓몬에게 은은한 빛(샤인 오라) 효과 부여
-      triggerPokemonRewardGlow();
-
-      // 3) 파트너 포켓몬 찰진 점프
-      triggerSpriteHopAnimation();
-
-      // 4) 경험치 지급 및 레벨업/진화 처리
-      processXpGainAndEvolve(Number(earnedXp));
-
-      // 5) 토스트 안내
-      showGameRewardToast(`🎮 [${gameName}] 총 +${earnedXp} XP 획득! ✨`);
+      DeferredXpQueue.queueOrApply(Number(earnedXp), gameName);
     }
 
     function triggerPokemonRewardGlow() {
@@ -7522,6 +7842,22 @@
           }, 500);
         }
       } catch(e) {}
+    }
+
+    
+    // 📩 서비스 워커 인터랙티브 알림 액션 수신
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', event => {
+        if (!event.data) return;
+        if (event.data.type === 'NOTIFICATION_ACTION_COMPLETE') {
+          const { questId, rewardXp } = event.data;
+          if (questId && questId !== 'TEST') {
+            handleDirectQuestComplete(questId, rewardXp);
+          } else if (questId === 'TEST') {
+            DeferredXpQueue.queueOrApply(rewardXp || 50, "알림 테스트 보너스");
+          }
+        }
+      });
     }
 
     window.addEventListener('message', function(event) {
