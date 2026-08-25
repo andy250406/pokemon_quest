@@ -1716,8 +1716,7 @@
         <div id="paneQuestView">
           <div class="quest-toolbar">
             <div class="quest-toolbar-left">
-              <button id="btnRefreshQuests" class="btn-quest-done" style="background:rgba(255,255,255,0.85); color:#334155; border:1px solid rgba(0,0,0,0.12); padding:7px 12px; box-shadow:0 2px 5px rgba(0,0,0,0.05); font-weight:800;" onclick="syncWithGasBackend()">동기화</button>
-              <button class="btn-quest-add" id="btnAddQuest" style="background:rgba(255,255,255,0.85); color:#334155; border:1px solid rgba(0,0,0,0.12); padding:7px 12px; box-shadow:0 2px 5px rgba(0,0,0,0.05); font-weight:800;" onclick="openAddQuestModal()">➕</button>
+              <button class="btn-quest-add" id="btnAddQuest" style="background:rgba(255,255,255,0.85); color:#334155; border:1px solid rgba(0,0,0,0.12); padding:7px 14px; box-shadow:0 2px 5px rgba(0,0,0,0.05); font-weight:800;" onclick="openAddQuestModal()">➕ 퀘스트 추가</button>
             </div>
             <div class="quest-toolbar-right">
               <button class="btn-quest-batch-del" id="btnToggleBatchDelete" style="background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; padding:7px 12px; font-weight:800;" onclick="toggleBatchDeleteMode()">삭제</button>
@@ -2058,7 +2057,7 @@
 
       <div class="modal-btn-row">
         <button class="btn-delete-quest" id="btnDeleteQuest" onclick="submitDeleteQuest()">🗑️ 삭제</button>
-        <button class="btn-submit-quest" id="btnSubmitQuest" onclick="submitQuestForm()">Google Tasks & 포켓Tasks에 등록</button>
+        <button class="btn-submit-quest" id="btnSubmitQuest" onclick="submitQuestForm()">포켓Tasks 퀘스트 등록</button>
       </div>
     </div>
   </div>
@@ -4732,15 +4731,15 @@
     async function syncWithGasBackend() {
       const btn = document.getElementById('btnRefreshQuests');
       if (btn) btn.innerText = "동기화 중...";
-      logDebug("Google Tasks 강제 정밀 동기화 요청 전송...", "info");
+      logDebug("스프레드시트 실시간 동기화 요청...", "info");
       try {
-        const res = await fetch(GAS_API_URL + "?action=forceSyncGoogleTasks");
+        const res = await fetch(GAS_API_URL + "?action=getInitialData");
         const json = await res.json();
         if (json && json.success && json.data) {
           applyBackendDataToAppState(json.data);
           saveLocalFullCache();
           initUI(appState);
-          logDebug(`Google Tasks 정밀 동기화 성공 (퀘스트 ${appState.quests.length}개)`, "success");
+          logDebug(`스프레드시트 동기화 성공 (퀘스트 ${appState.quests.length}개)`, "success");
         }
       } catch (e) {
         logDebug("동기화 연결 확인 필요", "warn");
@@ -5353,7 +5352,7 @@
       pushModalHistory('addQuestModal');
       document.getElementById('editingQuestId').value = '';
       document.getElementById('modalTitleText').innerText = '🌱 새로운 퀘스트 추가';
-      document.getElementById('btnSubmitQuest').innerText = 'Google Tasks & 포켓Tasks에 등록';
+      document.getElementById('btnSubmitQuest').innerText = '포켓Tasks 퀘스트 등록';
       document.getElementById('btnDeleteQuest').style.display = 'none';
 
       document.getElementById('inputQuestName').value = '';
@@ -5385,7 +5384,7 @@
 
       document.getElementById('editingQuestId').value = q.id;
       document.getElementById('modalTitleText').innerText = '✏️ 퀘스트(할 일) 수정';
-      document.getElementById('btnSubmitQuest').innerText = '수정 내용 저장 (Google Tasks 연동)';
+      document.getElementById('btnSubmitQuest').innerText = '수정 내용 저장';
       document.getElementById('btnDeleteQuest').style.display = 'block';
 
       document.getElementById('inputQuestName').value = q.name || '';
@@ -5481,7 +5480,7 @@
       }
 
       const submitBtn = document.getElementById('btnSubmitQuest');
-      submitBtn.innerText = isEditing ? "⏳ 수정 중..." : "⏳ Google Tasks 등록 중...";
+      submitBtn.innerText = isEditing ? "⏳ 수정 중..." : "⏳ 퀘스트 등록 중...";
       submitBtn.disabled = true;
 
       try {
@@ -5503,7 +5502,7 @@
           body: JSON.stringify(payload)
         });
         const result = await response.json();
-        submitBtn.innerText = isEditing ? "수정 내용 저장" : "Google Tasks & 포켓Tasks에 등록";
+        submitBtn.innerText = isEditing ? "수정 내용 저장" : "포켓Tasks 퀘스트 등록";
         submitBtn.disabled = false;
 
         if (result.success && result.data) {
@@ -5516,7 +5515,7 @@
           syncWithGasBackend();
         }
       } catch (err) {
-        submitBtn.innerText = "Google Tasks & 포켓Tasks에 등록";
+        submitBtn.innerText = "포켓Tasks 퀘스트 등록";
         submitBtn.disabled = false;
         closeAddQuestModal();
         syncWithGasBackend();
@@ -5527,7 +5526,7 @@
       const editingId = String(document.getElementById('editingQuestId').value || '').trim();
       if (!editingId) return;
 
-      if (!confirm("정말 이 퀘스트를 삭제하시겠습니까?\nGoogle Tasks 목록에서도 함께 삭제됩니다.")) {
+      if (!confirm("정말 이 퀘스트를 삭제하시겠습니까?\n스프레드시트에서도 함께 삭제됩니다.")) {
         return;
       }
 
@@ -5604,7 +5603,7 @@
       }
 
       const count = checkedBoxes.length;
-      if (!confirm(`선택한 ${count}개의 퀘스트를 모두 삭제하시겠습니까?\nGoogle Tasks 목록에서도 함께 일괄 삭제됩니다.`)) {
+      if (!confirm(`선택한 ${count}개의 퀘스트를 모두 삭제하시겠습니까?\n스프레드시트에서도 함께 일괄 삭제됩니다.`)) {
         return;
       }
 
