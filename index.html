@@ -1492,65 +1492,24 @@
     }
 
   
-    /* 🌟 포켓몬 레벨업 찬란한 섬광 오라 & 점프 연출 */
-    @keyframes pokemonLevelUpShine {
-      0% { filter: drop-shadow(0 0 0px #facc15) brightness(1); transform: scale(var(--base-scale, 1)); }
-      20% { filter: drop-shadow(0 0 40px #facc15) drop-shadow(0 0 60px #38bdf8) brightness(2.2); transform: translateY(-28px) scale(calc(var(--base-scale, 1) * 1.18)); }
-      45% { filter: drop-shadow(0 0 50px #facc15) drop-shadow(0 0 70px #ec4899) brightness(2.4); transform: translateY(0) scale(calc(var(--base-scale, 1) * 1.08)); }
-      70% { filter: drop-shadow(0 0 35px #facc15) brightness(1.6); transform: translateY(-14px) scale(calc(var(--base-scale, 1) * 1.12)); }
-      100% { filter: drop-shadow(0 0 0px rgba(0,0,0,0)) brightness(1); transform: translateY(0) scale(var(--base-scale, 1)); }
+    /* ⚪ 포켓몬 본가풍 깔끔한 하얀 섬광 레벨업 이펙트 */
+    @keyframes pokemonWhiteFlash {
+      0% { filter: brightness(1); }
+      30% { filter: brightness(3.2) drop-shadow(0 0 16px rgba(255, 255, 255, 0.95)); }
+      100% { filter: brightness(1) drop-shadow(0 0 0 rgba(0,0,0,0)); }
     }
-    .pokemon-levelup-shine {
-      animation: pokemonLevelUpShine 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    .pokemon-white-flash {
+      animation: pokemonWhiteFlash 0.45s ease-out forwards !important;
     }
 
-    /* 🌟 레벨업 황금빛 기둥 & 이펙트 */
-    .levelup-pillar-beam {
-      position: absolute;
-      bottom: 25px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 160px;
-      height: 240px;
-      background: radial-gradient(ellipse at bottom, rgba(250, 204, 21, 0.8) 0%, rgba(56, 189, 248, 0.45) 45%, rgba(255, 255, 255, 0) 75%);
-      border-radius: 50% 50% 0 0;
-      pointer-events: none;
-      z-index: 4;
-      animation: pillarBeamExpand 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    /* ⚪ 경험치바 하얀 섬광 리셋 이펙트 */
+    @keyframes xpBarLevelupFlash {
+      0% { filter: brightness(1); }
+      35% { filter: brightness(2.8) drop-shadow(0 0 8px #ffffff); }
+      100% { filter: brightness(1) drop-shadow(0 0 0 rgba(0,0,0,0)); }
     }
-    @keyframes pillarBeamExpand {
-      0% { opacity: 0; transform: translateX(-50%) scaleY(0.2) scaleX(0.4); }
-      25% { opacity: 1; transform: translateX(-50%) scaleY(1.25) scaleX(1.15); }
-      70% { opacity: 0.85; transform: translateX(-50%) scaleY(1.0) scaleX(1.0); }
-      100% { opacity: 0; transform: translateX(-50%) scaleY(1.4) scaleX(1.4); }
-    }
-
-    /* 🌟 LEVEL UP! 플로팅 뱃지 */
-    .levelup-floating-badge {
-      position: absolute;
-      top: -36px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, #f59e0b, #eab308);
-      color: #0f172a;
-      padding: 5px 16px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: 900;
-      letter-spacing: 0.5px;
-      box-shadow: 0 4px 18px rgba(234, 179, 8, 0.65), 0 0 25px rgba(255, 255, 255, 0.9);
-      border: 2px solid #ffffff;
-      white-space: nowrap;
-      pointer-events: none;
-      z-index: 25;
-      animation: levelupBadgeFloat 1.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    @keyframes levelupBadgeFloat {
-      0% { opacity: 0; transform: translateX(-50%) translateY(15px) scale(0.6); }
-      20% { opacity: 1; transform: translateX(-50%) translateY(-12px) scale(1.18); }
-      35% { transform: translateX(-50%) translateY(-6px) scale(1.0); }
-      75% { opacity: 1; transform: translateX(-50%) translateY(-16px) scale(1.0); }
-      100% { opacity: 0; transform: translateX(-50%) translateY(-38px) scale(0.85); }
+    .xp-bar-levelup-flash {
+      animation: xpBarLevelupFlash 0.45s ease-out forwards !important;
     }
 
     /* 🍒 통통 튀며 왼쪽 ➔ 오른쪽 이동 (바운스 높이가 점점 줄어들며 굴러감) */
@@ -7123,56 +7082,34 @@
       }
     }
 
-    // 🌟 [레벨업 특수 연출]: 포켓몬 찬란한 섬광 오라 + 황금빛 기둥 + LEVEL UP 뱃지 + 팡파르 햅틱
+    // ⚪ 포켓몬 본가 게임 스타일의 절제된 레벨업 연출 (순간 하얀 섬광 + 경험치바 리셋)
     function triggerMiniLevelUpEffect(newLevel) {
-      triggerHaptic([50, 70, 60, 80, 120]);
+      triggerHaptic([35, 45]);
 
-      const stageArea = document.getElementById('stageArea');
-      const lvBadge = document.getElementById('lvBadge');
       const pImg = document.getElementById('pokemonImage');
-      const spriteContainer = document.getElementById('pokemonSpriteContainer');
+      const xpFill = document.getElementById('xpBarFill');
+      const lvBadge = document.getElementById('lvBadge');
 
-      // 1) 상단 레벨 뱃지 황금빛 펄스
-      if (lvBadge) {
-        lvBadge.classList.remove('badge-level-up-pulse');
-        void lvBadge.offsetWidth;
-        lvBadge.classList.add('badge-level-up-pulse');
-        setTimeout(() => lvBadge.classList.remove('badge-level-up-pulse'), 1200);
-      }
-
-      // 2) 🌟 포켓몬 찬란한 섬광 & 2단 점프 연출!
+      // 1) 포켓몬 본체 순간 하얀 섬광 (0.45초 후 본래 모습 복귀)
       if (pImg) {
-        const baseScale = pImg.dataset.baseScale || "1";
-        pImg.style.setProperty('--base-scale', baseScale);
-        pImg.classList.remove('pokemon-levelup-shine');
+        pImg.classList.remove('pokemon-white-flash');
         void pImg.offsetWidth;
-        pImg.classList.add('pokemon-levelup-shine');
-        setTimeout(() => pImg.classList.remove('pokemon-levelup-shine'), 1650);
+        pImg.classList.add('pokemon-white-flash');
+        setTimeout(() => pImg.classList.remove('pokemon-white-flash'), 480);
       }
 
-      // 3) 🌟 바닥에서 솟구치는 황금빛 빛의 기둥 빔!
-      if (stageArea) {
-        const beam = document.createElement('div');
-        beam.className = 'levelup-pillar-beam';
-        stageArea.appendChild(beam);
-        setTimeout(() => {
-          if (beam.parentNode) beam.parentNode.removeChild(beam);
-        }, 1650);
+      // 2) 경험치바 하얀 섬광과 함께 초기화
+      if (xpFill) {
+        xpFill.classList.remove('xp-bar-levelup-flash');
+        void xpFill.offsetWidth;
+        xpFill.classList.add('xp-bar-levelup-flash');
+        setTimeout(() => xpFill.classList.remove('xp-bar-levelup-flash'), 480);
       }
 
-      // 4) 🌟 머리 위 'LEVEL UP! Lv.X' 황금 뱃지 플로팅!
-      const targetAnchor = spriteContainer || stageArea;
-      if (targetAnchor) {
-        const badge = document.createElement('div');
-        badge.className = 'levelup-floating-badge';
-        badge.innerHTML = `✨ LEVEL UP! Lv.${newLevel || (appState.userStats ? appState.userStats.level : '')} ✨`;
-        targetAnchor.appendChild(badge);
-        setTimeout(() => {
-          if (badge.parentNode) badge.parentNode.removeChild(badge);
-        }, 1750);
+      // 3) 상단 레벨 뱃지 간결한 갱신
+      if (lvBadge) {
+        lvBadge.innerText = 'Lv.' + (newLevel || (appState.userStats ? appState.userStats.level : ''));
       }
-
-      highlightXpBar();
     }
 
     // 🌟 [성격 & 성장속도 팝오버 열기/닫기]
