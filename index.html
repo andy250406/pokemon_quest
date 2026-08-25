@@ -1491,6 +1491,100 @@
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
+  
+    /* 🌟 포켓몬 레벨업 찬란한 섬광 오라 & 점프 연출 */
+    @keyframes pokemonLevelUpShine {
+      0% { filter: drop-shadow(0 0 0px #facc15) brightness(1); transform: scale(var(--base-scale, 1)); }
+      20% { filter: drop-shadow(0 0 40px #facc15) drop-shadow(0 0 60px #38bdf8) brightness(2.2); transform: translateY(-28px) scale(calc(var(--base-scale, 1) * 1.18)); }
+      45% { filter: drop-shadow(0 0 50px #facc15) drop-shadow(0 0 70px #ec4899) brightness(2.4); transform: translateY(0) scale(calc(var(--base-scale, 1) * 1.08)); }
+      70% { filter: drop-shadow(0 0 35px #facc15) brightness(1.6); transform: translateY(-14px) scale(calc(var(--base-scale, 1) * 1.12)); }
+      100% { filter: drop-shadow(0 0 0px rgba(0,0,0,0)) brightness(1); transform: translateY(0) scale(var(--base-scale, 1)); }
+    }
+    .pokemon-levelup-shine {
+      animation: pokemonLevelUpShine 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    }
+
+    /* 🌟 레벨업 황금빛 기둥 & 이펙트 */
+    .levelup-pillar-beam {
+      position: absolute;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 160px;
+      height: 240px;
+      background: radial-gradient(ellipse at bottom, rgba(250, 204, 21, 0.8) 0%, rgba(56, 189, 248, 0.45) 45%, rgba(255, 255, 255, 0) 75%);
+      border-radius: 50% 50% 0 0;
+      pointer-events: none;
+      z-index: 4;
+      animation: pillarBeamExpand 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes pillarBeamExpand {
+      0% { opacity: 0; transform: translateX(-50%) scaleY(0.2) scaleX(0.4); }
+      25% { opacity: 1; transform: translateX(-50%) scaleY(1.25) scaleX(1.15); }
+      70% { opacity: 0.85; transform: translateX(-50%) scaleY(1.0) scaleX(1.0); }
+      100% { opacity: 0; transform: translateX(-50%) scaleY(1.4) scaleX(1.4); }
+    }
+
+    /* 🌟 LEVEL UP! 플로팅 뱃지 */
+    .levelup-floating-badge {
+      position: absolute;
+      top: -36px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #f59e0b, #eab308);
+      color: #0f172a;
+      padding: 5px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 18px rgba(234, 179, 8, 0.65), 0 0 25px rgba(255, 255, 255, 0.9);
+      border: 2px solid #ffffff;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 25;
+      animation: levelupBadgeFloat 1.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes levelupBadgeFloat {
+      0% { opacity: 0; transform: translateX(-50%) translateY(15px) scale(0.6); }
+      20% { opacity: 1; transform: translateX(-50%) translateY(-12px) scale(1.18); }
+      35% { transform: translateX(-50%) translateY(-6px) scale(1.0); }
+      75% { opacity: 1; transform: translateX(-50%) translateY(-16px) scale(1.0); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-38px) scale(0.85); }
+    }
+
+    /* 🍒 통통 튀며 왼쪽 ➔ 오른쪽 이동 (바운스 높이가 점점 줄어들며 굴러감) */
+    .bouncing-left-to-right {
+      position: absolute;
+      animation: bounceLeftToRight 5.4s cubic-bezier(0.28, 0.84, 0.42, 1) forwards;
+    }
+    @keyframes bounceLeftToRight {
+      0% { left: -45px; transform: translateY(0) rotate(0deg); }
+      14% { transform: translateY(-78px) rotate(120deg); }
+      28% { transform: translateY(0) rotate(240deg); }
+      40% { transform: translateY(-44px) rotate(360deg); }
+      52% { transform: translateY(0) rotate(480deg); }
+      62% { transform: translateY(-18px) rotate(580deg); }
+      72% { transform: translateY(0) rotate(680deg); }
+      100% { left: calc(100% + 45px); transform: translateY(0) rotate(1100deg); }
+    }
+
+    /* 🍒 통통 튀며 오른쪽 ➔ 왼쪽 이동 */
+    .bouncing-right-to-left {
+      position: absolute;
+      animation: bounceRightToLeft 5.4s cubic-bezier(0.28, 0.84, 0.42, 1) forwards;
+    }
+    @keyframes bounceRightToLeft {
+      0% { right: -45px; transform: translateY(0) rotate(0deg); }
+      14% { transform: translateY(-78px) rotate(-120deg); }
+      28% { transform: translateY(0) rotate(-240deg); }
+      40% { transform: translateY(-44px) rotate(-360deg); }
+      52% { transform: translateY(0) rotate(-480deg); }
+      62% { transform: translateY(-18px) rotate(-580deg); }
+      72% { transform: translateY(0) rotate(-680deg); }
+      100% { right: calc(100% + 45px); transform: translateY(0) rotate(-1100deg); }
+    }
+
   </style>
 </head>
 <body>
@@ -6516,16 +6610,28 @@
           }, 1100);
         }, lifeDuration);
       }
-      // 2) 🪨 동굴 & 🏖️ 해변: 바닥 좌우 구르기
+      // 2) 🪨 동굴 & 🏖️ 해변 & 🏙️ 도시: 바닥 롤링 + 통통 튀는 바운스 열매!
       else if (bgKey === "PogoCaveBg" || bgKey === "PogoBeachBg" || bgKey === "PogoCityBg") {
         const isFromLeft = Math.random() < 0.5;
-        el.classList.add(isFromLeft ? 'rolling-left-to-right' : 'rolling-right-to-left');
-        const bottomOffsets = [22, 25, 28];
-        el.style.bottom = (bottomOffsets[slotIdx] + Math.floor(Math.random() * 3)) + '%';
-        el.style.left = isFromLeft ? '-30px' : 'auto';
-        el.style.right = isFromLeft ? 'auto' : '-30px';
+        const isBounce = Math.random() < 0.5; // 🌟 50% 확률로 통통 튀며 구르는 바운스 열매 출현!
 
-        lifeDuration = 5200;
+        if (isBounce) {
+          el.classList.add(isFromLeft ? 'bouncing-left-to-right' : 'bouncing-right-to-left');
+        } else {
+          el.classList.add(isFromLeft ? 'rolling-left-to-right' : 'rolling-right-to-left');
+        }
+
+        // 🌟 4개 슬롯 안전한 바닥선 (20% ~ 27%) 배정 - 상단 꼭대기 튕김 버그 완전 박멸!
+        const bottomOffsets = [20, 23, 26, 22];
+        const safeSlot = Number(slotIdx) % 4;
+        const bottomPercent = bottomOffsets[safeSlot] + (Math.floor(Math.random() * 3) - 1);
+
+        el.style.top = 'auto';
+        el.style.bottom = bottomPercent + '%';
+        el.style.left = isFromLeft ? '-45px' : 'auto';
+        el.style.right = isFromLeft ? 'auto' : '-45px';
+
+        lifeDuration = 5400;
         setTimeout(() => {
           if (el.parentNode) el.parentNode.removeChild(el);
           if (el.dataset.consumed !== 'true') scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
@@ -7017,30 +7123,53 @@
       }
     }
 
-    // 🌟 [요청 3]: 레벨업 시 2단 팡파르 햅틱 진동
+    // 🌟 [레벨업 특수 연출]: 포켓몬 찬란한 섬광 오라 + 황금빛 기둥 + LEVEL UP 뱃지 + 팡파르 햅틱
     function triggerMiniLevelUpEffect(newLevel) {
-      triggerHaptic([40, 60, 50, 60, 100]);
+      triggerHaptic([50, 70, 60, 80, 120]);
 
       const stageArea = document.getElementById('stageArea');
       const lvBadge = document.getElementById('lvBadge');
+      const pImg = document.getElementById('pokemonImage');
+      const spriteContainer = document.getElementById('pokemonSpriteContainer');
 
-      // 상단 레벨 뱃지 펄스
+      // 1) 상단 레벨 뱃지 황금빛 펄스
       if (lvBadge) {
         lvBadge.classList.remove('badge-level-up-pulse');
         void lvBadge.offsetWidth;
         lvBadge.classList.add('badge-level-up-pulse');
-        setTimeout(() => lvBadge.classList.remove('badge-level-up-pulse'), 700);
+        setTimeout(() => lvBadge.classList.remove('badge-level-up-pulse'), 1200);
       }
 
-      // 머리 위 별 하나 (⭐)
+      // 2) 🌟 포켓몬 찬란한 섬광 & 2단 점프 연출!
+      if (pImg) {
+        const baseScale = pImg.dataset.baseScale || "1";
+        pImg.style.setProperty('--base-scale', baseScale);
+        pImg.classList.remove('pokemon-levelup-shine');
+        void pImg.offsetWidth;
+        pImg.classList.add('pokemon-levelup-shine');
+        setTimeout(() => pImg.classList.remove('pokemon-levelup-shine'), 1650);
+      }
+
+      // 3) 🌟 바닥에서 솟구치는 황금빛 빛의 기둥 빔!
       if (stageArea) {
-        const star = document.createElement('div');
-        star.className = 'mini-levelup-star';
-        star.innerText = '⭐';
-        stageArea.appendChild(star);
+        const beam = document.createElement('div');
+        beam.className = 'levelup-pillar-beam';
+        stageArea.appendChild(beam);
         setTimeout(() => {
-          if (star.parentNode) star.parentNode.removeChild(star);
-        }, 900);
+          if (beam.parentNode) beam.parentNode.removeChild(beam);
+        }, 1650);
+      }
+
+      // 4) 🌟 머리 위 'LEVEL UP! Lv.X' 황금 뱃지 플로팅!
+      const targetAnchor = spriteContainer || stageArea;
+      if (targetAnchor) {
+        const badge = document.createElement('div');
+        badge.className = 'levelup-floating-badge';
+        badge.innerHTML = `✨ LEVEL UP! Lv.${newLevel || (appState.userStats ? appState.userStats.level : '')} ✨`;
+        targetAnchor.appendChild(badge);
+        setTimeout(() => {
+          if (badge.parentNode) badge.parentNode.removeChild(badge);
+        }, 1750);
       }
 
       highlightXpBar();
