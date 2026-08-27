@@ -1,11 +1,11 @@
 // =======================================================
-// 🚀 포켓Tasks PWA 통합 서비스 워커 (v2026.08.25)
+// 🚀 포켓Tasks PWA 통합 서비스 워커 (v2026.08.27-v2)
 // - App Shell 초고속 오프라인 캐싱 (0ms 실행)
-// - OneSignal 완전 대체: 자체 오프라인 알림 스케줄러
+// - 자체 백그라운드 퀘스트 정밀 알림 스케줄러 (SW Alarm Engine)
 // - 인터랙티브 알림 액션 ([✓ 완료], [✕ 10분 뒤]) 백그라운드 처리
 // =======================================================
 
-const CACHE_NAME = 'pokettasks-app-shell-v20260827-v1';
+const CACHE_NAME = 'pokettasks-app-shell-v20260827-v3';
 const APP_SHELL_ASSETS = [
   './',
   './index.html',
@@ -55,7 +55,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ⚡ Fetch 전략: App Shell은 Stale-While-Revalidate, 외부 API는 네트워크 우선
+// ⚡ Fetch 전략: App Shell은 Stale-While-Revalidate, 외부 API는 네트워크 직접 통신
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
@@ -68,7 +68,6 @@ self.addEventListener('fetch', event => {
 
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
-      // 1) 캐시가 있으면 0ms로 즉각 반환하면서 백그라운드에서 최신 버전 업데이트 (Stale-While-Revalidate)
       const fetchPromise = fetch(event.request).then(networkResponse => {
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
           const responseToCache = networkResponse.clone();
@@ -85,23 +84,73 @@ self.addEventListener('fetch', event => {
 });
 
 // =======================================================
-// 🔔 자체 로컬 알림 표시 & 인터랙티브 액션 핸들러
+// 🔔 자체 백그라운드 퀘스트 알람 스케줄러 (SW Alarm Engine)
 // =======================================================
 
-// 📩 메인 페이지로부터의 알림 요청 수신
+let scheduledQuests = [];
+const notifiedTodaySet = new Set();
+
+// 📩 메인 페이지로부터의 메시지 수신
 self.addEventListener('message', event => {
   if (!event.data) return;
 
-  if (event.data.type === 'SHOW_NOTIFICATION') {
+  // 1) 퀘스트 시간표 동기화
+  if (event.data.type === 'SYNC_QUEST_SCHEDULE') {
+    scheduledQuests = event.data.quests || [];
+    checkAndTriggerDueQuests();
+  }
+  // 2) 즉시 알림 표시
+  else if (event.data.type === 'SHOW_NOTIFICATION') {
     const { title, body, tag, questId, rewardXp, data } = event.data;
     showLocalNotification(title, body, tag, questId, rewardXp, data);
-  } else if (event.data.type === 'CANCEL_NOTIFICATION') {
+  } 
+  // 3) 알림 취소
+  else if (event.data.type === 'CANCEL_NOTIFICATION') {
     const tag = event.data.tag;
     self.registration.getNotifications({ tag }).then(notifications => {
       notifications.forEach(n => n.close());
     });
   }
 });
+
+// ⏰ 서비스 워커 내부 정밀 시간 감시 엔진 (30초 주기)
+setInterval(() => {
+  checkAndTriggerDueQuests();
+}, 30000);
+
+function checkAndTriggerDueQuests() {
+  if (!scheduledQuests || scheduledQuests.length === 0) return;
+
+  const now = new Date();
+  // 한국 표준시 기준 시/분
+  const kstHours = String((now.getUTCHours() + 9) % 24).padStart(2, '0');
+  const kstMinutes = String(now.getUTCMinutes()).padStart(2, '0');
+  const currentTime = `${kstHours}:${kstMinutes}`;
+  const todayStr = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
+
+  scheduledQuests.forEach(q => {
+    if (!q.notifyTime || !q.notifyTime.includes(':')) return;
+
+    // 오늘 이미 완료된 퀘스트는 제외
+    if (q.isCompletedToday || q.isSingleCompleted) return;
+
+    const notifKey = `${q.id}_${todayStr}_${q.notifyTime}`;
+
+    // 설정된 시간과 현재 시간이 일치하고, 오늘 아직 알림을 안 보낸 경우!
+    if (currentTime === q.notifyTime && !notifiedTodaySet.has(notifKey)) {
+      notifiedTodaySet.add(notifKey);
+
+      showLocalNotification(
+        `⏰ [포켓Tasks] ${q.name}`,
+        `'${q.name}' 실천할 시간입니다! 완료하고 포켓몬에게 XP를 선물하세요! 🎁`,
+        `quest_${q.id}`,
+        q.id,
+        q.rewardXp || 20,
+        { notifyTime: q.notifyTime }
+      );
+    }
+  });
+}
 
 // 🔔 안드로이드 시스템 알림 표시 함수
 function showLocalNotification(title, body, tag, questId, rewardXp, extraData = {}) {
@@ -112,7 +161,7 @@ function showLocalNotification(title, body, tag, questId, rewardXp, extraData = 
     tag: tag || ('quest_' + (questId || Date.now())),
     renotify: true,
     requireInteraction: true,
-    vibrate: [200, 100, 200, 100, 300],
+    vibrate: [250, 100, 250, 100, 350],
     data: {
       questId: questId,
       rewardXp: rewardXp || 20,
@@ -142,7 +191,6 @@ self.addEventListener('notificationclick', event => {
   if (action === 'complete') {
     event.waitUntil(
       (async () => {
-        // 클라이언트에 백그라운드 완료 메시지 브로드캐스트
         const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
         let handledInClient = false;
         for (const client of clients) {
@@ -154,7 +202,6 @@ self.addEventListener('notificationclick', event => {
           handledInClient = true;
         }
 
-        // 앱이 닫혀있는 경우 백그라운드에서 구글 시트에 직접 완료 전송
         if (questId && !handledInClient) {
           try {
             await fetch(GAS_API_ENDPOINT, {

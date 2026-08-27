@@ -4518,6 +4518,7 @@
 
       // 🌟 배경, 캐릭터, 퀘스트 목록 즉시 렌더링!
       initUI(appState);
+          LocalNotificationManager.scheduleAllQuestNotifications();
 
       // 🎮 미니게임에서 복귀 시 대기 중인 경험치 보상 확인 및 오라 연출
       checkPendingGameReward();
@@ -5551,6 +5552,7 @@
           appState.quests = result.data.quests;
           renderQuestList(appState.quests);
           renderStreakList(appState.quests);
+          LocalNotificationManager.scheduleAllQuestNotifications();
         }
       } catch (err) {
         console.error("Delete sync error:", err);
@@ -5628,6 +5630,7 @@
           appState.quests = result.data.quests;
           renderQuestList(appState.quests);
           renderStreakList(appState.quests);
+          LocalNotificationManager.scheduleAllQuestNotifications();
         }
       } catch (err) {
         console.error("Batch delete sync error:", err);
@@ -7610,6 +7613,8 @@
     // 🔔 자체 오프라인 로컬 알림 매니저 (LocalNotificationManager)
     // ========================================================
     const LocalNotificationManager = {
+      foregroundTimer: null,
+
       async requestPermission() {
         if (!("Notification" in window)) {
           alert("이 브라우저는 알림 기능을 지원하지 않습니다.");
@@ -7650,63 +7655,91 @@
         }
       },
 
-      // 퀘스트 시간표 기반 안드로이드 OS 자체 알림 스케줄링
+      // 🌟 [핵심 개선]: 서비스 워커와 포그라운드 양방향 정밀 알림 스케줄링
       scheduleAllQuestNotifications() {
         if (!("Notification" in window) || Notification.permission !== 'granted') return;
 
         const quests = appState.quests || [];
-        quests.forEach(q => {
-          if (q.notifyTime && !q.isCompletedToday) {
-            this.scheduleSingleQuest(q);
-          }
-        });
-      },
+        const activeQuests = quests.filter(q => q.notifyTime && !q.isCompletedToday && !q.isSingleCompleted);
 
-      scheduleSingleQuest(quest) {
-        if (!quest.notifyTime || !quest.notifyTime.includes(':')) return;
-        const [h, m] = quest.notifyTime.split(':').map(Number);
-        const now = new Date();
-        const target = new Date();
-        target.setHours(h, m, 0, 0);
-
-        if (target.getTime() <= now.getTime()) {
-          target.setDate(target.getDate() + 1);
+        // 1) 🚀 서비스 워커(Service Worker)에 활성 시간표 전체 전송! (백그라운드 SW Alarm Engine 가동)
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'SYNC_QUEST_SCHEDULE',
+            quests: activeQuests
+          });
         }
 
-        const delayMs = target.getTime() - now.getTime();
-
-        // 1) Notification Triggers API 지원 시 (안드로이드 OS 레벨 오프라인 알람 예약)
+        // 2) ⏰ 안드로이드 Notification Triggers API (지원 브라우저) OS 레벨 오프라인 알람 예약
         if ('showTrigger' in Notification.prototype && typeof TimestampTrigger !== 'undefined') {
           navigator.serviceWorker.ready.then(reg => {
-            reg.showNotification(`⏰ [포켓Tasks] ${quest.name}`, {
-              body: `'${quest.name}' 실천할 시간입니다! 완료하고 포켓몬에게 XP를 선물하세요! 🎁`,
-              icon: './icon-192.png',
-              badge: './icon-192.png',
-              tag: `quest_${quest.id}`,
-              showTrigger: new TimestampTrigger(target.getTime()),
-              vibrate: [200, 100, 200, 100, 300],
-              actions: [
-                { action: 'complete', title: '✓ 완료 (+XP)' },
-                { action: 'later', title: '✕ 10분 뒤' }
-              ],
-              data: { questId: quest.id, rewardXp: quest.rewardXp }
+            activeQuests.forEach(q => {
+              const [h, m] = q.notifyTime.split(':').map(Number);
+              const now = new Date();
+              const target = new Date();
+              target.setHours(h, m, 0, 0);
+              if (target.getTime() <= now.getTime()) {
+                target.setDate(target.getDate() + 1);
+              }
+              reg.showNotification(`⏰ [포켓Tasks] ${q.name}`, {
+                body: `'${q.name}' 실천할 시간입니다! 완료하고 포켓몬에게 XP를 선물하세요! 🎁`,
+                icon: './icon-192.png',
+                badge: './icon-192.png',
+                tag: `quest_${q.id}`,
+                showTrigger: new TimestampTrigger(target.getTime()),
+                vibrate: [250, 100, 250, 100, 350],
+                actions: [
+                  { action: 'complete', title: '✓ 완료 (+XP)' },
+                  { action: 'later', title: '✕ 10분 뒤' }
+                ],
+                data: { questId: q.id, rewardXp: q.rewardXp }
+              }).catch(() => {});
             });
           });
-        } else {
-          // 2) Fallback: 서비스 워커 메시지 타이머
-          setTimeout(() => {
+        }
+
+        // 3) ⚡ 포그라운드 정밀 15초 인터벌 루프 (화면 켜져 있을 때 100% 정시 알림 보장)
+        if (!this.foregroundTimer) {
+          this.foregroundTimer = setInterval(() => {
+            this.checkForegroundNotifications();
+          }, 15000);
+        }
+        this.checkForegroundNotifications();
+      },
+
+      checkForegroundNotifications() {
+        if (!("Notification" in window) || Notification.permission !== 'granted') return;
+        const now = new Date();
+        const kstHours = String(now.getHours()).padStart(2, '0');
+        const kstMinutes = String(now.getMinutes()).padStart(2, '0');
+        const currentTime = `${kstHours}:${kstMinutes}`;
+        const todayStr = now.toISOString().split('T')[0];
+
+        const quests = appState.quests || [];
+        quests.forEach(q => {
+          if (!q.notifyTime || q.isCompletedToday || q.isSingleCompleted) return;
+
+          const key = `NOTIFIED_${q.id}_${todayStr}_${q.notifyTime}`;
+          if (currentTime === q.notifyTime && !sessionStorage.getItem(key)) {
+            sessionStorage.setItem(key, 'true');
+
             if (navigator.serviceWorker && navigator.serviceWorker.controller) {
               navigator.serviceWorker.controller.postMessage({
                 type: 'SHOW_NOTIFICATION',
-                title: `⏰ [포켓Tasks] ${quest.name}`,
-                body: `'${quest.name}' 실천할 시간입니다! 완료하고 포켓몬에게 XP를 선물하세요! 🎁`,
-                tag: `quest_${quest.id}`,
-                questId: quest.id,
-                rewardXp: quest.rewardXp
+                title: `⏰ [포켓Tasks] ${q.name}`,
+                body: `'${q.name}' 실천할 시간입니다! 완료하고 포켓몬에게 XP를 선물하세요! 🎁`,
+                tag: `quest_${q.id}`,
+                questId: q.id,
+                rewardXp: q.rewardXp
+              });
+            } else {
+              new Notification(`⏰ [포켓Tasks] ${q.name}`, {
+                body: `'${q.name}' 실천할 시간입니다! 완료하고 포켓몬에게 XP를 선물하세요! 🎁`,
+                icon: './icon-192.png'
               });
             }
-          }, delayMs);
-        }
+          }
+        });
       },
 
       async testImmediateNotification() {
