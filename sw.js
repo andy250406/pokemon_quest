@@ -5,7 +5,7 @@
 // - 인터랙티브 알림 액션 ([✓ 완료], [✕ 10분 뒤]) 백그라운드 처리
 // =======================================================
 
-const CACHE_NAME = 'pokettasks-app-shell-v20260827-v3';
+const CACHE_NAME = 'pokettasks-app-shell-v20260827-v4';
 const APP_SHELL_ASSETS = [
   './',
   './index.html',
@@ -13,11 +13,16 @@ const APP_SHELL_ASSETS = [
   './icon-192.png',
   './icon-512.png',
   './apple-touch-icon.png',
+  './shortcut-add.png',
+  './shortcut-quest.png',
+  './shortcut-arcade.png',
   './snake_untangle.html',
   './sudoku.html',
   './game_2048.html',
   './minesweeper.html',
   './images/items/poke-ball.png',
+  './images/items/great-ball.png',
+  './images/items/master-ball.png',
   './images/items/razz-berry.png',
   './images/items/nanab-berry.png',
   './images/items/pinap-berry.png',

@@ -34,21 +34,39 @@
       "short_name": "할일추가",
       "description": "새로운 할 일 또는 퀘스트를 빠르게 등록합니다",
       "url": "./index.html?action=add_task",
-      "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "./shortcut-add.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "퀘스트 목록",
       "short_name": "퀘스트",
       "description": "오늘의 퀘스트 및 반복 습관 목록을 확인합니다",
       "url": "./index.html?action=quest_list",
-      "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "./shortcut-quest.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "아케이드 미니게임",
       "short_name": "게임방",
       "description": "다양한 포켓몬 미니게임을 즐기고 경험치를 획득합니다",
       "url": "./index.html?action=arcade",
-      "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "./shortcut-arcade.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ],
   "categories": ["productivity", "games", "lifestyle"]
