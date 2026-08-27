@@ -5765,11 +5765,12 @@
         return (a.id || '').localeCompare(b.id || '');
       });
 
-      // 2) ⚡ 일회성 퀘스트 분리 (완료된 일회성 퀘스트는 목록에서 완전히 제외!)
+      // 2) ⚡ 일회성 퀘스트 분리 (완료된 일회성 퀘스트는 목록에서 100% 영구 제외!)
       const singleQuests = quests.filter(q => {
         const rec = (q.recurrence || '').toUpperCase().trim();
         const isSingle = (!rec || rec === 'NONE' || rec === '일회성');
-        return isSingle && !q.isCompletedToday;
+        const isDone = Boolean(q.isCompletedToday || q.isSingleCompleted || q.lastCompletedDate);
+        return isSingle && !isDone;
       });
 
       // ⚡ 일회성 퀘스트 정렬: 날짜 설정된 것은 가까운 시간순, 미설정은 예전에 만들어둔 순(ID/생성순)
@@ -5872,7 +5873,7 @@
       return currentDueDateStr || now.toISOString().split('T')[0];
     }
 
-    // 🕒 퀘스트의 실시간 수행 가능 여부 및 연속 기록(Streak) 판정
+    // 🕒 퀘스트의 실시간 수행 가능 여부 및 연속 기록(Streak) 정밀 상태 머신
     function evaluateQuestTimingState(q) {
       const now = new Date();
       const todayStr = now.toISOString().split('T')[0];
@@ -5880,34 +5881,51 @@
       const currentMinutes = String(now.getMinutes()).padStart(2, '0');
       const currentTime = `${currentHours}:${currentMinutes}`;
 
-      const isRecurring = q.recurrence && q.recurrence !== "NONE" && q.recurrence !== "일회성";
+      const rec = (q.recurrence || '').toUpperCase().trim();
+      const isRecurring = rec && rec !== 'NONE' && rec !== '일회성';
 
-      // 1) 과거 미완료 퀘스트 검사: 전날 24시까지 미완료인 경우 연속 기록 0일로 리셋
-      if (isRecurring && q.dueDate && q.dueDate < todayStr && q.lastCompletedDate !== todayStr) {
-        q.consecutiveDays = 0;
-        q.dueDate = todayStr;
+      // 🌟 [1. 일회성 퀘스트]: 한 번이라도 완료일이 있거나 완료 플래그가 있으면 영구 완료!
+      if (!isRecurring) {
+        const isDone = Boolean(q.isCompletedToday || q.isSingleCompleted || q.lastCompletedDate);
+        return {
+          isDoneToday: isDone,
+          isActionableNow: !isDone,
+          isWaitingForTime: false,
+          displayDueDate: q.dueDate || todayStr,
+          notifyTime: q.notifyTime || ""
+        };
       }
 
-      // 2) 오늘 이미 완료했는지 검사
+      // 🌟 [2. 반복 퀘스트]:
+      // 오늘 이미 완료했는가?
       const isDoneToday = (q.lastCompletedDate === todayStr) || Boolean(q.isCompletedToday);
 
-      // 3) 설정된 시간(notifyTime) 도래 여부 검사 (없으면 자정 00:00부터 활성화)
+      // 당일 완료된 경우: 자정 24시까지 당일 완료 상태 유지 (내일 날짜로 미리 바꾸지 않음)
+      if (isDoneToday) {
+        return {
+          isDoneToday: true,
+          isActionableNow: false,
+          isWaitingForTime: false,
+          displayDueDate: todayStr,
+          notifyTime: q.notifyTime || ""
+        };
+      }
+
+      // 오늘 미완료 상태: 알림 시간 도래 여부 검사
       let isTimeUnlocked = true;
       if (q.notifyTime && q.notifyTime.includes(':')) {
         isTimeUnlocked = (currentTime >= q.notifyTime);
       }
 
-      // 4) 오늘 수행 가능한가? (오늘 날짜이거나 이전 날짜이면서, 알림 시간이 되었고, 아직 완료 안 함)
+      // 오늘 수행일인가? (dueDate가 없거나, 오늘이거나 이전 날짜)
       const isDueForToday = (!q.dueDate || q.dueDate <= todayStr);
-      const isActionableNow = isDueForToday && isTimeUnlocked && !isDoneToday;
-
-      // 5) 아직 알림 시간 전이어서 대기 중인가? (오늘 날짜인데 시간이 아직 안 됨)
-      const isWaitingForTime = isDueForToday && !isTimeUnlocked && !isDoneToday;
+      const isActionableNow = isDueForToday && isTimeUnlocked;
+      const isWaitingForTime = isDueForToday && !isTimeUnlocked;
 
       return {
-        isDoneToday,
-        isActionableNow,
-        isWaitingForTime,
+        isDoneToday: false,
+        isActionableNow: isActionableNow,
+        isWaitingForTime: isWaitingForTime,
         displayDueDate: q.dueDate || todayStr,
         notifyTime: q.notifyTime || ""
       };
@@ -6016,10 +6034,11 @@
       q.lastCompletedDate = todayStr;
       q.consecutiveDays = (q.consecutiveDays || 0) + 1;
 
-      // 2) 반복 퀘스트인 경우 상단 날짜를 바로 다음 실행일정으로 최신화!
-      if (isRecurring) {
-        q.dueDate = calculateNextDueDateClient(q.recurrence, todayStr);
+      // 🌟 일회성 퀘스트는 완료 태그 부여 (목록에서 즉시 영구 제외)
+      if (!isRecurring) {
+        q.isSingleCompleted = true;
       }
+      // 🌟 반복 퀘스트는 당일에는 dueDate를 오늘로 유지하여 완료 상태를 보여줌 (자정이 지나면 자동으로 다음 시간으로 롤오버)
       
       // 3) 찰진 햅틱 진동 & 지연 경험치 큐잉 (메인 화면 복귀 시 애니메이션 폭발)
       haptic.complete();
@@ -6049,12 +6068,16 @@
       const todayStr = new Date().toISOString().split('T')[0];
       const isRecurring = q.recurrence && q.recurrence !== "NONE" && q.recurrence !== "일회성";
 
+      // 1) 당일 완료 처리 및 연속 일수 +1
       q.isCompletedToday = true;
       q.lastCompletedDate = todayStr;
       q.consecutiveDays = (q.consecutiveDays || 0) + 1;
-      if (isRecurring) {
-        q.dueDate = calculateNextDueDateClient(q.recurrence, todayStr);
+
+      // 🌟 일회성 퀘스트는 완료 태그 부여 (목록에서 즉시 영구 제외)
+      if (!isRecurring) {
+        q.isSingleCompleted = true;
       }
+      // 🌟 반복 퀘스트는 당일에는 dueDate를 오늘로 유지하여 완료 상태를 보여줌 (자정이 지나면 자동으로 다음 시간으로 롤오버)
 
       DeferredXpQueue.queueOrApply(rewardXp || q.rewardXp || 20, q.name);
       saveLocalFullCache();
