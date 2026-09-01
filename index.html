@@ -2094,80 +2094,79 @@
           </div>
           <div id="questListContainer"></div>
         </div>
-        <!-- 🌟 [신설] 2. 📝 모의고사 공부 & 실시간 학습 타이머 뷰 -->
+        <!-- 🌟 2. 📝 모의고사 공부 & 플래시카드 학습 뷰 -->
         <div id="paneStudyView" style="display:none;">
-          <!-- ⏱️ 실시간 공부 타이머 & 누적 대시보드 카드 -->
-          <div class="study-timer-card">
-            <div class="study-timer-top">
-              <div class="study-timer-title">
-                <span>⏱️</span> <span>실시간 공부 스톱워치</span>
-              </div>
-              <span id="studyTimerStatusBadge" style="background:#22c55e; color:#0f172a; font-size:10.5px; font-weight:900; padding:2px 8px; border-radius:8px;">집중 중 ⚡</span>
-            </div>
-            
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+          
+          <!-- [SUB-VIEW 1] 📚 시험 목록 및 통계 화면 (#studyListView) -->
+          <div id="studyListView">
+            <!-- 📊 나의 학습 기록 & 진도율 요약 카드 (상단 타이머와 중복 없는 깔끔한 통계) -->
+            <div style="background:rgba(255,255,255,0.85); backdrop-filter:blur(12px); border-radius:14px; padding:12px 14px; margin-bottom:14px; border:1px solid rgba(0,0,0,0.08); display:flex; justify-content:space-around; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,0.02);">
               <div>
-                <div style="font-size:11px; color:#94a3b8; font-weight:700;">이번 세션 집중 시간</div>
-                <div class="study-live-clock" id="liveStudyClock">00:00:00</div>
+                <div style="font-size:10.5px; color:#64748b; font-weight:700;">총 푼 문제수</div>
+                <div style="font-size:16px; font-weight:900; color:#0f172a;" id="totalSolvedCountText">0문항</div>
               </div>
-              <button id="btnToggleStudyTimer" onclick="StudyTimerManager.togglePause()" style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); color:white; padding:8px 14px; border-radius:10px; font-size:12px; font-weight:800; cursor:pointer;">
-                ⏸️ 일시정지
+              <div style="width:1px; background:#e2e8f0;"></div>
+              <div>
+                <div style="font-size:10.5px; color:#64748b; font-weight:700;">정답률</div>
+                <div style="font-size:16px; font-weight:900; color:#10b981;" id="studyAccuracyText">0%</div>
+              </div>
+              <div style="width:1px; background:#e2e8f0;"></div>
+              <div>
+                <div style="font-size:10.5px; color:#64748b; font-weight:700;">누적 총 공부</div>
+                <div style="font-size:16px; font-weight:900; color:#0284c7;" id="allTimeStudyTimeText">0시간</div>
+              </div>
+            </div>
+
+            <!-- 📚 정보보안기사 기출 모의고사 회차 목록 헤더 -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:0 2px;">
+              <div style="font-size:13.5px; font-weight:900; color:#0f172a; display:flex; align-items:center; gap:6px;">
+                <span>📚</span> <span>정보보안기사 필기 기출문제</span>
+              </div>
+              <button onclick="loadStudyExamList(true)" style="background:none; border:none; color:#0284c7; font-size:11.5px; font-weight:800; cursor:pointer;">🔄 새로고침</button>
+            </div>
+
+            <div id="studyExamListContainer">
+              <div style="text-align:center; padding:30px; color:#94a3b8; font-size:12px;">
+                ⏳ 정보보안기사 모의고사 데이터를 불러오는 중...
+              </div>
+            </div>
+          </div>
+
+          <!-- [SUB-VIEW 2] ✍️ 플래시카드 & 실전 문제 풀이 화면 (#studySolverView) -->
+          <div id="studySolverView" style="display:none;">
+            <!-- 상단 바: 뒤로가기 + 모드/파트명 + 문항 번호 -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; background:rgba(255,255,255,0.9); padding:8px 12px; border-radius:12px; border:1px solid rgba(0,0,0,0.06);">
+              <button onclick="backToStudyList()" style="background:#e2e8f0; color:#1e293b; border:none; padding:5px 10px; border-radius:8px; font-size:11.5px; font-weight:800; cursor:pointer;">
+                ⬅ 목록
               </button>
-            </div>
-
-            <div class="study-stats-row">
-              <div class="study-stat-box">
-                <span class="study-stat-label">📅 오늘 총 공부 시간</span>
-                <span class="study-stat-value" id="todayStudyTimeText">0분</span>
+              <div style="text-align:center; flex:1; min-width:0; padding:0 8px;">
+                <div style="font-size:10px; color:#64748b; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="solverPartTitle">정보보안기사</div>
+                <div style="font-size:13px; font-weight:900; color:#0284c7;" id="solverProgressText">문항 1 / 10</div>
               </div>
-              <div class="study-stat-box">
-                <span class="study-stat-label">🎁 실시간 적립 경험치</span>
-                <span class="study-stat-value" id="todayStudyXpText" style="color:#38bdf8;">+0 XP</span>
-              </div>
+              <span id="solverModeBadge" style="background:#0284c7; color:white; font-size:10.5px; font-weight:800; padding:3px 8px; border-radius:8px;">시험 모드</span>
+            </div>
+
+            <!-- 문제 카드 -->
+            <div style="background:white; border-radius:16px; padding:16px; border:1px solid rgba(0,0,0,0.08); box-shadow:0 4px 12px rgba(0,0,0,0.03); margin-bottom:12px;">
+              <div id="solverQNum" style="font-size:12.5px; font-weight:900; color:#0284c7; margin-bottom:4px;">Q. 1</div>
+              <div id="solverQText" style="font-size:14.5px; font-weight:800; line-height:1.45; color:#0f172a; margin-bottom:10px; word-break:break-word;">문제를 불러오는 중...</div>
+              <div id="solverPassage" style="display:none; background:#f1f5f9; border-left:4px solid #0284c7; border-radius:8px; padding:10px 12px; font-size:12px; line-height:1.45; color:#334155; margin-bottom:12px; white-space:pre-wrap;"></div>
+
+              <!-- 선택지 1~4 -->
+              <div id="solverOptionsList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;"></div>
+
+              <!-- 정답 및 상세 해설 박스 -->
+              <div id="solverExplanationBox" style="display:none; background:#f0fdf4; border:1.5px solid #86efac; border-radius:10px; padding:12px; font-size:12.5px; line-height:1.45; color:#166534; white-space:pre-wrap; margin-top:8px;"></div>
+            </div>
+
+            <!-- 하단 컨트롤 버튼 바 -->
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+              <button id="btnSolverPrev" onclick="navigateSolverQuestion(-1)" style="background:white; color:#334155; border:1px solid #cbd5e1; padding:9px 15px; border-radius:10px; font-size:12.5px; font-weight:800; cursor:pointer;">◀ 이전</button>
+              <button id="btnSolverSubmit" onclick="checkSolverAnswer()" style="background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:10px 16px; border-radius:10px; font-size:13px; font-weight:900; cursor:pointer; flex:1; box-shadow:0 3px 8px rgba(16,185,129,0.3);">정답 확인 ✓</button>
+              <button id="btnSolverNext" onclick="navigateSolverQuestion(1)" style="background:#0284c7; color:white; border:none; padding:9px 15px; border-radius:10px; font-size:12.5px; font-weight:800; cursor:pointer;">다음 ▶</button>
             </div>
           </div>
 
-          <!-- 📊 나의 학습 기록 & 진도율 요약 카드 -->
-          <div style="background:rgba(255,255,255,0.85); backdrop-filter:blur(12px); border-radius:14px; padding:12px 14px; margin-bottom:14px; border:1px solid rgba(0,0,0,0.08); display:flex; justify-content:space-around; text-align:center;">
-            <div>
-              <div style="font-size:10.5px; color:#64748b; font-weight:700;">총 푼 문제수</div>
-              <div style="font-size:16px; font-weight:900; color:#0f172a;" id="totalSolvedCountText">0문항</div>
-            </div>
-            <div style="width:1px; background:#e2e8f0;"></div>
-            <div>
-              <div style="font-size:10.5px; color:#64748b; font-weight:700;">정답률</div>
-              <div style="font-size:16px; font-weight:900; color:#10b981;" id="studyAccuracyText">0%</div>
-            </div>
-            <div style="width:1px; background:#e2e8f0;"></div>
-            <div>
-              <div style="font-size:10.5px; color:#64748b; font-weight:700;">누적 총 공부</div>
-              <div style="font-size:16px; font-weight:900; color:#0284c7;" id="allTimeStudyTimeText">0시간</div>
-            </div>
-          </div>
-
-          <!-- 📚 정보보안기사 기출 모의고사 회차 목록 헤더 -->
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:0 2px;">
-            <div style="font-size:13.5px; font-weight:900; color:#0f172a; display:flex; align-items:center; gap:6px;">
-              <span>📚</span> <span>정보보안기사 필기 기출문제</span>
-            </div>
-            <button onclick="loadStudyExamList(true)" style="background:none; border:none; color:#0284c7; font-size:11.5px; font-weight:800; cursor:pointer;">🔄 새로고침</button>
-          </div>
-
-          <div id="studyExamListContainer">
-            <div style="text-align:center; padding:30px; color:#94a3b8; font-size:12px;">
-              ⏳ 정보보안기사 모의고사 데이터를 불러오는 중...
-            </div>
-          </div>
-        </div>
-
-
-        <!-- 2. 📊 연속 실천 기록 (Streak) -->
-        <div id="paneStreakView" style="display:none;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding:0 2px;">
-            <button onclick="toggleQuestHistoryView()" style="background:rgba(255,255,255,0.85); color:#334155; border:1px solid rgba(0,0,0,0.12); padding:6px 12px; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">⬅ 퀘스트 목록으로</button>
-            <span style="font-size:14px; font-weight:900; color:#0f172a;">📊 퀘스트 연속 실천 기록</span>
-          </div>
-          <div id="streakListContainer"></div>
         </div>
 
         <!-- 3. 🎮 미니게임 아케이드 -->
@@ -5853,10 +5852,10 @@
     function createQuestCardElement(q) {
       const card = document.createElement('div');
       const timing = evaluateQuestTimingState(q);
-      card.className = `quest-card ${timing.isDoneToday ? 'completed' : ''}`;
+      const isDone = Boolean(q.isCompletedToday || q.isSingleCompleted);
+      card.className = `quest-card ${isDone ? 'completed' : ''}`;
       
-      // 1) [1번째 줄] 날짜 • 요일 • 시간 (크기 0.8)
-      // 완료된 반복 퀘스트는 바로 다음 퀘스트의 일정으로 표시
+      // 1) [1번째 줄] 날짜 • 요일 • 시간
       const metaParts = [];
       const targetDateStr = timing.displayDueDate;
       if (targetDateStr) {
@@ -5875,7 +5874,7 @@
       }
       const topMetaText = metaParts.join('  •  ');
 
-      // 2) [2번째 줄] [반복주기] 퀘스트 제목 (크기 1.0 기준)
+      // 2) [2번째 줄] [반복주기] 퀘스트 제목
       let recLabel = "일회성";
       const rec = (q.recurrence || "").toUpperCase().trim();
       if (rec === "DAILY" || rec === "매일") {
@@ -5896,16 +5895,12 @@
       // 3) [3번째 줄] 상세 설명/메모
       const descHtml = q.description ? `<div class="quest-desc" style="font-size:11px; color:#334155; font-weight:500; line-height:1.35; margin-top:3px; word-break:break-word;">${q.description}</div>` : '';
 
-      // 우측 완료 버튼 상태 구성
+      // 🌟 [핵심 수정]: 완료 버튼 - 완료되지 않은 모든 퀘스트는 누르면 즉각 완료 처리!
       let btnHtml = '';
-      if (timing.isDoneToday) {
-        btnHtml = `<button class="btn-quest-done disabled" style="opacity:0.6; cursor:not-allowed; min-width:38px; padding:6px 10px;" title="다음 예정일까지 완료됨">✓</button>`;
-      } else if (timing.isActionableNow) {
-        btnHtml = `<button class="btn-quest-done" onclick="completeQuestDirect('${q.id}')">+${q.rewardXp} XP</button>`;
-      } else if (timing.isWaitingForTime) {
-        btnHtml = `<button class="btn-quest-done disabled" style="background:rgba(0,0,0,0.06); color:#64748b; border:1px solid rgba(0,0,0,0.08);" onclick="alert('⏰ [${q.name}]\\n해당 퀘스트는 설정된 시간(${q.notifyTime})부터 오늘 24:00까지 수행 가능합니다!')">${q.notifyTime || '00:00'} 대기</button>`;
+      if (isDone) {
+        btnHtml = `<button class="btn-quest-done disabled" style="opacity:0.6; cursor:not-allowed; min-width:38px; padding:6px 10px;" title="오늘 완료됨">✓ 완료</button>`;
       } else {
-        btnHtml = `<button class="btn-quest-done disabled" style="background:rgba(0,0,0,0.06); color:#64748b; border:1px solid rgba(0,0,0,0.08);" onclick="alert('📅 해당 퀘스트는 ${q.dueDate} ${q.notifyTime || ''}에 활성화됩니다!')">대기 중</button>`;
+        btnHtml = `<button class="btn-quest-done" onclick="completeQuestDirect('${q.id}')">+${q.rewardXp || 20} XP</button>`;
       }
 
       card.innerHTML = `
@@ -5933,12 +5928,15 @@
       if (!questId) return;
       const cleanId = String(questId).trim();
       const q = appState.quests.find(x => String(x.id).trim() === cleanId);
-      if (!q) return;
+      if (!q) {
+        console.warn("Quest not found for id:", questId);
+        return;
+      }
 
       const todayStr = new Date().toISOString().split('T')[0];
       const isRecurring = q.recurrence && q.recurrence !== "NONE" && q.recurrence !== "일회성";
 
-      // 1) 당일 완료 처리 및 연속 일수 +1
+      // 1) 당일 완료 마킹 및 연속 일수 증가
       q.isCompletedToday = true;
       q.lastCompletedDate = todayStr;
       q.consecutiveDays = (q.consecutiveDays || 0) + 1;
@@ -5947,7 +5945,7 @@
         q.isSingleCompleted = true;
       }
 
-      // 2) 찰진 햅틱 & 상단 다마고치 포켓몬 경험치 즉각 지급!
+      // 2) 찰진 햅틱 & 상단 포켓몬 경험치바 즉시 상승!
       haptic.complete();
       triggerPokemonRewardGlow();
       triggerSpriteHopAnimation();
@@ -5959,14 +5957,16 @@
       renderStreakList(appState.quests);
       saveLocalFullCache();
 
-      logDebug(`퀘스트 완료: "${q.name}" (+${q.rewardXp || 20}XP, ${q.consecutiveDays}일 연속)`, "info");
+      logDebug(`퀘스트 완료: "${q.name}" (+${q.rewardXp || 20}XP)`, "info");
+
+      // 4) 백엔드 구글 시트에 비동기 완료 저장
       try {
         fetch(GAS_API_URL, {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({ action: "completeQuest", questId: cleanId })
         }).catch(() => {});
-      } catch (e) {}
+      } catch(e) {}
     }
 
     function handleDirectQuestComplete(questId, rewardXp) {
@@ -8056,7 +8056,7 @@
         const m = Math.floor(this.todaySeconds / 60);
         const todayStr = m >= 60 ? `${Math.floor(m / 60)}시간 ${m % 60}분` : `${m}분`;
 
-        // 🌟 상단 30% 다마고치 우측 타이머 UI 즉시 동기화
+        // 상단 30% 다마고치 우측 타이머 UI 즉시 동기화
         const topClock = document.getElementById('topLiveStudyClock');
         const topToday = document.getElementById('topTodayStudyTime');
         const topXp = document.getElementById('topTodayStudyXp');
@@ -8157,19 +8157,27 @@
       });
     }
 
-    // ✍️ 특정 모의고사 회차 풀기 / 플래시카드 시작
+    // ✍️ 특정 모의고사 회차 풀기 / 플래시카드 시작 (인라인 서브뷰 전환)
     async function startExamSession(encodedExamId, mode = 'EXAM') {
       const examId = decodeURIComponent(encodedExamId);
       currentStudyMode = mode;
       haptic.feed();
 
-      const modal = document.getElementById('studyExamModal');
-      const body = document.getElementById('modalExamBody');
-      const titleEl = document.getElementById('modalExamPartTitle');
-      if (titleEl) titleEl.innerText = `${mode === 'FLASHCARD' ? '📇 [플래시카드]' : '✍️ [모의고사]'} ${examId}`;
+      const listView = document.getElementById('studyListView');
+      const solverView = document.getElementById('studySolverView');
+      const partTitle = document.getElementById('solverPartTitle');
+      const modeBadge = document.getElementById('solverModeBadge');
+      const qText = document.getElementById('solverQText');
 
-      if (modal) modal.style.display = 'flex';
-      if (body) body.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">⏳ 문제를 불러오는 중...</div>`;
+      if (partTitle) partTitle.innerText = examId;
+      if (modeBadge) {
+        modeBadge.innerText = (mode === 'FLASHCARD') ? "📇 플래시카드" : "✍️ 실전 모의고사";
+        modeBadge.style.background = (mode === 'FLASHCARD') ? "#8b5cf6" : "#0284c7";
+      }
+
+      if (listView) listView.style.display = 'none';
+      if (solverView) solverView.style.display = 'block';
+      if (qText) qText.innerText = "⏳ 문제를 불러오는 중...";
 
       try {
         const resp = await fetch(`${STUDY_API_URL}?api=getExam&examId=${encodeURIComponent(examId)}`);
@@ -8180,11 +8188,20 @@
           currentQuestionIdx = 0;
           renderCurrentExamQuestion();
         } else {
-          if (body) body.innerHTML = `<div style="text-align:center; padding:30px; color:#ef4444;">문제를 불러오지 못했습니다.</div>`;
+          if (qText) qText.innerText = "문제를 불러오지 못했습니다.";
         }
       } catch (err) {
-        if (body) body.innerHTML = `<div style="text-align:center; padding:30px; color:#ef4444;">네트워크 오류 (${err.message})</div>`;
+        if (qText) qText.innerText = `네트워크 오류 (${err.message})`;
       }
+    }
+
+    function backToStudyList() {
+      haptic.tick();
+      const listView = document.getElementById('studyListView');
+      const solverView = document.getElementById('studySolverView');
+      if (solverView) solverView.style.display = 'none';
+      if (listView) listView.style.display = 'block';
+      currentExamData = null;
     }
 
     function renderCurrentExamQuestion() {
@@ -8194,13 +8211,13 @@
 
       selectedOptionIdx = null;
 
-      const progText = document.getElementById('modalExamProgressText');
-      const qNumEl = document.getElementById('modalQuestionNumber');
-      const qTextEl = document.getElementById('modalQuestionText');
-      const passageBox = document.getElementById('modalPassageBox');
-      const optionsList = document.getElementById('modalOptionsList');
-      const explContainer = document.getElementById('modalExplanationContainer');
-      const submitBtn = document.getElementById('btnExamSubmit');
+      const progText = document.getElementById('solverProgressText');
+      const qNumEl = document.getElementById('solverQNum');
+      const qTextEl = document.getElementById('solverQText');
+      const passageBox = document.getElementById('solverPassage');
+      const optionsList = document.getElementById('solverOptionsList');
+      const explBox = document.getElementById('solverExplanationBox');
+      const submitBtn = document.getElementById('btnSolverSubmit');
 
       if (progText) progText.innerText = `문항 ${currentQuestionIdx + 1} / ${currentExamData.questions.length}`;
       if (qNumEl) qNumEl.innerText = `Q. ${q.number || (currentQuestionIdx + 1)}`;
@@ -8215,6 +8232,8 @@
         }
       }
 
+      if (explBox) explBox.style.display = 'none';
+
       if (optionsList) {
         optionsList.innerHTML = '';
         const opts = q.options || [];
@@ -8222,7 +8241,7 @@
           const optDiv = document.createElement('div');
           optDiv.className = 'exam-option-item';
           optDiv.dataset.idx = idx + 1;
-          optDiv.style.cssText = "background:white; border:1.5px solid #cbd5e1; border-radius:10px; padding:10px 12px; font-size:13px; font-weight:600; color:#1e293b; cursor:pointer; display:flex; align-items:center; gap:8px;";
+          optDiv.style.cssText = "background:white; border:1.5px solid #cbd5e1; border-radius:10px; padding:10px 12px; font-size:13px; font-weight:600; color:#1e293b; cursor:pointer; display:flex; align-items:center; gap:8px; transition:all 0.15s ease;";
           optDiv.innerHTML = `
             <span style="font-weight:900; color:#0284c7; width:20px;">${idx + 1}.</span>
             <span style="flex:1;">${optText}</span>
@@ -8230,7 +8249,7 @@
           optDiv.onclick = () => {
             haptic.tick();
             selectedOptionIdx = idx + 1;
-            document.querySelectorAll('.exam-option-item').forEach(el => {
+            document.querySelectorAll('#solverOptionsList .exam-option-item').forEach(el => {
               el.style.borderColor = "#cbd5e1";
               el.style.background = "white";
               el.style.color = "#1e293b";
@@ -8243,49 +8262,42 @@
         });
       }
 
-      // 플래시카드 모드인 경우 정답/해설 바로 확인 버튼
-      if (currentStudyMode === 'FLASHCARD') {
-        if (explContainer) explContainer.style.display = 'none';
-        if (submitBtn) {
-          submitBtn.disabled = false;
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        if (currentStudyMode === 'FLASHCARD') {
           submitBtn.innerText = "💡 정답 & 해설 열기";
-          submitBtn.style.background = "linear-gradient(135deg, #0284c7, #0369a1)";
-        }
-      } else {
-        if (explContainer) explContainer.style.display = 'none';
-        if (submitBtn) {
-          submitBtn.disabled = false;
+          submitBtn.style.background = "linear-gradient(135deg, #8b5cf6, #7c3aed)";
+        } else {
           submitBtn.innerText = "정답 확인 ✓";
           submitBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
         }
       }
     }
 
-    function checkExamAnswer() {
+    function checkSolverAnswer() {
       if (!currentExamData || !currentExamData.questions) return;
       const q = currentExamData.questions[currentQuestionIdx];
       if (!q) return;
 
       const correctAns = Number(q.answer);
 
-      // 플래시카드 모드: 바로 해설 표시
+      // 📇 플래시카드 모드
       if (currentStudyMode === 'FLASHCARD') {
         haptic.tick();
-        const items = document.querySelectorAll('.exam-option-item');
-        items.forEach(el => {
+        document.querySelectorAll('#solverOptionsList .exam-option-item').forEach(el => {
           if (Number(el.dataset.idx) === correctAns) {
             el.style.borderColor = "#10b981";
             el.style.background = "#ecfdf5";
             el.style.color = "#047857";
+            el.style.fontWeight = "800";
           }
         });
-        const explContainer = document.getElementById('modalExplanationContainer');
-        const explText = document.getElementById('modalExplanationText');
-        if (explContainer && explText) {
-          explText.innerText = q.explanation || `■ 정답은 ${correctAns}번 입니다.`;
-          explContainer.style.display = 'block';
+        const explBox = document.getElementById('solverExplanationBox');
+        if (explBox) {
+          explBox.innerText = q.explanation || `■ 정답은 ${correctAns}번 입니다.`;
+          explBox.style.display = 'block';
         }
-        const submitBtn = document.getElementById('btnExamSubmit');
+        const submitBtn = document.getElementById('btnSolverSubmit');
         if (submitBtn) {
           submitBtn.disabled = true;
           submitBtn.innerText = "해설 확인 완료 👍";
@@ -8293,7 +8305,7 @@
         return;
       }
 
-      // 시험 모드: 선택지 검사
+      // ✍️ 실전 모의고사 모드
       if (!selectedOptionIdx) {
         alert("선택지를 골라주세요!");
         return;
@@ -8301,13 +8313,13 @@
 
       const isCorrect = (selectedOptionIdx === correctAns);
 
-      const items = document.querySelectorAll('.exam-option-item');
-      items.forEach(el => {
+      document.querySelectorAll('#solverOptionsList .exam-option-item').forEach(el => {
         const idx = Number(el.dataset.idx);
         if (idx === correctAns) {
           el.style.borderColor = "#10b981";
           el.style.background = "#ecfdf5";
           el.style.color = "#047857";
+          el.style.fontWeight = "800";
         } else if (idx === selectedOptionIdx && !isCorrect) {
           el.style.borderColor = "#ef4444";
           el.style.background = "#fef2f2";
@@ -8315,11 +8327,10 @@
         }
       });
 
-      const explContainer = document.getElementById('modalExplanationContainer');
-      const explText = document.getElementById('modalExplanationText');
-      if (explContainer && explText) {
-        explText.innerText = q.explanation || (isCorrect ? "■ 정답입니다! 👏" : `■ 정답은 ${correctAns}번 입니다.`);
-        explContainer.style.display = 'block';
+      const explBox = document.getElementById('solverExplanationBox');
+      if (explBox) {
+        explBox.innerText = q.explanation || (isCorrect ? "■ 정답입니다! 👏" : `■ 정답은 ${correctAns}번 입니다.`);
+        explBox.style.display = 'block';
       }
 
       // 통계 누적
@@ -8340,27 +8351,20 @@
         haptic.tick();
       }
 
-      const submitBtn = document.getElementById('btnExamSubmit');
+      const submitBtn = document.getElementById('btnSolverSubmit');
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerText = isCorrect ? "정답! (+10 XP) 🎉" : "오답 확인 완료 ✍️";
       }
     }
 
-    function navigateExamQuestion(delta) {
+    function navigateSolverQuestion(delta) {
       if (!currentExamData || !currentExamData.questions) return;
       const nextIdx = currentQuestionIdx + delta;
       if (nextIdx < 0 || nextIdx >= currentExamData.questions.length) return;
 
       currentQuestionIdx = nextIdx;
       renderCurrentExamQuestion();
-    }
-
-    function closeStudyExamModal() {
-      haptic.tick();
-      const modal = document.getElementById('studyExamModal');
-      if (modal) modal.style.display = 'none';
-      currentExamData = null;
     }
 </script>
 
