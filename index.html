@@ -40,99 +40,131 @@
       margin: 0;
     }
 
-    /* 📱 메인 앱 프레임 기본 설정 */
+    /* 📱 메인 앱 프레임 기본 설정 (상단 30% 다마고치 + 하단 70% 메인 뷰포트) */
     .app-screen {
       position: relative;
-      width: 100%;
+      width: 100vw;
+      max-width: 520px;
       height: 100vh;
       height: 100dvh;
-      background: #181c24;
+      background: #0f172a;
       overflow: hidden;
       display: flex;
-      flex-direction: row;
-      transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
+      border-radius: 0;
     }
 
-    /* 💻 PC / 태블릿 / 대형 모니터 화면 (모바일 2개 너비인 960px 한도로 예쁘게 고정 & 다크 배경 액자형 UI) */
-    @media (min-width: 840px) {
+    @media (min-width: 530px) {
       .app-screen {
-        width: 100% !important;
-        max-width: 960px !important; /* 모바일 세로 480px의 정확히 2배 한도 */
-        height: 820px !important;
-        max-height: 90vh !important;
-        max-height: 90dvh !important;
+        height: 880px !important;
+        max-height: 94vh !important;
+        max-height: 94dvh !important;
         border-radius: 28px !important;
-        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.09) !important;
-      }
-      /* 👈 좌측 메인 서식지 (정확히 50% 1:1) */
-      .habitat-pane {
-        order: 1 !important;
-        flex: 1 !important;
-        width: 50% !important;
-        height: 100% !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
-      }
-      /* 👉 우측 메뉴 작업창 (정확히 50% 1:1) */
-      .workspace-pane {
-        order: 2 !important;
-        display: flex !important;
-        flex: 1 !important;
-        width: 50% !important;
-        height: 100% !important;
-        position: relative !important;
-        transform: none !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        pointer-events: auto !important;
-        z-index: 10 !important;
-      }
-      .mobile-close-btn {
-        display: none !important;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
       }
     }
 
-    /* 📱 스마트폰 모바일 화면 (화면 폭이 작을 때는 여백 없이 100% 꽉 찬 풀스크린!) */
-    @media (max-width: 839px) {
-      body {
-        background: #181c24;
-      }
-      .app-screen {
-        width: 100vw !important;
-        max-width: 100vw !important;
-        height: 100dvh !important;
-        max-height: 100dvh !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-      }
-      .habitat-pane {
-        order: 1;
-        flex: 1;
-        width: 100%;
-        height: 100%;
-      }
-      .workspace-pane {
-        order: 2;
-        position: absolute !important;
-        top: 0; left: 0; right: 0; bottom: 0;
-        z-index: 100;
-        transform: translateY(100%);
-        visibility: hidden;
-        opacity: 0;
-        pointer-events: none;
-        transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
-      }
-      .workspace-pane.open {
-        transform: translateY(0) !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        pointer-events: auto !important;
-      }
-      .mobile-close-btn {
-        display: flex !important;
-      }
+    /* 🌟 상단 30% 포켓몬 다마고치 고정 스테이지 */
+    .habitat-pane {
+      position: relative;
+      height: 31%;
+      min-height: 205px;
+      max-height: 250px;
+      background-position: center center;
+      background-size: cover;
+      background-repeat: no-repeat;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      flex-shrink: 0;
+      z-index: 5;
+      border-bottom: 2px solid rgba(0, 0, 0, 0.22);
     }
 
-    /* 👈 왼쪽/오른쪽 작업창 (화이트 글래스모피즘 테마) */
+    /* 🌟 하단 70% 메인 콘텐츠 뷰포트 (퀘스트 기본 노출 & 탭 전환) */
+    .workspace-pane {
+      flex: 1;
+      position: relative !important;
+      transform: none !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      display: flex !important;
+      flex-direction: column;
+      background: #f8fafc;
+      overflow: hidden;
+      color: #1e293b;
+      border-radius: 22px 22px 0 0;
+      margin-top: -14px;
+      z-index: 10;
+      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
+    }
+
+    .pane-header {
+      display: none !important;
+    }
+
+    .pane-body {
+      flex: 1;
+      padding: 14px 14px 75px 14px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* 🧭 하단 고정 5개 탭 네비게이션 바 */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 22px 22px 0 0;
+      padding: 7px 8px max(7px, env(safe-area-inset-bottom)) 8px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08);
+      z-index: 40;
+    }
+
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: none;
+      border: none;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      gap: 2px;
+      flex: 1;
+      padding: 3px 0;
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .nav-btn .icon { font-size: 20px; line-height: 1; }
+    .nav-btn.active { color: #0284c7; transform: scale(1.08); font-weight: 900; }
+
+    /* 🕹️ 상단 미니 치트 버튼 */
+    .mini-cheat-trigger {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(10px);
+      color: #fde047;
+      border: 1px solid rgba(253, 224, 71, 0.45);
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 10.5px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+    .mini-cheat-trigger:active { transform: scale(0.92); }
+/* 👈 왼쪽/오른쪽 작업창 (화이트 글래스모피즘 테마) */
     .workspace-pane {
       background: rgba(248, 250, 252, 0.85); /* 🌟 맑고 은은한 화이트 글래스 */
       backdrop-filter: blur(24px);
@@ -1556,10 +1588,10 @@
   </div>
 <div class="app-screen" id="appScreen">
 
-    <!-- 👈 왼쪽 메인 서식지 (50% 1:1 반반 분할) -->
+    <!-- 🌟 [상단 30% 영역]: 포켓몬 다마고치 고정 스테이지 -->
     <div class="habitat-pane" id="habitatPane">
       
-      <!-- 상단 헤더 카드 -->
+      <!-- 상단 헤더 카드 & 퀘스트 뱃지 -->
       <div class="top-header">
         <div class="pokemon-card">
           <div class="card-top">
@@ -1598,28 +1630,21 @@
           </div>
         </div>
 
-        <div class="quest-badge" id="questBadge" onclick="switchWorkspaceTab('QUEST')">
-          필수 <span id="questText">0/0</span>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+          <div class="quest-badge" id="questBadge" onclick="switchWorkspaceTab('QUEST')">
+            필수 <span id="questText">0/0</span>
+          </div>
+          <button class="mini-cheat-trigger" onclick="openCheatModal()" title="치트 콘솔">🕹️ 치트</button>
         </div>
       </div>
 
-      <!-- 🌾 배경별 인터랙티브 파밍 레이어 (터치/클릭 우선순위 z-index: 18) -->
+      <!-- 🌾 배경별 인터랙티브 파밍 레이어 -->
       <div class="berry-harvest-layer" id="berryLayer"></div>
 
-      <!-- 🍒 우측 하단 아이템 수확 위젯 (즉시 섭취 방식으로 개편되어 숨김) -->
-      <div class="berry-basket-widget" id="berryBasketWidget" style="display:none !important;">
-        <span style="font-size:14px;" id="basketIcon">🍒</span>
-        <span class="basket-xp" id="pendingBerryXpText">+0 XP</span>
-        <button class="btn-eat-berries" onclick="onFeedAccumulatedBerries()">섭취</button>
-      </div>
-
-      <!-- 🌟 중앙 서식지 & 캐릭터 위치 영역 (DB altitude 하/중/상 동적 결정) -->
+      <!-- 🌟 중앙 서식지 & 캐릭터 위치 영역 -->
       <div class="stage-area ground-mode" id="stageArea">
         <div class="speech-bubble" id="speechBubble">씨-익! 🍃</div>
-        
-        <!-- 🌟 점프 애니메이션 래퍼 (스케일과 독립) -->
         <div class="sprite-hop-wrapper" id="spriteHopWrapper">
-          <!-- 🌟 상하좌우 고도별 자연스러운 유휴 애니메이션 래퍼 -->
           <div class="idle-wander-ground" id="idleWanderWrapper">
             <div class="pokemon-sprite-container" id="monSpriteContainer">
               <img 
@@ -1645,7 +1670,6 @@
 
       <!-- 🏆 일요일 22:00 주간 육성 정산 및 등급 알 지급 시네마틱 모달 -->
       <div class="evolve-overlay graduation-overlay" id="graduationOverlay">
-        <!-- 1단계: 명예의 전당 도감 영구 박제 -->
         <div id="gradStep1" style="display:flex; flex-direction:column; align-items:center; width:100%;">
           <div class="evolve-title" style="color:#facc15; font-size:19px;">🏆 이번 주 명예의 전당 졸업!</div>
           <div class="grad-aura-box">
@@ -1661,7 +1685,6 @@
           </button>
         </div>
 
-        <!-- 2단계: 새로운 등급 알 수령 -->
         <div id="gradStep2" style="display:none; flex-direction:column; align-items:center; width:100%;">
           <div class="evolve-title" style="color:#38bdf8; font-size:19px;">✨ 새로운 여정의 시작! ✨</div>
           <div class="grad-aura-box egg-glow">
@@ -1678,41 +1701,13 @@
         </div>
       </div>
 
-      <!-- 🛠️ 좌측 하단 치트 콘솔 트리거 -->
-      <button class="dev-toggle-trigger" onclick="openCheatModal()">🕹️ 치트 콘솔</button>
-
-      <!-- 하단 네비게이션 메뉴 바 (3개 탭 최적화) -->
-      <div class="bottom-nav">
-        <button class="nav-btn active" data-tab="QUEST" onclick="switchWorkspaceTab('QUEST')">
-          <span class="icon">📋</span>
-          <span>퀘스트</span>
-        </button>
-        <button class="nav-btn" data-tab="ARCADE" onclick="switchWorkspaceTab('ARCADE')">
-          <span class="icon">🎮</span>
-          <span>미니게임</span>
-        </button>
-        <button class="nav-btn" data-tab="DEX" onclick="switchWorkspaceTab('DEX')">
-          <span class="icon">📖</span>
-          <span>도감</span>
-        </button>
-      </div>
-
     </div>
 
-    <!-- 👉 오른쪽 메뉴 작업창 (50% 1:1 반반 분할) -->
+    <!-- 🌟 [하단 70% 영역]: 메인 콘텐츠 뷰포트 (퀘스트 기본 노출 & 5개 탭 전환) -->
     <div class="workspace-pane" id="workspacePane">
-      <div class="pane-header">
-        <div class="pane-title" id="paneTitleText">📋 퀘스트 목록</div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <!-- 🌟 [요청 1]: 퀘스트 기록(📊) 및 알림설정(🔔) 동그란 버튼 -->
-          <button class="icon-btn" id="btnHeaderStreak" onclick="switchWorkspaceTab('STREAK')" title="퀘스트 연속 실천 기록">📊</button>
-          <button class="icon-btn" id="btnHeaderNotif" onclick="switchWorkspaceTab('NOTIF')" title="알림 & PWA 앱 설정">🔔</button>
-          <button class="icon-btn mobile-close-btn" onclick="closeMobileWorkspace()" title="닫기">✕</button>
-        </div>
-      </div>
       <div class="pane-body">
         
-        <!-- 1. 퀘스트 목록 -->
+        <!-- 1. 📋 퀘스트 목록 (기본 뷰) -->
         <div id="paneQuestView">
           <div class="quest-toolbar">
             <div class="quest-toolbar-left">
@@ -1727,40 +1722,34 @@
           <div id="questListContainer"></div>
         </div>
 
-        <!-- 2. 연속 실천 기록 (Streak) -->
+        <!-- 2. 📊 연속 실천 기록 (Streak) -->
         <div id="paneStreakView" style="display:none;">
           <div id="streakListContainer"></div>
         </div>
 
-        <!-- 3. 120Hz 미니게임 아케이드 (🌟 [요청 5]: 스도쿠, 뱀, 지뢰, 스파이더, 2048, 수박 순 정렬) -->
+        <!-- 3. 🎮 미니게임 아케이드 -->
         <div id="paneArcadeView" style="display:none;">
           <div class="arcade-grid-3col">
-            <!-- 1. 스도쿠 -->
             <div class="mini-game-card highlight" onclick="openArcadeGame('sudoku')">
               <div class="mini-game-icon">🔢</div>
               <div class="mini-game-title">Sudoku</div>
             </div>
-            <!-- 2. 뱀 (Snake Point) -->
             <div class="mini-game-card highlight" onclick="openArcadeGame('snake_untangle')">
               <div class="mini-game-icon">🐍</div>
               <div class="mini-game-title">Snake Point</div>
             </div>
-            <!-- 3. 지뢰찾기 -->
             <div class="mini-game-card highlight" onclick="openArcadeGame('minesweeper')">
               <div class="mini-game-icon">💣</div>
               <div class="mini-game-title">Minesweeper</div>
             </div>
-            <!-- 4. 스파이더 솔리테어 -->
             <div class="mini-game-card" onclick="alert('🃏 Spider Solitaire 준비 중입니다!')">
               <div class="mini-game-icon">🃏</div>
               <div class="mini-game-title">Spider Solitaire</div>
             </div>
-            <!-- 5. 2048 -->
             <div class="mini-game-card highlight" onclick="openArcadeGame('game_2048')">
               <div class="mini-game-icon">2️⃣</div>
               <div class="mini-game-title">2048</div>
             </div>
-            <!-- 6. 수박게임 -->
             <div class="mini-game-card" onclick="alert('🍉 Watermelon 준비 중입니다!')">
               <div class="mini-game-icon">🍉</div>
               <div class="mini-game-title">Watermelon</div>
@@ -1768,7 +1757,7 @@
           </div>
         </div>
 
-        <!-- 4. 도감 -->
+        <!-- 4. 📖 포켓몬 도감 -->
         <div id="panePokedexView" style="display:none;">
           <div style="font-size:12px; color:#475569; font-weight:600; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
             <span>포켓몬을 탭하여 도감 설명과 역대 육성 기록을 확인하세요.</span>
@@ -1777,9 +1766,9 @@
           <div class="pokedex-grid-container" id="pokedexGrid"></div>
         </div>
 
-        <!-- 5. OneSignal 알림 설정 & 실시간 진단 콘솔 & PWA 앱 설치 -->
+        <!-- 5. ⚙️ 알림 & PWA 설정 -->
         <div id="paneNotifView" style="display:none;">
-          <!-- 📲 PWA 앱 설치 카드 (화이트 글래스모피즘 테마) -->
+          <!-- 📲 PWA 앱 설치 카드 -->
           <div style="background:rgba(255,255,255,0.75); backdrop-filter:blur(16px); border-radius:14px; padding:16px; margin-bottom:14px; border:1px solid rgba(255,255,255,0.8); box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
               <div style="font-size:15px; font-weight:900; color:#0f172a; display:flex; align-items:center; gap:6px;">
@@ -1818,25 +1807,34 @@
               ⚡ 자체 몬스터볼 알림 즉시 테스트
             </button>
           </div>
-
-          <!-- 📟 실시간 OneSignal 내부 동작 진단 로그 박스 -->
-          <div class="debug-console-card">
-            <div class="debug-console-header">
-              <div class="debug-console-title">📟 실시간 OneSignal 내부 동작 진단 로그</div>
-              <div class="debug-console-btns">
-                <button class="debug-btn-tool" onclick="copyAllDebugLogs()">📋 로그 전체 복사</button>
-                <button class="debug-btn-tool" onclick="runDiagnostics()">🔍 즉시 진단</button>
-                <button class="debug-btn-tool" onclick="clearDebugLogs()">🧹 지우기</button>
-              </div>
-            </div>
-            <div class="debug-console-body" id="debugLogContainer">
-              <div class="log-line"><span class="log-time">[00:00:00]</span><span class="log-info">진단 시스템 초기화 대기 중...</span></div>
-            </div>
-          </div>
-
         </div>
 
       </div>
+
+      <!-- 🧭 하단 고정 5개 탭 네비게이션 바 -->
+      <div class="bottom-nav">
+        <button class="nav-btn active" data-tab="QUEST" onclick="switchWorkspaceTab('QUEST')">
+          <span class="icon">📋</span>
+          <span>퀘스트</span>
+        </button>
+        <button class="nav-btn" data-tab="STREAK" onclick="switchWorkspaceTab('STREAK')">
+          <span class="icon">📊</span>
+          <span>기록</span>
+        </button>
+        <button class="nav-btn" data-tab="ARCADE" onclick="switchWorkspaceTab('ARCADE')">
+          <span class="icon">🎮</span>
+          <span>게임</span>
+        </button>
+        <button class="nav-btn" data-tab="DEX" onclick="switchWorkspaceTab('DEX')">
+          <span class="icon">📖</span>
+          <span>도감</span>
+        </button>
+        <button class="nav-btn" data-tab="NOTIF" onclick="switchWorkspaceTab('NOTIF')">
+          <span class="icon">⚙️</span>
+          <span>설정</span>
+        </button>
+      </div>
+
     </div>
 
   </div>
@@ -5062,63 +5060,49 @@
 
     function switchWorkspaceTab(tab, isFromHistory = false) {
       haptic.tick();
-      const workPane = document.getElementById('workspacePane');
-      workPane.classList.add('open');
 
       if (!isFromHistory) {
         pushModalHistory(`tab_${tab}`);
       }
 
-      document.getElementById('paneQuestView').style.display = 'none';
-      document.getElementById('paneStreakView').style.display = 'none';
-      document.getElementById('paneArcadeView').style.display = 'none';
-      document.getElementById('panePokedexView').style.display = 'none';
-      document.getElementById('paneNotifView').style.display = 'none';
+      smoothTransition(() => {
+        const questView = document.getElementById('paneQuestView');
+        const streakView = document.getElementById('paneStreakView');
+        const arcadeView = document.getElementById('paneArcadeView');
+        const dexView = document.getElementById('panePokedexView');
+        const notifView = document.getElementById('paneNotifView');
 
-      // 🌟 [요청 3]: 퀘스트 기록(📊) & 알림설정(🔔) 버튼은 'QUEST' 탭에서만 노출!
-      const btnStreak = document.getElementById('btnHeaderStreak');
-      const btnNotif = document.getElementById('btnHeaderNotif');
-      if (btnStreak && btnNotif) {
-        if (tab === 'QUEST') {
-          btnStreak.style.display = 'flex';
-          btnNotif.style.display = 'flex';
-          btnStreak.style.background = 'rgba(255,255,255,0.12)';
-          btnNotif.style.background = 'rgba(255,255,255,0.12)';
-        } else {
-          btnStreak.style.display = 'none';
-          btnNotif.style.display = 'none';
+        if (questView) questView.style.display = 'none';
+        if (streakView) streakView.style.display = 'none';
+        if (arcadeView) arcadeView.style.display = 'none';
+        if (dexView) dexView.style.display = 'none';
+        if (notifView) notifView.style.display = 'none';
+
+        // 하단 네비 탭버튼 활성화 하이라이트
+        document.querySelectorAll('.bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
+        const activeNavBtn = document.querySelector(`.bottom-nav .nav-btn[data-tab="${tab}"]`);
+        if (activeNavBtn) activeNavBtn.classList.add('active');
+
+        if (tab === 'QUEST') { 
+          if (questView) questView.style.display = 'block'; 
+          if (appState && appState.quests) renderQuestList(appState.quests);
         }
-      }
-
-      // 하단 네비 버튼 활성화 하이라이트
-      document.querySelectorAll('.bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
-      const activeNavBtn = document.querySelector(`.bottom-nav .nav-btn[data-tab="${tab}"]`);
-      if (activeNavBtn) activeNavBtn.classList.add('active');
-
-      const title = document.getElementById('paneTitleText');
-      if (tab === 'QUEST') { 
-        title.innerHTML = "📋 퀘스트 목록"; 
-        document.getElementById('paneQuestView').style.display = 'block'; 
-      }
-      else if (tab === 'STREAK') { 
-        title.innerHTML = `<span style="cursor:pointer; margin-right:4px;" onclick="switchWorkspaceTab('QUEST')">⬅</span> 📊 퀘스트 기록`; 
-        document.getElementById('paneStreakView').style.display = 'block'; 
-        renderStreakList(appState.quests); 
-      }
-      else if (tab === 'ARCADE') { 
-        title.innerHTML = "🎮 미니게임"; 
-        document.getElementById('paneArcadeView').style.display = 'block'; 
-      }
-      else if (tab === 'DEX') {
-        title.innerHTML = "📖 포켓몬 도감";
-        document.getElementById('panePokedexView').style.display = 'block';
-        renderPokedexGrid();
-      }
-      else if (tab === 'NOTIF') {
-        title.innerHTML = `<span style="cursor:pointer; margin-right:4px;" onclick="switchWorkspaceTab('QUEST')">⬅</span> 🔔 알림 & PWA 설정`;
-        document.getElementById('paneNotifView').style.display = 'block';
-        LocalNotificationManager.updateBadge();
-      }
+        else if (tab === 'STREAK') { 
+          if (streakView) streakView.style.display = 'block'; 
+          if (appState && appState.quests) renderStreakList(appState.quests); 
+        }
+        else if (tab === 'ARCADE') { 
+          if (arcadeView) arcadeView.style.display = 'block'; 
+        }
+        else if (tab === 'DEX') {
+          if (dexView) dexView.style.display = 'block';
+          renderPokedexGrid();
+        }
+        else if (tab === 'NOTIF') {
+          if (notifView) notifView.style.display = 'block';
+          LocalNotificationManager.updateBadge();
+        }
+      });
     }
 
     function closeMobileWorkspace() {
