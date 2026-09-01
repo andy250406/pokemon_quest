@@ -1707,6 +1707,229 @@
       100% { right: calc(100% + 45px); transform: translateY(0) rotate(-1100deg); }
     }
 
+  
+    /* 📚 [공부 탭] 전용 스타일링 */
+    .study-timer-card {
+      background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+      border: 1.5px solid rgba(168, 85, 247, 0.45);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 20px rgba(168, 85, 247, 0.15);
+      color: #f8fafc;
+    }
+    .study-timer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .study-timer-title {
+      font-size: 14.5px;
+      font-weight: 900;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .study-live-clock {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 26px;
+      font-weight: 900;
+      color: #38bdf8;
+      letter-spacing: 1px;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+      margin: 4px 0 8px 0;
+    }
+    .study-stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .study-stat-box {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 9px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .study-stat-label {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 700;
+    }
+    .study-stat-value {
+      font-size: 14.5px;
+      font-weight: 900;
+      color: #f1f5f9;
+    }
+
+    /* 📚 모의고사 파트 카드 리스트 */
+    .exam-part-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 14px;
+      padding: 13px 15px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .exam-part-card:active {
+      transform: scale(0.98);
+    }
+    .exam-part-left {
+      flex: 1;
+      min-width: 0;
+    }
+    .exam-part-title {
+      font-size: 14px;
+      font-weight: 900;
+      color: #0f172a;
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .exam-part-meta {
+      font-size: 11.5px;
+      color: #64748b;
+      font-weight: 700;
+      display: flex;
+      gap: 8px;
+    }
+    .btn-start-exam {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: white;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 10px;
+      font-size: 12.5px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(2, 132, 199, 0.3);
+      flex-shrink: 0;
+    }
+
+    /* ✍️ 문제 풀이 인터페이스 전용 모달 */
+    .exam-modal-box {
+      background: #f8fafc;
+      width: 100%;
+      max-width: 500px;
+      max-height: 92vh;
+      border-radius: 22px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      color: #0f172a;
+    }
+    .exam-modal-header {
+      padding: 14px 18px;
+      background: #0f172a;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .exam-modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .exam-q-number {
+      font-size: 13px;
+      font-weight: 900;
+      color: #0284c7;
+      margin-bottom: 4px;
+    }
+    .exam-q-text {
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.45;
+      color: #0f172a;
+      margin-bottom: 12px;
+      word-break: break-all;
+    }
+    .exam-passage-box {
+      background: #e2e8f0;
+      border-left: 4px solid #0284c7;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #334155;
+      margin-bottom: 14px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .exam-options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .exam-option-item {
+      background: white;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #1e293b;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.15s ease;
+    }
+    .exam-option-item:active { transform: scale(0.99); }
+    .exam-option-item.selected {
+      border-color: #0284c7;
+      background: #f0f9ff;
+      color: #0369a1;
+      font-weight: 800;
+    }
+    .exam-option-item.correct {
+      border-color: #10b981 !important;
+      background: #ecfdf5 !important;
+      color: #047857 !important;
+      font-weight: 800;
+    }
+    .exam-option-item.wrong {
+      border-color: #ef4444 !important;
+      background: #fef2f2 !important;
+      color: #b91c1c !important;
+    }
+    .exam-explanation-box {
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: #166534;
+      margin-top: 12px;
+      white-space: pre-wrap;
+    }
+    .exam-modal-footer {
+      padding: 12px 16px;
+      background: white;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
   </style>
 </head>
 <body>
@@ -1852,6 +2075,72 @@
           </div>
           <div id="questListContainer"></div>
         </div>
+        <!-- 🌟 [신설] 2. 📝 모의고사 공부 & 실시간 학습 타이머 뷰 -->
+        <div id="paneStudyView" style="display:none;">
+          <!-- ⏱️ 실시간 공부 타이머 & 누적 대시보드 카드 -->
+          <div class="study-timer-card">
+            <div class="study-timer-top">
+              <div class="study-timer-title">
+                <span>⏱️</span> <span>실시간 공부 스톱워치</span>
+              </div>
+              <span id="studyTimerStatusBadge" style="background:#22c55e; color:#0f172a; font-size:10.5px; font-weight:900; padding:2px 8px; border-radius:8px;">집중 중 ⚡</span>
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-size:11px; color:#94a3b8; font-weight:700;">이번 세션 집중 시간</div>
+                <div class="study-live-clock" id="liveStudyClock">00:00:00</div>
+              </div>
+              <button id="btnToggleStudyTimer" onclick="StudyTimerManager.togglePause()" style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); color:white; padding:8px 14px; border-radius:10px; font-size:12px; font-weight:800; cursor:pointer;">
+                ⏸️ 일시정지
+              </button>
+            </div>
+
+            <div class="study-stats-row">
+              <div class="study-stat-box">
+                <span class="study-stat-label">📅 오늘 총 공부 시간</span>
+                <span class="study-stat-value" id="todayStudyTimeText">0분</span>
+              </div>
+              <div class="study-stat-box">
+                <span class="study-stat-label">🎁 실시간 적립 경험치</span>
+                <span class="study-stat-value" id="todayStudyXpText" style="color:#38bdf8;">+0 XP</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 📊 나의 학습 기록 & 진도율 요약 카드 -->
+          <div style="background:rgba(255,255,255,0.85); backdrop-filter:blur(12px); border-radius:14px; padding:12px 14px; margin-bottom:14px; border:1px solid rgba(0,0,0,0.08); display:flex; justify-content:space-around; text-align:center;">
+            <div>
+              <div style="font-size:10.5px; color:#64748b; font-weight:700;">총 푼 문제수</div>
+              <div style="font-size:16px; font-weight:900; color:#0f172a;" id="totalSolvedCountText">0문항</div>
+            </div>
+            <div style="width:1px; background:#e2e8f0;"></div>
+            <div>
+              <div style="font-size:10.5px; color:#64748b; font-weight:700;">정답률</div>
+              <div style="font-size:16px; font-weight:900; color:#10b981;" id="studyAccuracyText">0%</div>
+            </div>
+            <div style="width:1px; background:#e2e8f0;"></div>
+            <div>
+              <div style="font-size:10.5px; color:#64748b; font-weight:700;">누적 총 공부</div>
+              <div style="font-size:16px; font-weight:900; color:#0284c7;" id="allTimeStudyTimeText">0시간</div>
+            </div>
+          </div>
+
+          <!-- 📚 정보보안기사 기출 모의고사 회차 목록 헤더 -->
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; padding:0 2px;">
+            <div style="font-size:13.5px; font-weight:900; color:#0f172a; display:flex; align-items:center; gap:6px;">
+              <span>📚</span> <span>정보보안기사 필기 기출문제</span>
+            </div>
+            <button onclick="loadStudyExamList(true)" style="background:none; border:none; color:#0284c7; font-size:11.5px; font-weight:800; cursor:pointer;">🔄 새로고침</button>
+          </div>
+
+          <div id="studyExamListContainer">
+            <div style="text-align:center; padding:30px; color:#94a3b8; font-size:12px;">
+              ⏳ 정보보안기사 모의고사 데이터를 불러오는 중...
+            </div>
+          </div>
+        </div>
+
 
         <!-- 2. 📊 연속 실천 기록 (Streak) -->
         <div id="paneStreakView" style="display:none;">
@@ -1964,11 +2253,15 @@
 
       </div>
 
-      <!-- 🧭 하단 고정 4개 탭 네비게이션 바 -->
+      <!-- 🧭 하단 고정 5개 탭 네비게이션 바 -->
       <div class="bottom-nav">
         <button class="nav-btn active" data-tab="QUEST" onclick="switchWorkspaceTab('QUEST')">
           <span class="icon">📋</span>
           <span>퀘스트</span>
+        </button>
+        <button class="nav-btn" data-tab="STUDY" onclick="switchWorkspaceTab('STUDY')">
+          <span class="icon">📝</span>
+          <span>공부</span>
         </button>
         <button class="nav-btn" data-tab="ARCADE" onclick="switchWorkspaceTab('ARCADE')">
           <span class="icon">🎮</span>
@@ -4695,6 +4988,7 @@
       // 🌟 배경, 캐릭터, 퀘스트 목록 즉시 렌더링!
       initUI(appState);
           LocalNotificationManager.scheduleAllQuestNotifications();
+      StudyTimerManager.init();
 
       // 🎮 미니게임에서 복귀 시 대기 중인 경험치 보상 확인 및 오라 연출
       checkPendingGameReward();
@@ -5245,14 +5539,18 @@
         pushModalHistory(`tab_${tab}`);
       }
 
+      if (appState) appState.currentTab = tab;
+
       smoothTransition(() => {
         const questView = document.getElementById('paneQuestView');
+        const studyView = document.getElementById('paneStudyView');
         const streakView = document.getElementById('paneStreakView');
         const arcadeView = document.getElementById('paneArcadeView');
         const dexView = document.getElementById('panePokedexView');
         const notifView = document.getElementById('paneNotifView');
 
         if (questView) questView.style.display = 'none';
+        if (studyView) studyView.style.display = 'none';
         if (streakView) streakView.style.display = 'none';
         if (arcadeView) arcadeView.style.display = 'none';
         if (dexView) dexView.style.display = 'none';
@@ -5266,607 +5564,35 @@
         if (tab === 'QUEST') { 
           if (questView) questView.style.display = 'block'; 
           if (appState && appState.quests) renderQuestList(appState.quests);
+          StudyTimerManager.pause();
+        }
+        else if (tab === 'STUDY') {
+          if (studyView) studyView.style.display = 'block';
+          StudyTimerManager.start();
+          loadStudyExamList();
         }
         else if (tab === 'STREAK') { 
           if (streakView) streakView.style.display = 'block'; 
           if (appState && appState.quests) renderStreakList(appState.quests); 
+          StudyTimerManager.pause();
         }
         else if (tab === 'ARCADE') { 
           if (arcadeView) arcadeView.style.display = 'block'; 
+          StudyTimerManager.pause();
         }
         else if (tab === 'DEX') {
           if (dexView) dexView.style.display = 'block';
           renderPokedexGrid();
+          StudyTimerManager.pause();
         }
         else if (tab === 'NOTIF') {
           if (notifView) notifView.style.display = 'block';
           LocalNotificationManager.updateBadge();
+          StudyTimerManager.pause();
         }
       });
     }
 
-    function closeMobileWorkspace() {
-      haptic.tick();
-      const workPane = document.getElementById('workspacePane');
-      workPane.classList.remove('open');
-      document.querySelectorAll('.bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
-      const questBtn = document.querySelector('.bottom-nav .nav-btn[data-tab="QUEST"]');
-      if (questBtn) questBtn.classList.add('active');
-      setTimeout(() => DeferredXpQueue.flushIfReady(), 200);
-    }
-
-    function openAddHabitModal() {
-      haptic.tick();
-      openAddQuestModal();
-    }
-
-    function openQuestModal() {
-      haptic.tick();
-      switchWorkspaceTab('QUEST');
-    }
-
-    function openArcadeListModal() {
-      haptic.tick();
-      switchWorkspaceTab('ARCADE');
-    }
-
-    // 💥 하얀 빛 섬광 폭발 생성 (열매 터지는 위치)
-    function triggerWhiteLightBurst(x, y) {
-      const burst = document.createElement('div');
-      burst.className = 'white-light-burst';
-      burst.style.left = x + 'px';
-      burst.style.top = y + 'px';
-      document.body.appendChild(burst);
-      setTimeout(() => {
-        if (burst.parentNode) burst.parentNode.removeChild(burst);
-      }, 350);
-    }
-
-    // 🎁 포켓몬 섭취 공통 처리 (하얀 빛 섬광 폭발 + 진동 + 즉각 경험치 바 갱신 & 레벨업)
-    function executePokemonFeedReward(sourceItemEl, rewardXp = 5) {
-      const spriteImg = document.getElementById('pokemonImage');
-      if (!sourceItemEl) return;
-
-      // 1) 열매 위치에 하얀 빛 섬광 폭발!
-      const itemRect = sourceItemEl.getBoundingClientRect();
-      const itemCenterX = itemRect.left + itemRect.width / 2;
-      const itemCenterY = itemRect.top + itemRect.height / 2;
-      triggerWhiteLightBurst(itemCenterX, itemCenterY);
-
-      // 2) 열매 즉시 시각적 소멸
-      sourceItemEl.style.opacity = '0';
-      sourceItemEl.style.display = 'none';
-
-      // 3) 찰진 햅틱 진동
-      triggerHaptic(rewardXp >= 10 ? [60, 40, 70] : [45, 30]);
-
-      // 4) 🌟 즉시 실시간 경험치 지급 및 UI 갱신 & 레벨업 체크!
-      highlightXpBar();
-      processXpGainAndEvolve(rewardXp);
-    }
-
-    // 🍒 포켓몬을 드래그하여 열매에 닿았을 때 즉시 섭취하는 초정밀 3중 충돌 검사
-    function checkPokemonBerryDirectFeed(spriteImg) {
-      if (!spriteImg) return;
-      const monRect = spriteImg.getBoundingClientRect();
-      const monCenterX = monRect.left + monRect.width / 2;
-      const monCenterY = monRect.top + monRect.height / 2;
-
-      const pointerX = dragCurrentPos.x;
-      const pointerY = dragCurrentPos.y;
-
-      const berries = document.querySelectorAll('#berryLayer .berry-item');
-      berries.forEach(berry => {
-        if (berry.dataset.consumed === 'true') return;
-        const bRect = berry.getBoundingClientRect();
-        const bCenterX = bRect.left + bRect.width / 2;
-        const bCenterY = bRect.top + bRect.height / 2;
-
-        const distMon = Math.hypot(monCenterX - bCenterX, monCenterY - bCenterY);
-        const distPointer = Math.hypot(pointerX - bCenterX, pointerY - bCenterY);
-
-        // 🌟 [3중 충돌 판정]: 포켓몬 중심 거리 110px OR 포인터 거리 110px OR 바운딩 박스 오버랩(마진 25px)!
-        const isOverlap = !(
-          monRect.right < bRect.left - 25 ||
-          monRect.left > bRect.right + 25 ||
-          monRect.bottom < bRect.top - 25 ||
-          monRect.top > bRect.bottom + 25
-        );
-
-        if (distMon < 110 || distPointer < 110 || isOverlap) {
-          berry.dataset.consumed = 'true';
-          
-          const slotIdx = parseInt(berry.dataset.slotIdx) || 0;
-          const minDelay = parseInt(berry.dataset.minDelay) || 3000;
-          const maxDelay = parseInt(berry.dataset.maxDelay) || 6000;
-          const bgKey = berry.dataset.bgKey || currentHabitatBgKey;
-          const rewardXp = parseInt(berry.dataset.rewardXp) || (berry.classList.contains('big') ? 10 : 5);
-
-          // 보상 지급 및 섬광 연출
-          executePokemonFeedReward(berry, rewardXp);
-
-          // DOM 제거
-          if (berry.parentNode) berry.parentNode.removeChild(berry);
-
-          // 다음 열매 스폰 스케줄 등록
-          scheduleHabitatSlot(slotIdx, minDelay, maxDelay, bgKey);
-        }
-      });
-    }
-
-    // 🌟 [요청 1]: 포켓몬 클릭 시 찰진 햅틱 진동 & 점프 애니메이션 트리거
-    function triggerSpriteHopAnimation() {
-      triggerHaptic(35);
-      const wrapper = document.getElementById('spriteHopWrapper');
-      if (!wrapper) return;
-      wrapper.classList.remove('hopping');
-      void wrapper.offsetWidth;
-      wrapper.classList.add('hopping');
-    }
-
-    function initUI(data) {
-      const bgKey = determineHabitatBgKey(data.isEgg ? "노말" : data.pokemon.type);
-      currentHabitatBgKey = bgKey;
-      const bgUrl = HABITAT_BACKGROUNDS[bgKey] || "./images/backgrounds/PogoGrasslandBg.png";
-      document.getElementById('habitatPane').style.backgroundImage = `url('${bgUrl}')`;
-
-      // 🌾 모든 서식지별 인터랙티브 파밍 시스템 활성화
-      startHabitatFarming(bgKey);
-
-      // 📱 스마트폰 기울기 자이로 센서 모션 엔진 활성화
-      startGyroscopeMotionEngine();
-
-      document.getElementById('lvBadge').innerText = 'Lv.' + data.userStats.level;
-      
-      const genderClass = data.pokemon.gender === '♀' ? 'female' : (data.pokemon.gender === '♂' ? 'male' : 'none');
-      document.getElementById('pokeName').innerHTML = `${data.pokemon.name} <span class="gender-symbol ${genderClass}">${data.pokemon.gender || ''}</span>`;
-      document.getElementById('natureTag').innerText = (data.pokemon.nature || '고집');
-      
-      const growthKr = { "FAST":"빠름", "MEDIUM_FAST":"보통빠름", "MEDIUM_SLOW":"보통느림", "SLOW":"느림" };
-      const growthEl = document.getElementById('growthTag');
-      if (growthEl) growthEl.innerText = growthKr[data.pokemon.growth] || "보통느림";
-
-      // 🌟 DB의 altitude (하 / 중 / 상) 속성에 기반한 동적 위치 및 자이로 모드 결정
-      const stageArea = document.getElementById('stageArea');
-      const wanderWrapper = document.getElementById('idleWanderWrapper');
-      const pInfo = getPokemonData(data.pokemon.id);
-      const alt = (data.isEgg || !pInfo) ? "하" : (pInfo.altitude || "하");
-      currentAltitudeMode = alt;
-
-      if (alt === "상") {
-        stageArea.className = "stage-area sky-mode";
-        wanderWrapper.className = "idle-wander-sky";
-      } else if (alt === "중") {
-        stageArea.className = "stage-area hover-mode";
-        wanderWrapper.className = "idle-wander-hover";
-      } else {
-        stageArea.className = "stage-area ground-mode";
-        wanderWrapper.className = "idle-wander-ground";
-      }
-
-      // 🌟 DB 보정 스케일 적용 (신뇽 1.35, 프리져 1.25, 또도가스 1.30 등)
-      const pImg = document.getElementById('pokemonImage');
-      pImg.src = data.pokemon.idleGif;
-      const scaleFactor = getPokemonScaleFactor(data.pokemon.id, data.isEgg);
-      pImg.dataset.baseScale = scaleFactor;
-      pImg.style.transform = `scale(${scaleFactor})`;
-
-      // 🧲 슬링샷 드래그 & 직접 먹이기 엔진 활성화
-      initPokemonSlingshotEngine();
-
-      // 🌟 경험치 정규화 & 경험치바 갱신
-      normalizeUserStatsAndLevel();
-
-      renderTypeIconsInstant(data.pokemon.type);
-      renderQuestList(data.quests);
-      renderStreakList(data.quests);
-      renderPokedexGrid();
-    }
-
-    function onRecurrenceChange() {
-      const rec = document.getElementById('selectQuestRecurrence').value;
-      const dayGroup = document.getElementById('daySelectGroup');
-      if (rec === 'WEEKLY') {
-        dayGroup.style.display = 'block';
-      } else {
-        dayGroup.style.display = 'none';
-      }
-    }
-
-    // ========================================================
-    // 📋 퀘스트 추가 & 수정 모달 2개 탭 관리 시스템
-    // ========================================================
-    function switchQuestModalTab(tabNum) {
-      document.getElementById('activeQuestModalTab').value = String(tabNum);
-      const btn1 = document.getElementById('btnQuestTab1');
-      const btn2 = document.getElementById('btnQuestTab2');
-      const sec1 = document.getElementById('questTab1Section');
-      const sec2 = document.getElementById('questTab2Section');
-      const lblName = document.getElementById('lblQuestName');
-
-      if (tabNum === 1) {
-        btn1.classList.add('active');
-        btn2.classList.remove('active');
-        sec1.style.display = 'block';
-        sec2.style.display = 'none';
-        if (lblName) lblName.innerText = '제목 (할 일 이름) *';
-      } else {
-        btn2.classList.add('active');
-        btn1.classList.remove('active');
-        sec2.style.display = 'block';
-        sec1.style.display = 'none';
-        if (lblName) lblName.innerText = '제목 (반복 퀘스트/습관 이름) *';
-      }
-    }
-
-    function onRecurrenceChange() {
-      const rec = document.getElementById('selectQuestRecurrence').value;
-      const dayGroup = document.getElementById('daySelectGroup');
-      if (rec === 'WEEKLY') {
-        dayGroup.style.display = 'block';
-      } else {
-        dayGroup.style.display = 'none';
-      }
-    }
-
-    function toggleDayBtn(el) {
-      el.classList.toggle('active');
-    }
-
-    function openAddQuestModal() {
-      pushModalHistory('addQuestModal');
-      document.getElementById('editingQuestId').value = '';
-      document.getElementById('modalTitleText').innerText = '🌱 새로운 퀘스트 추가';
-      document.getElementById('btnSubmitQuest').innerText = '포켓Tasks 퀘스트 등록';
-      document.getElementById('btnDeleteQuest').style.display = 'none';
-
-      document.getElementById('inputQuestName').value = '';
-      document.getElementById('inputQuestDesc').value = '';
-      
-      const todayIso = new Date().toISOString().split('T')[0];
-      document.getElementById('inputQuestDateTab1').value = todayIso;
-      document.getElementById('inputQuestTimeTab1').value = '';
-      document.getElementById('inputQuestDateTab2').value = todayIso;
-      document.getElementById('inputQuestTimeTab2').value = '';
-
-      document.getElementById('inputQuestXp').value = 20;
-      document.getElementById('inputQuestRequired').checked = false;
-      document.getElementById('selectQuestRecurrence').value = 'DAILY';
-      document.getElementById('daySelectGroup').style.display = 'none';
-      document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
-
-      // 기본 1번 탭(빠른 할일 / 메모)으로 시작
-      switchQuestModalTab(1);
-
-      document.getElementById('addQuestModal').classList.add('open');
-      document.getElementById('inputQuestName').focus();
-    }
-
-    function openEditQuestModal(questId) {
-      pushModalHistory('editQuestModal');
-      const q = appState.quests.find(x => x.id === questId);
-      if (!q) return;
-
-      document.getElementById('editingQuestId').value = q.id;
-      document.getElementById('modalTitleText').innerText = '✏️ 퀘스트(할 일) 수정';
-      document.getElementById('btnSubmitQuest').innerText = '수정 내용 저장';
-      document.getElementById('btnDeleteQuest').style.display = 'block';
-
-      document.getElementById('inputQuestName').value = q.name || '';
-      document.getElementById('inputQuestDesc').value = q.description || '';
-      
-      const todayIso = new Date().toISOString().split('T')[0];
-      const dueDateVal = q.dueDate || todayIso;
-      const notifyTimeVal = q.notifyTime || '';
-
-      document.getElementById('inputQuestDateTab1').value = dueDateVal;
-      document.getElementById('inputQuestTimeTab1').value = notifyTimeVal;
-      document.getElementById('inputQuestDateTab2').value = dueDateVal;
-      document.getElementById('inputQuestTimeTab2').value = notifyTimeVal;
-
-      document.getElementById('inputQuestXp').value = q.rewardXp || 20;
-      document.getElementById('inputQuestRequired').checked = Boolean(q.isRequired);
-
-      const rec = q.recurrence || 'NONE';
-      document.querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
-
-      // 1번 탭(일회성) vs 2번 탭(반복) 판별
-      if (rec === 'NONE' || rec === '' || rec === '일회성') {
-        switchQuestModalTab(1);
-      } else {
-        switchQuestModalTab(2);
-        if (rec.startsWith('WEEKLY') || rec.includes(',')) {
-          document.getElementById('selectQuestRecurrence').value = 'WEEKLY';
-          document.getElementById('daySelectGroup').style.display = 'block';
-          const daysPart = rec.includes(':') ? rec.split(':')[1] : rec;
-          const days = daysPart.split(',').map(d => d.trim().toUpperCase());
-          days.forEach(d => {
-            const btn = document.querySelector(`.day-btn[data-day="${d}"]`);
-            if (btn) btn.classList.add('active');
-          });
-        } else if (rec === 'MONTHLY' || rec === 'HOURLY' || rec === 'DAILY') {
-          document.getElementById('selectQuestRecurrence').value = rec;
-          document.getElementById('daySelectGroup').style.display = 'none';
-        } else {
-          document.getElementById('selectQuestRecurrence').value = 'DAILY';
-          document.getElementById('daySelectGroup').style.display = 'none';
-        }
-      }
-
-      document.getElementById('addQuestModal').classList.add('open');
-      document.getElementById('inputQuestName').focus();
-    }
-
-    function closeAddQuestModal() {
-      document.getElementById('addQuestModal').classList.remove('open');
-    }
-
-    async function submitQuestForm() {
-      const editingId = document.getElementById('editingQuestId').value;
-      const isEditing = Boolean(editingId);
-      const activeTab = document.getElementById('activeQuestModalTab').value;
-
-      const name = document.getElementById('inputQuestName').value.trim();
-      const desc = document.getElementById('inputQuestDesc').value.trim();
-      const xp = parseInt(document.getElementById('inputQuestXp').value) || 20;
-      const isReq = document.getElementById('inputQuestRequired').checked;
-      const todayIso = new Date().toISOString().split('T')[0];
-
-      let dueDate = "";
-      let time = "";
-      let recType = "NONE";
-
-      // ⚡ 1번 탭: 빠른 할일 / 단발성 메모 (날짜/시간 미필수, 반복 설정 없음)
-      if (activeTab === "1") {
-        dueDate = document.getElementById('inputQuestDateTab1').value.trim() || todayIso;
-        time = document.getElementById('inputQuestTimeTab1').value.trim(); // 선택 사항
-        recType = "NONE"; // 1번 탭은 반복 없음(일회성) 고정
-      } 
-      // 🔁 2번 탭: 반복 습관 / 일정 (반복 주기 지정, 시간은 선택 사항)
-      else {
-        dueDate = document.getElementById('inputQuestDateTab2').value.trim() || todayIso;
-        time = document.getElementById('inputQuestTimeTab2').value.trim(); // 선택 사항 (시간 필수 아님)
-        recType = document.getElementById('selectQuestRecurrence').value;
-
-        if (recType === 'WEEKLY') {
-          const selectedDays = [];
-          document.querySelectorAll('.day-btn.active').forEach(b => selectedDays.push(b.getAttribute('data-day')));
-          if (selectedDays.length > 0) {
-            recType = "WEEKLY:" + selectedDays.join(',');
-          } else {
-            recType = "WEEKLY:MON,TUE,WED,THU,FRI";
-          }
-        }
-      }
-
-      if (!name) {
-        alert("퀘스트(할 일) 제목을 입력해 주세요!");
-        return;
-      }
-
-      const submitBtn = document.getElementById('btnSubmitQuest');
-      submitBtn.innerText = isEditing ? "⏳ 수정 중..." : "⏳ 퀘스트 등록 중...";
-      submitBtn.disabled = true;
-
-      try {
-        const payload = {
-          action: isEditing ? "updateQuest" : "addQuest",
-          name: name,
-          description: desc,
-          dueDate: dueDate,
-          notifyTime: time,
-          recurrence: recType,
-          rewardXp: xp,
-          isRequired: isReq
-        };
-        if (isEditing) payload.questId = editingId;
-
-        const response = await fetch(GAS_API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify(payload)
-        });
-        const result = await response.json();
-        submitBtn.innerText = isEditing ? "수정 내용 저장" : "포켓Tasks 퀘스트 등록";
-        submitBtn.disabled = false;
-
-        if (result.success && result.data) {
-          appState.quests = result.data.quests;
-          initUI(appState);
-          closeAddQuestModal();
-          alert("🎉 " + name + " 퀘스트가 " + (isEditing ? "수정" : "등록") + "되었습니다!");
-        } else {
-          closeAddQuestModal();
-          syncWithGasBackend();
-        }
-      } catch (err) {
-        submitBtn.innerText = "포켓Tasks 퀘스트 등록";
-        submitBtn.disabled = false;
-        closeAddQuestModal();
-        syncWithGasBackend();
-      }
-    }
-
-    async function submitDeleteQuest() {
-      const editingId = String(document.getElementById('editingQuestId').value || '').trim();
-      if (!editingId) return;
-
-      if (!confirm("정말 이 퀘스트를 삭제하시겠습니까?\n스프레드시트에서도 함께 삭제됩니다.")) {
-        return;
-      }
-
-      // 1) 🚀 즉시 낙관적 UI 삭제 (0.01초 만에 화면에서 즉각 제거)
-      const targetQuest = appState.quests.find(x => String(x.id).trim() === editingId);
-      const questName = targetQuest ? targetQuest.name : "퀘스트";
-      
-      appState.quests = appState.quests.filter(x => String(x.id).trim() !== editingId);
-      closeAddQuestModal();
-      renderQuestList(appState.quests);
-      renderStreakList(appState.quests);
-
-      try {
-        const response = await fetch(GAS_API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "deleteQuest", questId: editingId, questName: questName })
-        });
-        const result = await response.json();
-
-        if (result.success && result.data && result.data.quests) {
-          appState.quests = result.data.quests;
-          renderQuestList(appState.quests);
-          renderStreakList(appState.quests);
-          LocalNotificationManager.scheduleAllQuestNotifications();
-        }
-      } catch (err) {
-        console.error("Delete sync error:", err);
-      }
-    }
-
-    function toggleBatchDeleteMode() {
-      isBatchDeleteMode = true;
-      document.getElementById('btnRefreshQuests').style.display = 'none';
-      document.getElementById('btnAddQuest').style.display = 'none';
-      document.getElementById('btnToggleBatchDelete').style.display = 'none';
-      
-      document.getElementById('btnExecBatchDelete').style.display = 'inline-block';
-      document.getElementById('btnCancelBatchDelete').style.display = 'inline-block';
-      document.getElementById('btnExecBatchDelete').innerText = '❌ 삭제 실행 (0)';
-
-      document.querySelectorAll('.quest-batch-cb').forEach(cb => {
-        cb.style.display = 'inline-block';
-        cb.checked = false;
-      });
-      document.querySelectorAll('.quest-card-btns').forEach(b => b.style.display = 'none');
-    }
-
-    function cancelBatchDeleteMode() {
-      isBatchDeleteMode = false;
-      document.getElementById('btnRefreshQuests').style.display = 'inline-block';
-      document.getElementById('btnAddQuest').style.display = 'inline-block';
-      document.getElementById('btnToggleBatchDelete').style.display = 'inline-block';
-      
-      document.getElementById('btnExecBatchDelete').style.display = 'none';
-      document.getElementById('btnCancelBatchDelete').style.display = 'none';
-
-      document.querySelectorAll('.quest-batch-cb').forEach(cb => {
-        cb.style.display = 'none';
-        cb.checked = false;
-      });
-      document.querySelectorAll('.quest-card-btns').forEach(b => b.style.display = 'flex');
-    }
-
-    function onQuestCheckboxChange() {
-      const checkedCount = document.querySelectorAll('.quest-batch-cb:checked').length;
-      document.getElementById('btnExecBatchDelete').innerText = `❌ 삭제 실행 (${checkedCount})`;
-    }
-
-    async function executeBatchDelete() {
-      const checkedBoxes = document.querySelectorAll('.quest-batch-cb:checked');
-      if (checkedBoxes.length === 0) {
-        alert("삭제할 퀘스트를 1개 이상 선택해 주세요!");
-        return;
-      }
-
-      const count = checkedBoxes.length;
-      if (!confirm(`선택한 ${count}개의 퀘스트를 모두 삭제하시겠습니까?\n스프레드시트에서도 함께 일괄 삭제됩니다.`)) {
-        return;
-      }
-
-      const questIds = [];
-      checkedBoxes.forEach(cb => questIds.push(String(cb.getAttribute('data-id')).trim()));
-
-      // 1) 🚀 즉시 낙관적 UI 삭제 (화면에서 즉각 제거)
-      appState.quests = appState.quests.filter(x => !questIds.includes(String(x.id).trim()));
-      cancelBatchDeleteMode();
-      renderQuestList(appState.quests);
-      renderStreakList(appState.quests);
-
-      try {
-        const response = await fetch(GAS_API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "batchDeleteQuests", questIds: questIds })
-        });
-        const result = await response.json();
-
-        if (result.success && result.data && result.data.quests) {
-          appState.quests = result.data.quests;
-          renderQuestList(appState.quests);
-          renderStreakList(appState.quests);
-          LocalNotificationManager.scheduleAllQuestNotifications();
-        }
-      } catch (err) {
-        console.error("Batch delete sync error:", err);
-      }
-    }
-
-
-    function switchWorkspaceTab(tab, isFromHistory = false) {
-      const workPane = document.getElementById('workspacePane');
-      workPane.classList.add('open');
-
-      if (!isFromHistory) {
-        pushModalHistory(`tab_${tab}`);
-      }
-
-      document.getElementById('paneQuestView').style.display = 'none';
-      document.getElementById('paneStreakView').style.display = 'none';
-      document.getElementById('paneArcadeView').style.display = 'none';
-      document.getElementById('panePokedexView').style.display = 'none';
-      document.getElementById('paneNotifView').style.display = 'none';
-
-      // 🌟 [요청 3]: 퀘스트 기록(📊) & 알림설정(🔔) 버튼은 'QUEST' 탭에서만 노출!
-      const btnStreak = document.getElementById('btnHeaderStreak');
-      const btnNotif = document.getElementById('btnHeaderNotif');
-      if (btnStreak && btnNotif) {
-        if (tab === 'QUEST') {
-          btnStreak.style.display = 'flex';
-          btnNotif.style.display = 'flex';
-          btnStreak.style.background = 'rgba(255,255,255,0.12)';
-          btnNotif.style.background = 'rgba(255,255,255,0.12)';
-        } else {
-          btnStreak.style.display = 'none';
-          btnNotif.style.display = 'none';
-        }
-      }
-
-      // 하단 네비 버튼 활성화 하이라이트
-      document.querySelectorAll('.bottom-nav .nav-btn').forEach(b => b.classList.remove('active'));
-      const activeNavBtn = document.querySelector(`.bottom-nav .nav-btn[data-tab="${tab}"]`);
-      if (activeNavBtn) activeNavBtn.classList.add('active');
-
-      const title = document.getElementById('paneTitleText');
-      if (tab === 'QUEST') { 
-        title.innerHTML = "📋 퀘스트 목록"; 
-        document.getElementById('paneQuestView').style.display = 'block'; 
-      }
-      else if (tab === 'STREAK') { 
-        title.innerHTML = `<span style="cursor:pointer; margin-right:4px;" onclick="switchWorkspaceTab('QUEST')">⬅</span> 📊 퀘스트 기록`; 
-        document.getElementById('paneStreakView').style.display = 'block'; 
-        renderStreakList(appState.quests); 
-      }
-      else if (tab === 'ARCADE') { 
-        title.innerHTML = "🎮 미니게임"; 
-        document.getElementById('paneArcadeView').style.display = 'block'; 
-      }
-      else if (tab === 'DEX') {
-        title.innerHTML = "📖 포켓몬 도감";
-        document.getElementById('panePokedexView').style.display = 'block';
-        renderPokedexGrid();
-      }
-      else if (tab === 'NOTIF') {
-        title.innerHTML = `<span style="cursor:pointer; margin-right:4px;" onclick="switchWorkspaceTab('QUEST')">⬅</span> 🔔 알림 & PWA 설정`;
-        document.getElementById('paneNotifView').style.display = 'block';
-        runDiagnostics();
-      }
-    }
-
-    function closeMobileWorkspace() {
-      document.getElementById('workspacePane').classList.remove('open');
-    }
-
-    // 🌟 필수 퀘스트 판정 헬퍼 (boolean, string "TRUE", isEssential 등 모든 포맷 완벽 대응)
     function isQuestRequired(q) {
       if (!q) return false;
       const v = (q.isRequired !== undefined) ? q.isRequired : ((q.isEssential !== undefined) ? q.isEssential : q.required);
@@ -8206,11 +7932,409 @@
         alert("발송 통신 오류: " + err.message);
       }
     }
+  
+    // ========================================================
+    // 📚 정보보안기사 모의고사 & 실시간 체류 학습 타이머 엔진
+    // ========================================================
+    const STUDY_API_URL = "https://script.google.com/macros/s/AKfycbytQ_FkKMamOmViFSnSPCEpQgzFD1gK9n2XMqzGUUJQCE6QgeJcGZ9XJVi1tHlM5DGCgA/exec";
+
+    let studyExamListCache = null;
+    let currentExamData = null;
+    let currentQuestionIdx = 0;
+    let selectedOptionIdx = null;
+
+    const StudyTimerManager = {
+      timerId: null,
+      sessionSeconds: 0,
+      isPaused: false,
+      todaySeconds: 0,
+      allTimeSeconds: 0,
+      accumulatedXp: 0,
+
+      init() {
+        const todayStr = new Date().toISOString().split('T')[0];
+        this.todaySeconds = Number(localStorage.getItem(`study_today_${todayStr}`) || 0);
+        this.allTimeSeconds = Number(localStorage.getItem('study_alltime_seconds') || 0);
+        this.updateUiDisplay();
+
+        // 탭/화면 전환 시 자동 일시정지 & 재개
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden) {
+            this.pause();
+          } else if (appState && appState.currentTab === 'STUDY') {
+            this.resume();
+          }
+        });
+      },
+
+      start() {
+        if (this.timerId) return;
+        this.isPaused = false;
+        this.updateBadge();
+
+        this.timerId = setInterval(() => {
+          if (this.isPaused) return;
+
+          this.sessionSeconds++;
+          this.todaySeconds++;
+          this.allTimeSeconds++;
+
+          // 60초(1분)마다 상단 포켓몬에게 학습 집중 경험치 +2 XP 자동 지급!
+          if (this.sessionSeconds % 60 === 0) {
+            this.accumulatedXp += 2;
+            DeferredXpQueue.queueOrApply(2, "공부 집중");
+            triggerPokemonSpeechBubble("열공 중! 📖");
+          }
+
+          // 10초마다 로컬 저장
+          if (this.sessionSeconds % 10 === 0) {
+            this.saveStorage();
+          }
+
+          this.updateUiDisplay();
+        }, 1000);
+      },
+
+      pause() {
+        this.isPaused = true;
+        this.updateBadge();
+      },
+
+      resume() {
+        this.isPaused = false;
+        this.updateBadge();
+        if (!this.timerId) this.start();
+      },
+
+      togglePause() {
+        haptic.tick();
+        if (this.isPaused) {
+          this.resume();
+        } else {
+          this.pause();
+        }
+      },
+
+      stop() {
+        if (this.timerId) {
+          clearInterval(this.timerId);
+          this.timerId = null;
+        }
+        this.saveStorage();
+      },
+
+      saveStorage() {
+        const todayStr = new Date().toISOString().split('T')[0];
+        localStorage.setItem(`study_today_${todayStr}`, this.todaySeconds);
+        localStorage.setItem('study_alltime_seconds', this.allTimeSeconds);
+      },
+
+      formatTime(totalSec) {
+        const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+        const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+        const s = String(totalSec % 60).padStart(2, '0');
+        return `${h}:${m}:${s}`;
+      },
+
+      updateUiDisplay() {
+        const clockEl = document.getElementById('liveStudyClock');
+        if (clockEl) clockEl.innerText = this.formatTime(this.sessionSeconds);
+
+        const todayEl = document.getElementById('todayStudyTimeText');
+        if (todayEl) {
+          const m = Math.floor(this.todaySeconds / 60);
+          todayEl.innerText = m >= 60 ? `${Math.floor(m / 60)}시간 ${m % 60}분` : `${m}분`;
+        }
+
+        const xpEl = document.getElementById('todayStudyXpText');
+        if (xpEl) xpEl.innerText = `+${this.accumulatedXp} XP`;
+
+        const allTimeEl = document.getElementById('allTimeStudyTimeText');
+        if (allTimeEl) {
+          const totalHours = (this.allTimeSeconds / 3600).toFixed(1);
+          allTimeEl.innerText = `${totalHours}시간`;
+        }
+
+        const solvedEl = document.getElementById('totalSolvedCountText');
+        const accuracyEl = document.getElementById('studyAccuracyText');
+        const totalSolved = Number(localStorage.getItem('study_solved_count') || 0);
+        const correctCount = Number(localStorage.getItem('study_correct_count') || 0);
+
+        if (solvedEl) solvedEl.innerText = `${totalSolved}문항`;
+        if (accuracyEl) {
+          const acc = totalSolved > 0 ? Math.round((correctCount / totalSolved) * 100) : 0;
+          accuracyEl.innerText = `${acc}%`;
+        }
+      },
+
+      updateBadge() {
+        const badge = document.getElementById('studyTimerStatusBadge');
+        const btn = document.getElementById('btnToggleStudyTimer');
+        if (badge) {
+          badge.innerText = this.isPaused ? "일시정지 ⏸️" : "집중 중 ⚡";
+          badge.style.background = this.isPaused ? "#94a3b8" : "#22c55e";
+        }
+        if (btn) {
+          btn.innerText = this.isPaused ? "▶️ 재개" : "⏸️ 일시정지";
+        }
+      }
+    };
+
+    // 📚 모의고사 시험 목록 로드
+    async function loadStudyExamList(forceRefresh = false) {
+      const container = document.getElementById('studyExamListContainer');
+      if (!container) return;
+
+      if (studyExamListCache && !forceRefresh) {
+        renderStudyExamList(studyExamListCache);
+        return;
+      }
+
+      container.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8; font-size:12px;">⏳ 모의고사 데이터를 불러오는 중...</div>`;
+
+      try {
+        const resp = await fetch(STUDY_API_URL + "?api=getData");
+        const data = await resp.json();
+
+        if (data && data.status === "success" && data.exams) {
+          studyExamListCache = data.exams;
+          renderStudyExamList(data.exams, data.progress);
+        } else {
+          container.innerHTML = `<div style="text-align:center; padding:20px; color:#ef4444; font-size:12px;">데이터를 불러오지 못했습니다.</div>`;
+        }
+      } catch (err) {
+        container.innerHTML = `<div style="text-align:center; padding:20px; color:#ef4444; font-size:12px;">네트워크 연결 오류 (${err.message})</div>`;
+      }
+    }
+
+    function renderStudyExamList(exams, progressMap = {}) {
+      const container = document.getElementById('studyExamListContainer');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (!exams || exams.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:#64748b; font-size:12px;">등록된 시험이 없습니다.</div>`;
+        return;
+      }
+
+      exams.forEach(ex => {
+        const prog = progressMap[ex.id] || {};
+        const solved = prog.solvedCount || 0;
+        const total = ex.questionCount || 0;
+        const rate = total > 0 ? Math.round((solved / total) * 100) : 0;
+
+        const card = document.createElement('div');
+        card.className = 'exam-part-card';
+        card.innerHTML = `
+          <div class="exam-part-left">
+            <div class="exam-part-title">${ex.title}</div>
+            <div class="exam-part-meta">
+              <span>📝 ${total}문항</span> • 
+              <span style="color:#0284c7;">진도: ${rate}% (${solved}/${total})</span>
+              ${prog.lastScore !== null && prog.lastScore !== undefined ? ` • <span style="color:#10b981;">점수: ${prog.lastScore}점</span>` : ''}
+            </div>
+          </div>
+          <button class="btn-start-exam" onclick="startExamSession('${encodeURIComponent(ex.id)}')">
+            문제 풀기 ✍️
+          </button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // ✍️ 특정 모의고사 회차 풀기 시작
+    async function startExamSession(encodedExamId) {
+      const examId = decodeURIComponent(encodedExamId);
+      haptic.feed();
+
+      const modal = document.getElementById('studyExamModal');
+      const body = document.getElementById('modalExamBody');
+      const titleEl = document.getElementById('modalExamPartTitle');
+      if (titleEl) titleEl.innerText = examId;
+
+      if (modal) modal.style.display = 'flex';
+      if (body) body.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">⏳ 문제를 불러오는 중...</div>`;
+
+      try {
+        const resp = await fetch(`${STUDY_API_URL}?api=getExam&examId=${encodeURIComponent(examId)}`);
+        const data = await resp.json();
+
+        if (data && data.status === "success" && data.questions && data.questions.length > 0) {
+          currentExamData = data;
+          currentQuestionIdx = 0;
+          renderCurrentExamQuestion();
+        } else {
+          if (body) body.innerHTML = `<div style="text-align:center; padding:30px; color:#ef4444;">문제를 불러오지 못했습니다.</div>`;
+        }
+      } catch (err) {
+        if (body) body.innerHTML = `<div style="text-align:center; padding:30px; color:#ef4444;">네트워크 오류 (${err.message})</div>`;
+      }
+    }
+
+    function renderCurrentExamQuestion() {
+      if (!currentExamData || !currentExamData.questions) return;
+      const q = currentExamData.questions[currentQuestionIdx];
+      if (!q) return;
+
+      selectedOptionIdx = null;
+
+      const progText = document.getElementById('modalExamProgressText');
+      const qNumEl = document.getElementById('modalQuestionNumber');
+      const qTextEl = document.getElementById('modalQuestionText');
+      const passageBox = document.getElementById('modalPassageBox');
+      const optionsList = document.getElementById('modalOptionsList');
+      const explContainer = document.getElementById('modalExplanationContainer');
+
+      if (progText) progText.innerText = `문항 ${currentQuestionIdx + 1} / ${currentExamData.questions.length}`;
+      if (qNumEl) qNumEl.innerText = `Q. ${q.number || (currentQuestionIdx + 1)}`;
+      if (qTextEl) qTextEl.innerText = q.text;
+
+      if (passageBox) {
+        if (q.passage && q.passage.trim()) {
+          passageBox.innerText = q.passage;
+          passageBox.style.display = 'block';
+        } else {
+          passageBox.style.display = 'none';
+        }
+      }
+
+      if (explContainer) explContainer.style.display = 'none';
+
+      if (optionsList) {
+        optionsList.innerHTML = '';
+        const opts = q.options || [];
+        opts.forEach((optText, idx) => {
+          const optDiv = document.createElement('div');
+          optDiv.className = 'exam-option-item';
+          optDiv.dataset.idx = idx + 1;
+          optDiv.innerHTML = `
+            <span style="font-weight:900; color:#0284c7; width:20px;">${idx + 1}.</span>
+            <span style="flex:1;">${optText}</span>
+          `;
+          optDiv.onclick = () => {
+            haptic.tick();
+            selectedOptionIdx = idx + 1;
+            document.querySelectorAll('.exam-option-item').forEach(el => el.classList.remove('selected'));
+            optDiv.classList.add('selected');
+          };
+          optionsList.appendChild(optDiv);
+        });
+      }
+
+      const submitBtn = document.getElementById('btnExamSubmit');
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "정답 확인 ✓";
+        submitBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+      }
+    }
+
+    function checkExamAnswer() {
+      if (!currentExamData || !currentExamData.questions) return;
+      const q = currentExamData.questions[currentQuestionIdx];
+      if (!q) return;
+
+      if (!selectedOptionIdx) {
+        alert("선택지를 골라주세요!");
+        return;
+      }
+
+      const correctAns = Number(q.answer);
+      const isCorrect = (selectedOptionIdx === correctAns);
+
+      const items = document.querySelectorAll('.exam-option-item');
+      items.forEach(el => {
+        const idx = Number(el.dataset.idx);
+        if (idx === correctAns) {
+          el.classList.add('correct');
+        } else if (idx === selectedOptionIdx && !isCorrect) {
+          el.classList.add('wrong');
+        }
+      });
+
+      const explContainer = document.getElementById('modalExplanationContainer');
+      const explText = document.getElementById('modalExplanationText');
+      if (explContainer && explText) {
+        explText.innerText = q.explanation || (isCorrect ? "■ 정답입니다! 👏" : `■ 정답은 ${correctAns}번 입니다.`);
+        explContainer.style.display = 'block';
+      }
+
+      // 통계 누적
+      let totalSolved = Number(localStorage.getItem('study_solved_count') || 0) + 1;
+      let correctCount = Number(localStorage.getItem('study_correct_count') || 0);
+      if (isCorrect) correctCount++;
+
+      localStorage.setItem('study_solved_count', totalSolved);
+      localStorage.setItem('study_correct_count', correctCount);
+      StudyTimerManager.updateUiDisplay();
+
+      if (isCorrect) {
+        haptic.complete();
+        DeferredXpQueue.queueOrApply(10, "문제 정답!");
+      } else {
+        haptic.tick();
+      }
+
+      const submitBtn = document.getElementById('btnExamSubmit');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = isCorrect ? "정답! (+10 XP) 🎉" : "오답 확인 완료 ✍️";
+      }
+    }
+
+    function navigateExamQuestion(delta) {
+      if (!currentExamData || !currentExamData.questions) return;
+      const nextIdx = currentQuestionIdx + delta;
+      if (nextIdx < 0 || nextIdx >= currentExamData.questions.length) return;
+
+      currentQuestionIdx = nextIdx;
+      renderCurrentExamQuestion();
+    }
+
+    function closeStudyExamModal() {
+      haptic.tick();
+      const modal = document.getElementById('studyExamModal');
+      if (modal) modal.style.display = 'none';
+      currentExamData = null;
+    }
+
   </script>
 
   <!-- 🎮 미니게임 풀스크린 Iframe 모달 -->
   <div id="arcadeGameModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; height:100dvh; background:#0b0f19; z-index:99999; flex-direction:column;">
     <iframe id="arcadeGameIframe" src="" style="width:100%; height:100%; border:none;" allow="autoplay"></iframe>
+  </div>
+
+
+  <!-- ✍️ 모의고사 문제 풀이 인터페이스 전용 모달 -->
+  <div class="modal-backdrop" id="studyExamModal" style="display:none;">
+    <div class="exam-modal-box">
+      <div class="exam-modal-header">
+        <div>
+          <div style="font-size:11px; color:#38bdf8; font-weight:800;" id="modalExamPartTitle">정보보안기사 필기</div>
+          <div style="font-size:14px; font-weight:900;" id="modalExamProgressText">문항 1 / 10</div>
+        </div>
+        <button onclick="closeStudyExamModal()" style="background:none; border:none; color:#cbd5e1; font-size:18px; font-weight:900; cursor:pointer;">✕</button>
+      </div>
+
+      <div class="exam-modal-body" id="modalExamBody">
+        <div class="exam-q-number" id="modalQuestionNumber">Q. 1</div>
+        <div class="exam-q-text" id="modalQuestionText">문제를 불러오는 중...</div>
+        <div class="exam-passage-box" id="modalPassageBox" style="display:none;"></div>
+
+        <div class="exam-options-list" id="modalOptionsList"></div>
+
+        <div id="modalExplanationContainer" style="display:none;">
+          <div class="exam-explanation-box" id="modalExplanationText"></div>
+        </div>
+      </div>
+
+      <div class="exam-modal-footer">
+        <button id="btnExamPrev" onclick="navigateExamQuestion(-1)" style="background:#e2e8f0; color:#334155; border:none; padding:8px 14px; border-radius:8px; font-size:12.5px; font-weight:800; cursor:pointer;">◀ 이전</button>
+        <button id="btnExamSubmit" onclick="checkExamAnswer()" style="background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:8px 18px; border-radius:8px; font-size:13px; font-weight:900; cursor:pointer; flex:1;">정답 확인 ✓</button>
+        <button id="btnExamNext" onclick="navigateExamQuestion(1)" style="background:#0284c7; color:white; border:none; padding:8px 14px; border-radius:8px; font-size:12.5px; font-weight:800; cursor:pointer;">다음 ▶</button>
+      </div>
+    </div>
   </div>
 
 </body>
