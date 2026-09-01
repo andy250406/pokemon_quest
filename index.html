@@ -1966,47 +1966,66 @@
         </div>
       </div>
 
-      <!-- 👉 우측: 포켓몬 정보 & 실시간 경험치 패널 -->
+      <!-- 👉 우측: 포켓몬 정보 & 실시간 타이머 유기적 전환 패널 -->
       <div class="tamagotchi-info-panel">
         
-        <!-- 1단: 레벨, 이름, 성별 -->
-        <div class="info-top-row">
-          <div class="info-name-box">
-            <span class="level-badge" id="lvBadge">Lv.1</span>
-            <span class="pokemon-name" id="pokeName">이상해씨 <span class="gender-symbol male" id="genderSymbol">♂</span></span>
+        <!-- [VIEW A] 기본 포켓몬 정보란 (퀘스트, 게임, 도감, 설정 탭일 때) -->
+        <div id="topPanelPokemonInfo" style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
+          <div class="info-top-row">
+            <div class="info-name-box">
+              <span class="level-badge" id="lvBadge">Lv.1</span>
+              <span class="pokemon-name" id="pokeName">이상해씨 <span class="gender-symbol male" id="genderSymbol">♂</span></span>
+            </div>
+          </div>
+
+          <div class="info-mid-row">
+            <div class="type-icons-row" id="typeIconsRow" style="gap:4px;"></div>
+            <div style="display:flex; align-items:center; gap:4px;">
+              <span class="nature-tag" id="natureTag" style="font-size:11px; padding:2px 8px;" onclick="toggleNaturePopover(event)">고집</span>
+            </div>
+
+            <!-- ℹ️ 성격 & 성장속도 클릭 팝오버 창 -->
+            <div class="nature-popover" id="naturePopover" onclick="event.stopPropagation()">
+              <div class="nature-popover-title">
+                <span id="popoverNatureName">고집 성격</span>
+                <span style="font-size:10px; color:#94a3b8; cursor:pointer;" onclick="hideNaturePopover()">닫기 ✕</span>
+              </div>
+              <div class="nature-popover-row" id="popoverNatureDesc">
+                • <b>성격 효과</b>: 공격 +10%, 특수공격 -10%
+              </div>
+              <div class="nature-popover-row" id="popoverGrowthDesc">
+                • <b>성장 속도</b>: 보통느림 (표준 경험치)
+              </div>
+            </div>
+          </div>
+
+          <div class="info-exp-box">
+            <div class="xp-text">
+              <span>EXP</span>
+              <span id="xpValues" style="color:#38bdf8; font-weight:900;">0 / 100</span>
+            </div>
+            <div class="xp-bar-bg">
+              <div class="xp-bar-fill" id="xpBarFill"></div>
+            </div>
           </div>
         </div>
 
-        <!-- 2단: 타입 아이콘 & 성격 뱃지 -->
-        <div class="info-mid-row">
-          <div class="type-icons-row" id="typeIconsRow" style="gap:4px;"></div>
-          <div style="display:flex; align-items:center; gap:4px;">
-            <span class="nature-tag" id="natureTag" style="font-size:11px; padding:2px 8px;" onclick="toggleNaturePopover(event)">고집</span>
+        <!-- [VIEW B] ⏱️ 실시간 공부 타이머란 (공부 탭 진입 시 자동 전환) -->
+        <div id="topPanelStudyTimer" style="display:none; height:100%; flex-direction:column; justify-content:space-between;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:11px; font-weight:900; color:#38bdf8; display:flex; align-items:center; gap:4px;">
+              <span>⏱️</span> <span>공부 집중 모드</span>
+            </span>
+            <button id="btnTopToggleTimer" onclick="StudyTimerManager.togglePause()" style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); color:#f8fafc; font-size:10px; font-weight:800; padding:2px 7px; border-radius:6px; cursor:pointer;">⏸️ 일시정지</button>
+          </div>
+          
+          <div style="text-align:center; margin:1px 0;">
+            <div id="topLiveStudyClock" style="font-family:'Courier New', monospace; font-size:22px; font-weight:900; color:#38bdf8; letter-spacing:1px; text-shadow:0 0 8px rgba(56,189,248,0.6);">00:00:00</div>
           </div>
 
-          <!-- ℹ️ 성격 & 성장속도 클릭 팝오버 창 -->
-          <div class="nature-popover" id="naturePopover" onclick="event.stopPropagation()">
-            <div class="nature-popover-title">
-              <span id="popoverNatureName">고집 성격</span>
-              <span style="font-size:10px; color:#94a3b8; cursor:pointer;" onclick="hideNaturePopover()">닫기 ✕</span>
-            </div>
-            <div class="nature-popover-row" id="popoverNatureDesc">
-              • <b>성격 효과</b>: 공격 +10%, 특수공격 -10%
-            </div>
-            <div class="nature-popover-row" id="popoverGrowthDesc">
-              • <b>성장 속도</b>: 보통느림 (표준 경험치)
-            </div>
-          </div>
-        </div>
-
-        <!-- 3단: 실시간 EXP 바 -->
-        <div class="info-exp-box">
-          <div class="xp-text">
-            <span>EXP</span>
-            <span id="xpValues" style="color:#38bdf8; font-weight:900;">0 / 100</span>
-          </div>
-          <div class="xp-bar-bg">
-            <div class="xp-bar-fill" id="xpBarFill"></div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:10.5px; color:#cbd5e1; font-weight:700;">
+            <span>오늘: <b id="topTodayStudyTime" style="color:white;">0분</b></span>
+            <span style="color:#38bdf8; font-weight:800;" id="topTodayStudyXp">+0 XP 적립</span>
           </div>
         </div>
 
@@ -5549,6 +5568,10 @@
         const dexView = document.getElementById('panePokedexView');
         const notifView = document.getElementById('paneNotifView');
 
+        // 상단 우측 패널 전환
+        const topPokeInfo = document.getElementById('topPanelPokemonInfo');
+        const topStudyTimer = document.getElementById('topPanelStudyTimer');
+
         if (questView) questView.style.display = 'none';
         if (studyView) studyView.style.display = 'none';
         if (streakView) streakView.style.display = 'none';
@@ -5561,34 +5584,37 @@
         const activeNavBtn = document.querySelector(`.bottom-nav .nav-btn[data-tab="${tab}"]`);
         if (activeNavBtn) activeNavBtn.classList.add('active');
 
-        if (tab === 'QUEST') { 
-          if (questView) questView.style.display = 'block'; 
-          if (appState && appState.quests) renderQuestList(appState.quests);
-          StudyTimerManager.pause();
-        }
-        else if (tab === 'STUDY') {
+        // 🌟 [요구사항 2]: 공부 탭 진입 시 상단 우측 패널이 타이머 패널로 유기적 자동 전환!
+        if (tab === 'STUDY') {
+          if (topPokeInfo) topPokeInfo.style.display = 'none';
+          if (topStudyTimer) topStudyTimer.style.display = 'flex';
           if (studyView) studyView.style.display = 'block';
           StudyTimerManager.start();
           loadStudyExamList();
-        }
-        else if (tab === 'STREAK') { 
-          if (streakView) streakView.style.display = 'block'; 
-          if (appState && appState.quests) renderStreakList(appState.quests); 
+        } else {
+          if (topPokeInfo) topPokeInfo.style.display = 'flex';
+          if (topStudyTimer) topStudyTimer.style.display = 'none';
           StudyTimerManager.pause();
-        }
-        else if (tab === 'ARCADE') { 
-          if (arcadeView) arcadeView.style.display = 'block'; 
-          StudyTimerManager.pause();
-        }
-        else if (tab === 'DEX') {
-          if (dexView) dexView.style.display = 'block';
-          renderPokedexGrid();
-          StudyTimerManager.pause();
-        }
-        else if (tab === 'NOTIF') {
-          if (notifView) notifView.style.display = 'block';
-          LocalNotificationManager.updateBadge();
-          StudyTimerManager.pause();
+
+          if (tab === 'QUEST') {
+            if (questView) questView.style.display = 'block'; 
+            if (appState && appState.quests) renderQuestList(appState.quests);
+          }
+          else if (tab === 'STREAK') { 
+            if (streakView) streakView.style.display = 'block'; 
+            if (appState && appState.quests) renderStreakList(appState.quests); 
+          }
+          else if (tab === 'ARCADE') { 
+            if (arcadeView) arcadeView.style.display = 'block'; 
+          }
+          else if (tab === 'DEX') {
+            if (dexView) dexView.style.display = 'block';
+            renderPokedexGrid();
+          }
+          else if (tab === 'NOTIF') {
+            if (notifView) notifView.style.display = 'block';
+            LocalNotificationManager.updateBadge();
+          }
         }
       });
     }
@@ -5909,16 +5935,6 @@
       const q = appState.quests.find(x => String(x.id).trim() === cleanId);
       if (!q) return;
 
-      const timing = evaluateQuestTimingState(q);
-      if (!timing.isActionableNow) {
-        if (timing.isDoneToday) {
-          alert("오늘 이미 완료한 퀘스트입니다! 다음 예정일에 다시 활성화됩니다.");
-        } else if (timing.isWaitingForTime) {
-          alert(`⏰ 해당 퀘스트는 설정된 시간(${q.notifyTime})부터 오늘 24:00까지 수행 가능합니다!`);
-        }
-        return;
-      }
-
       const todayStr = new Date().toISOString().split('T')[0];
       const isRecurring = q.recurrence && q.recurrence !== "NONE" && q.recurrence !== "일회성";
 
@@ -5927,22 +5943,23 @@
       q.lastCompletedDate = todayStr;
       q.consecutiveDays = (q.consecutiveDays || 0) + 1;
 
-      // 🌟 일회성 퀘스트는 완료 태그 부여 (목록에서 즉시 영구 제외)
       if (!isRecurring) {
         q.isSingleCompleted = true;
       }
-      // 🌟 반복 퀘스트는 당일에는 dueDate를 오늘로 유지하여 완료 상태를 보여줌 (자정이 지나면 자동으로 다음 시간으로 롤오버)
-      
-      // 3) 찰진 햅틱 진동 & 지연 경험치 큐잉 (메인 화면 복귀 시 애니메이션 폭발)
-      haptic.complete();
-      DeferredXpQueue.queueOrApply(q.rewardXp || 20, q.name);
 
-      // 4) 퀘스트 목록 & 기록 탭 즉각 재렌더링
+      // 2) 찰진 햅틱 & 상단 다마고치 포켓몬 경험치 즉각 지급!
+      haptic.complete();
+      triggerPokemonRewardGlow();
+      triggerSpriteHopAnimation();
+      processXpGainAndEvolve(q.rewardXp || 20);
+      showGameRewardToast(`🎉 [${q.name}] 완료! +${q.rewardXp || 20} XP 획득! ✨`);
+
+      // 3) 퀘스트 목록 & 기록 탭 즉각 재렌더링
       renderQuestList(appState.quests);
       renderStreakList(appState.quests);
       saveLocalFullCache();
 
-      logDebug(`퀘스트 완료: "${q.name}" (+${q.rewardXp}XP, ${q.consecutiveDays}일 연속)`, "info");
+      logDebug(`퀘스트 완료: "${q.name}" (+${q.rewardXp || 20}XP, ${q.consecutiveDays}일 연속)`, "info");
       try {
         fetch(GAS_API_URL, {
           method: "POST",
@@ -7935,13 +7952,13 @@
   
     // ========================================================
     // 📚 정보보안기사 모의고사 & 실시간 체류 학습 타이머 엔진
-    // ========================================================
     const STUDY_API_URL = "https://script.google.com/macros/s/AKfycbytQ_FkKMamOmViFSnSPCEpQgzFD1gK9n2XMqzGUUJQCE6QgeJcGZ9XJVi1tHlM5DGCgA/exec";
 
     let studyExamListCache = null;
     let currentExamData = null;
     let currentQuestionIdx = 0;
     let selectedOptionIdx = null;
+    let currentStudyMode = 'EXAM'; // 'EXAM' or 'FLASHCARD'
 
     const StudyTimerManager = {
       timerId: null,
@@ -7957,7 +7974,6 @@
         this.allTimeSeconds = Number(localStorage.getItem('study_alltime_seconds') || 0);
         this.updateUiDisplay();
 
-        // 탭/화면 전환 시 자동 일시정지 & 재개
         document.addEventListener('visibilitychange', () => {
           if (document.hidden) {
             this.pause();
@@ -7968,31 +7984,30 @@
       },
 
       start() {
-        if (this.timerId) return;
         this.isPaused = false;
         this.updateBadge();
 
-        this.timerId = setInterval(() => {
-          if (this.isPaused) return;
+        if (!this.timerId) {
+          this.timerId = setInterval(() => {
+            if (this.isPaused) return;
 
-          this.sessionSeconds++;
-          this.todaySeconds++;
-          this.allTimeSeconds++;
+            this.sessionSeconds++;
+            this.todaySeconds++;
+            this.allTimeSeconds++;
 
-          // 60초(1분)마다 상단 포켓몬에게 학습 집중 경험치 +2 XP 자동 지급!
-          if (this.sessionSeconds % 60 === 0) {
-            this.accumulatedXp += 2;
-            DeferredXpQueue.queueOrApply(2, "공부 집중");
-            triggerPokemonSpeechBubble("열공 중! 📖");
-          }
+            if (this.sessionSeconds % 60 === 0) {
+              this.accumulatedXp += 2;
+              processXpGainAndEvolve(2);
+              triggerPokemonSpeechBubble("열공 중! 📖");
+            }
 
-          // 10초마다 로컬 저장
-          if (this.sessionSeconds % 10 === 0) {
-            this.saveStorage();
-          }
+            if (this.sessionSeconds % 10 === 0) {
+              this.saveStorage();
+            }
 
-          this.updateUiDisplay();
-        }, 1000);
+            this.updateUiDisplay();
+          }, 1000);
+        }
       },
 
       pause() {
@@ -8037,50 +8052,45 @@
       },
 
       updateUiDisplay() {
-        const clockEl = document.getElementById('liveStudyClock');
-        if (clockEl) clockEl.innerText = this.formatTime(this.sessionSeconds);
+        const timeStr = this.formatTime(this.sessionSeconds);
+        const m = Math.floor(this.todaySeconds / 60);
+        const todayStr = m >= 60 ? `${Math.floor(m / 60)}시간 ${m % 60}분` : `${m}분`;
 
-        const todayEl = document.getElementById('todayStudyTimeText');
-        if (todayEl) {
-          const m = Math.floor(this.todaySeconds / 60);
-          todayEl.innerText = m >= 60 ? `${Math.floor(m / 60)}시간 ${m % 60}분` : `${m}분`;
-        }
+        // 🌟 상단 30% 다마고치 우측 타이머 UI 즉시 동기화
+        const topClock = document.getElementById('topLiveStudyClock');
+        const topToday = document.getElementById('topTodayStudyTime');
+        const topXp = document.getElementById('topTodayStudyXp');
+        if (topClock) topClock.innerText = timeStr;
+        if (topToday) topToday.innerText = todayStr;
+        if (topXp) topXp.innerText = `+${this.accumulatedXp} XP 적립`;
 
-        const xpEl = document.getElementById('todayStudyXpText');
-        if (xpEl) xpEl.innerText = `+${this.accumulatedXp} XP`;
-
-        const allTimeEl = document.getElementById('allTimeStudyTimeText');
-        if (allTimeEl) {
-          const totalHours = (this.allTimeSeconds / 3600).toFixed(1);
-          allTimeEl.innerText = `${totalHours}시간`;
-        }
-
-        const solvedEl = document.getElementById('totalSolvedCountText');
-        const accuracyEl = document.getElementById('studyAccuracyText');
+        // 하단 통계 카드 동기화
         const totalSolved = Number(localStorage.getItem('study_solved_count') || 0);
         const correctCount = Number(localStorage.getItem('study_correct_count') || 0);
+        const solvedEl = document.getElementById('totalSolvedCountText');
+        const accuracyEl = document.getElementById('studyAccuracyText');
+        const allTimeEl = document.getElementById('allTimeStudyTimeText');
 
         if (solvedEl) solvedEl.innerText = `${totalSolved}문항`;
         if (accuracyEl) {
           const acc = totalSolved > 0 ? Math.round((correctCount / totalSolved) * 100) : 0;
           accuracyEl.innerText = `${acc}%`;
         }
+        if (allTimeEl) {
+          const totalHours = (this.allTimeSeconds / 3600).toFixed(1);
+          allTimeEl.innerText = `${totalHours}시간`;
+        }
       },
 
       updateBadge() {
-        const badge = document.getElementById('studyTimerStatusBadge');
-        const btn = document.getElementById('btnToggleStudyTimer');
-        if (badge) {
-          badge.innerText = this.isPaused ? "일시정지 ⏸️" : "집중 중 ⚡";
-          badge.style.background = this.isPaused ? "#94a3b8" : "#22c55e";
-        }
-        if (btn) {
-          btn.innerText = this.isPaused ? "▶️ 재개" : "⏸️ 일시정지";
+        const topBtn = document.getElementById('btnTopToggleTimer');
+        if (topBtn) {
+          topBtn.innerText = this.isPaused ? "▶️ 재개" : "⏸️ 일시정지";
         }
       }
     };
 
-    // 📚 모의고사 시험 목록 로드
+    // 📚 모의고사 시험 목록 로드 및 렌더링
     async function loadStudyExamList(forceRefresh = false) {
       const container = document.getElementById('studyExamListContainer');
       if (!container) return;
@@ -8090,7 +8100,7 @@
         return;
       }
 
-      container.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8; font-size:12px;">⏳ 모의고사 데이터를 불러오는 중...</div>`;
+      container.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8; font-size:12px;">⏳ 정보보안기사 모의고사 데이터를 불러오는 중...</div>`;
 
       try {
         const resp = await fetch(STUDY_API_URL + "?api=getData");
@@ -8125,32 +8135,38 @@
 
         const card = document.createElement('div');
         card.className = 'exam-part-card';
+        card.style.cssText = "background:white; border:1px solid rgba(0,0,0,0.08); border-radius:14px; padding:12px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:10px; box-shadow:0 2px 6px rgba(0,0,0,0.03);";
         card.innerHTML = `
-          <div class="exam-part-left">
-            <div class="exam-part-title">${ex.title}</div>
-            <div class="exam-part-meta">
+          <div class="exam-part-left" style="flex:1; min-width:0;">
+            <div class="exam-part-title" style="font-size:13.5px; font-weight:900; color:#0f172a; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.title}</div>
+            <div class="exam-part-meta" style="font-size:11.5px; color:#64748b; font-weight:700;">
               <span>📝 ${total}문항</span> • 
               <span style="color:#0284c7;">진도: ${rate}% (${solved}/${total})</span>
-              ${prog.lastScore !== null && prog.lastScore !== undefined ? ` • <span style="color:#10b981;">점수: ${prog.lastScore}점</span>` : ''}
             </div>
           </div>
-          <button class="btn-start-exam" onclick="startExamSession('${encodeURIComponent(ex.id)}')">
-            문제 풀기 ✍️
-          </button>
+          <div style="display:flex; gap:6px; flex-shrink:0;">
+            <button onclick="startExamSession('${encodeURIComponent(ex.id)}', 'FLASHCARD')" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; padding:7px 11px; border-radius:8px; font-size:11.5px; font-weight:800; cursor:pointer;">
+              📇 카드
+            </button>
+            <button onclick="startExamSession('${encodeURIComponent(ex.id)}', 'EXAM')" style="background:linear-gradient(135deg, #0284c7, #0369a1); color:white; border:none; padding:7px 12px; border-radius:8px; font-size:11.5px; font-weight:800; cursor:pointer;">
+              ✍️ 풀기
+            </button>
+          </div>
         `;
         container.appendChild(card);
       });
     }
 
-    // ✍️ 특정 모의고사 회차 풀기 시작
-    async function startExamSession(encodedExamId) {
+    // ✍️ 특정 모의고사 회차 풀기 / 플래시카드 시작
+    async function startExamSession(encodedExamId, mode = 'EXAM') {
       const examId = decodeURIComponent(encodedExamId);
+      currentStudyMode = mode;
       haptic.feed();
 
       const modal = document.getElementById('studyExamModal');
       const body = document.getElementById('modalExamBody');
       const titleEl = document.getElementById('modalExamPartTitle');
-      if (titleEl) titleEl.innerText = examId;
+      if (titleEl) titleEl.innerText = `${mode === 'FLASHCARD' ? '📇 [플래시카드]' : '✍️ [모의고사]'} ${examId}`;
 
       if (modal) modal.style.display = 'flex';
       if (body) body.innerHTML = `<div style="text-align:center; padding:40px; color:#64748b;">⏳ 문제를 불러오는 중...</div>`;
@@ -8184,6 +8200,7 @@
       const passageBox = document.getElementById('modalPassageBox');
       const optionsList = document.getElementById('modalOptionsList');
       const explContainer = document.getElementById('modalExplanationContainer');
+      const submitBtn = document.getElementById('btnExamSubmit');
 
       if (progText) progText.innerText = `문항 ${currentQuestionIdx + 1} / ${currentExamData.questions.length}`;
       if (qNumEl) qNumEl.innerText = `Q. ${q.number || (currentQuestionIdx + 1)}`;
@@ -8198,8 +8215,6 @@
         }
       }
 
-      if (explContainer) explContainer.style.display = 'none';
-
       if (optionsList) {
         optionsList.innerHTML = '';
         const opts = q.options || [];
@@ -8207,6 +8222,7 @@
           const optDiv = document.createElement('div');
           optDiv.className = 'exam-option-item';
           optDiv.dataset.idx = idx + 1;
+          optDiv.style.cssText = "background:white; border:1.5px solid #cbd5e1; border-radius:10px; padding:10px 12px; font-size:13px; font-weight:600; color:#1e293b; cursor:pointer; display:flex; align-items:center; gap:8px;";
           optDiv.innerHTML = `
             <span style="font-weight:900; color:#0284c7; width:20px;">${idx + 1}.</span>
             <span style="flex:1;">${optText}</span>
@@ -8214,18 +8230,34 @@
           optDiv.onclick = () => {
             haptic.tick();
             selectedOptionIdx = idx + 1;
-            document.querySelectorAll('.exam-option-item').forEach(el => el.classList.remove('selected'));
-            optDiv.classList.add('selected');
+            document.querySelectorAll('.exam-option-item').forEach(el => {
+              el.style.borderColor = "#cbd5e1";
+              el.style.background = "white";
+              el.style.color = "#1e293b";
+            });
+            optDiv.style.borderColor = "#0284c7";
+            optDiv.style.background = "#f0f9ff";
+            optDiv.style.color = "#0369a1";
           };
           optionsList.appendChild(optDiv);
         });
       }
 
-      const submitBtn = document.getElementById('btnExamSubmit');
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerText = "정답 확인 ✓";
-        submitBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+      // 플래시카드 모드인 경우 정답/해설 바로 확인 버튼
+      if (currentStudyMode === 'FLASHCARD') {
+        if (explContainer) explContainer.style.display = 'none';
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "💡 정답 & 해설 열기";
+          submitBtn.style.background = "linear-gradient(135deg, #0284c7, #0369a1)";
+        }
+      } else {
+        if (explContainer) explContainer.style.display = 'none';
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "정답 확인 ✓";
+          submitBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+        }
       }
     }
 
@@ -8234,21 +8266,52 @@
       const q = currentExamData.questions[currentQuestionIdx];
       if (!q) return;
 
+      const correctAns = Number(q.answer);
+
+      // 플래시카드 모드: 바로 해설 표시
+      if (currentStudyMode === 'FLASHCARD') {
+        haptic.tick();
+        const items = document.querySelectorAll('.exam-option-item');
+        items.forEach(el => {
+          if (Number(el.dataset.idx) === correctAns) {
+            el.style.borderColor = "#10b981";
+            el.style.background = "#ecfdf5";
+            el.style.color = "#047857";
+          }
+        });
+        const explContainer = document.getElementById('modalExplanationContainer');
+        const explText = document.getElementById('modalExplanationText');
+        if (explContainer && explText) {
+          explText.innerText = q.explanation || `■ 정답은 ${correctAns}번 입니다.`;
+          explContainer.style.display = 'block';
+        }
+        const submitBtn = document.getElementById('btnExamSubmit');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerText = "해설 확인 완료 👍";
+        }
+        return;
+      }
+
+      // 시험 모드: 선택지 검사
       if (!selectedOptionIdx) {
         alert("선택지를 골라주세요!");
         return;
       }
 
-      const correctAns = Number(q.answer);
       const isCorrect = (selectedOptionIdx === correctAns);
 
       const items = document.querySelectorAll('.exam-option-item');
       items.forEach(el => {
         const idx = Number(el.dataset.idx);
         if (idx === correctAns) {
-          el.classList.add('correct');
+          el.style.borderColor = "#10b981";
+          el.style.background = "#ecfdf5";
+          el.style.color = "#047857";
         } else if (idx === selectedOptionIdx && !isCorrect) {
-          el.classList.add('wrong');
+          el.style.borderColor = "#ef4444";
+          el.style.background = "#fef2f2";
+          el.style.color = "#b91c1c";
         }
       });
 
@@ -8270,7 +8333,9 @@
 
       if (isCorrect) {
         haptic.complete();
-        DeferredXpQueue.queueOrApply(10, "문제 정답!");
+        triggerPokemonRewardGlow();
+        processXpGainAndEvolve(10);
+        showGameRewardToast("🎉 문제 정답! +10 XP 획득! ✨");
       } else {
         haptic.tick();
       }
@@ -8297,8 +8362,7 @@
       if (modal) modal.style.display = 'none';
       currentExamData = null;
     }
-
-  </script>
+</script>
 
   <!-- 🎮 미니게임 풀스크린 Iframe 모달 -->
   <div id="arcadeGameModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; height:100dvh; background:#0b0f19; z-index:99999; flex-direction:column;">
@@ -8306,33 +8370,40 @@
   </div>
 
 
-  <!-- ✍️ 모의고사 문제 풀이 인터페이스 전용 모달 -->
-  <div class="modal-backdrop" id="studyExamModal" style="display:none;">
-    <div class="exam-modal-box">
-      <div class="exam-modal-header">
+  
+  <!-- 📇 플래시카드 & ✍️ 모의고사 통합 문제 풀이 전용 모달 -->
+  <div class="modal-backdrop" id="studyExamModal" style="display:none; z-index:99999;">
+    <div class="exam-modal-box" style="width:94%; max-width:520px; max-height:88vh; border-radius:20px; background:#ffffff; color:#0f172a; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 25px 60px rgba(0,0,0,0.5);">
+      
+      <!-- 헤더 -->
+      <div class="exam-modal-header" style="background:#0f172a; color:white; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
         <div>
           <div style="font-size:11px; color:#38bdf8; font-weight:800;" id="modalExamPartTitle">정보보안기사 필기</div>
-          <div style="font-size:14px; font-weight:900;" id="modalExamProgressText">문항 1 / 10</div>
+          <div style="font-size:13.5px; font-weight:900;" id="modalExamProgressText">문항 1 / 10</div>
         </div>
-        <button onclick="closeStudyExamModal()" style="background:none; border:none; color:#cbd5e1; font-size:18px; font-weight:900; cursor:pointer;">✕</button>
+        <button onclick="closeStudyExamModal()" style="background:rgba(255,255,255,0.1); border:none; color:#cbd5e1; font-size:16px; font-weight:900; width:30px; height:30px; border-radius:50%; cursor:pointer;">✕</button>
       </div>
 
-      <div class="exam-modal-body" id="modalExamBody">
-        <div class="exam-q-number" id="modalQuestionNumber">Q. 1</div>
-        <div class="exam-q-text" id="modalQuestionText">문제를 불러오는 중...</div>
-        <div class="exam-passage-box" id="modalPassageBox" style="display:none;"></div>
+      <!-- 본문 -->
+      <div class="exam-modal-body" id="modalExamBody" style="flex:1; overflow-y:auto; padding:16px;">
+        <div class="exam-q-number" id="modalQuestionNumber" style="font-size:13px; font-weight:900; color:#0284c7; margin-bottom:4px;">Q. 1</div>
+        <div class="exam-q-text" id="modalQuestionText" style="font-size:15px; font-weight:800; line-height:1.45; color:#0f172a; margin-bottom:10px;">문제를 불러오는 중...</div>
+        <div class="exam-passage-box" id="modalPassageBox" style="display:none; background:#f1f5f9; border-left:4px solid #0284c7; border-radius:8px; padding:10px 12px; font-size:12.5px; line-height:1.45; color:#334155; margin-bottom:12px; white-space:pre-wrap;"></div>
 
-        <div class="exam-options-list" id="modalOptionsList"></div>
+        <!-- 4지선다 선택지 리스트 (시험 모드) -->
+        <div class="exam-options-list" id="modalOptionsList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;"></div>
 
+        <!-- 플래시카드 전용 빠른 정답/해설 확인 영역 -->
         <div id="modalExplanationContainer" style="display:none;">
-          <div class="exam-explanation-box" id="modalExplanationText"></div>
+          <div class="exam-explanation-box" id="modalExplanationText" style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:10px; padding:12px; font-size:12.5px; line-height:1.45; color:#166534; white-space:pre-wrap;"></div>
         </div>
       </div>
 
-      <div class="exam-modal-footer">
-        <button id="btnExamPrev" onclick="navigateExamQuestion(-1)" style="background:#e2e8f0; color:#334155; border:none; padding:8px 14px; border-radius:8px; font-size:12.5px; font-weight:800; cursor:pointer;">◀ 이전</button>
-        <button id="btnExamSubmit" onclick="checkExamAnswer()" style="background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:8px 18px; border-radius:8px; font-size:13px; font-weight:900; cursor:pointer; flex:1;">정답 확인 ✓</button>
-        <button id="btnExamNext" onclick="navigateExamQuestion(1)" style="background:#0284c7; color:white; border:none; padding:8px 14px; border-radius:8px; font-size:12.5px; font-weight:800; cursor:pointer;">다음 ▶</button>
+      <!-- 하단 컨트롤 버튼바 -->
+      <div class="exam-modal-footer" style="padding:10px 14px; background:#f8fafc; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <button id="btnExamPrev" onclick="navigateExamQuestion(-1)" style="background:#e2e8f0; color:#334155; border:none; padding:8px 14px; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">◀ 이전</button>
+        <button id="btnExamSubmit" onclick="checkExamAnswer()" style="background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:9px 16px; border-radius:8px; font-size:13px; font-weight:900; cursor:pointer; flex:1;">정답 확인 ✓</button>
+        <button id="btnExamNext" onclick="navigateExamQuestion(1)" style="background:#0284c7; color:white; border:none; padding:8px 14px; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">다음 ▶</button>
       </div>
     </div>
   </div>
