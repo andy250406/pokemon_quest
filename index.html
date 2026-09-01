@@ -1930,6 +1930,103 @@
       gap: 8px;
     }
 
+  
+    /* 📇 고유 플래시카드 모드 전용 스타일 */
+    .flashcard-wrapper {
+      position: relative;
+      width: 100%;
+      min-height: 440px;
+      perspective: 1000px;
+    }
+    .flashcard {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+      transition: transform 0.22s ease, opacity 0.22s ease;
+      touch-action: pan-y;
+      user-select: none;
+      position: relative;
+    }
+    .card-enter {
+      animation: cardEnterAnim 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes cardEnterAnim {
+      from { transform: scale(0.93); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .swipe-out-left {
+      transform: translateX(-120%) rotate(-12deg) !important;
+      opacity: 0 !important;
+      transition: transform 0.22s ease, opacity 0.22s ease;
+    }
+    .swipe-out-right {
+      transform: translateX(120%) rotate(12deg) !important;
+      opacity: 0 !important;
+      transition: transform 0.22s ease, opacity 0.22s ease;
+    }
+    .swipe-hint-bar {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+      margin-bottom: 10px;
+      padding: 5px 10px;
+      background: #f1f5f9;
+      border-radius: 8px;
+    }
+    .flashcard-popup {
+      margin-top: 14px;
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 14px;
+      animation: fadeInAnim 0.2s ease-in-out;
+    }
+    @keyframes fadeInAnim {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .popup-result-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .badge-correct { background: #dcfce7; color: #15803d; }
+    .badge-incorrect { background: #fee2e2; color: #b91c1c; }
+    .flashcard-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .btn-card-clear {
+      flex: 1;
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .btn-card-repeat {
+      flex: 1;
+      background: #f97316;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
   </style>
 </head>
 <body>
@@ -5851,13 +5948,13 @@
 
     function createQuestCardElement(q) {
       const card = document.createElement('div');
-      const timing = evaluateQuestTimingState(q);
-      const isDone = Boolean(q.isCompletedToday || q.isSingleCompleted);
+      const todayStr = new Date().toISOString().split('T')[0];
+      const isDone = Boolean(q.isCompletedToday || q.isSingleCompleted || (q.lastCompletedDate === todayStr));
       card.className = `quest-card ${isDone ? 'completed' : ''}`;
       
       // 1) [1번째 줄] 날짜 • 요일 • 시간
       const metaParts = [];
-      const targetDateStr = timing.displayDueDate;
+      const targetDateStr = isDone ? todayStr : (q.dueDate || todayStr);
       if (targetDateStr) {
         metaParts.push(targetDateStr);
         try {
@@ -5895,12 +5992,12 @@
       // 3) [3번째 줄] 상세 설명/메모
       const descHtml = q.description ? `<div class="quest-desc" style="font-size:11px; color:#334155; font-weight:500; line-height:1.35; margin-top:3px; word-break:break-word;">${q.description}</div>` : '';
 
-      // 🌟 [핵심 수정]: 완료 버튼 - 완료되지 않은 모든 퀘스트는 누르면 즉각 완료 처리!
+      // 🌟 [핵심]: 완료 상태일 때는 비활성화된 [✓ 완료] 버튼, 미완료일 때만 [+XP] 버튼
       let btnHtml = '';
       if (isDone) {
-        btnHtml = `<button class="btn-quest-done disabled" style="opacity:0.6; cursor:not-allowed; min-width:38px; padding:6px 10px;" title="오늘 완료됨">✓ 완료</button>`;
+        btnHtml = `<button class="btn-quest-done disabled" style="background:#cbd5e1; color:#475569; opacity:0.75; cursor:not-allowed; min-width:60px; padding:6px 10px; font-weight:800; border-radius:8px;" disabled title="완료됨">✓ 완료</button>`;
       } else {
-        btnHtml = `<button class="btn-quest-done" onclick="completeQuestDirect('${q.id}')">+${q.rewardXp || 20} XP</button>`;
+        btnHtml = `<button class="btn-quest-done" style="min-width:60px; font-weight:900;" onclick="completeQuestDirect('${q.id}')">+${q.rewardXp || 20} XP</button>`;
       }
 
       card.innerHTML = `
@@ -5928,15 +6025,17 @@
       if (!questId) return;
       const cleanId = String(questId).trim();
       const q = appState.quests.find(x => String(x.id).trim() === cleanId);
-      if (!q) {
-        console.warn("Quest not found for id:", questId);
-        return;
-      }
+      if (!q) return;
 
       const todayStr = new Date().toISOString().split('T')[0];
       const isRecurring = q.recurrence && q.recurrence !== "NONE" && q.recurrence !== "일회성";
 
-      // 1) 당일 완료 마킹 및 연속 일수 증가
+      // 🌟 [무한 클릭 원천 차단]: 이미 완료된 퀘스트는 즉시 리턴
+      if (q.isCompletedToday || q.lastCompletedDate === todayStr || q.isSingleCompleted) {
+        return;
+      }
+
+      // 1) 즉시 완료 상태로 고정
       q.isCompletedToday = true;
       q.lastCompletedDate = todayStr;
       q.consecutiveDays = (q.consecutiveDays || 0) + 1;
@@ -5952,14 +6051,14 @@
       processXpGainAndEvolve(q.rewardXp || 20);
       showGameRewardToast(`🎉 [${q.name}] 완료! +${q.rewardXp || 20} XP 획득! ✨`);
 
-      // 3) 퀘스트 목록 & 기록 탭 즉각 재렌더링
+      // 3) UI 즉각 재렌더링 (버튼이 바로 [✓ 완료]로 바뀌고 일회성은 사라짐)
       renderQuestList(appState.quests);
       renderStreakList(appState.quests);
       saveLocalFullCache();
 
-      logDebug(`퀘스트 완료: "${q.name}" (+${q.rewardXp || 20}XP)`, "info");
+      logDebug(`퀘스트 완료 처리: "${q.name}" (+${q.rewardXp || 20}XP)`, "info");
 
-      // 4) 백엔드 구글 시트에 비동기 완료 저장
+      // 4) 구글 시트 백엔드로 완료 비동기 동기화
       try {
         fetch(GAS_API_URL, {
           method: "POST",
@@ -7951,14 +8050,22 @@
     }
   
     // ========================================================
-    // 📚 정보보안기사 모의고사 & 실시간 체류 학습 타이머 엔진
+    // 📚 정보보안기사 모의고사 & 플래시카드 & 실시간 체류 학습 타이머 엔진
     const STUDY_API_URL = "https://script.google.com/macros/s/AKfycbytQ_FkKMamOmViFSnSPCEpQgzFD1gK9n2XMqzGUUJQCE6QgeJcGZ9XJVi1tHlM5DGCgA/exec";
 
     let studyExamListCache = null;
     let currentExamData = null;
+    let currentStudyMode = 'EXAM'; // 'EXAM' or 'FLASHCARD'
+
+    // [시험 모드 상태]
     let currentQuestionIdx = 0;
     let selectedOptionIdx = null;
-    let currentStudyMode = 'EXAM'; // 'EXAM' or 'FLASHCARD'
+
+    // [플래시카드 모드 상태]
+    let flashcardQueue = [];
+    let flashcardMastered = 0;
+    let flashcardTotal = 0;
+    let flashcardCurrentState = null;
 
     const StudyTimerManager = {
       timerId: null,
@@ -8146,10 +8253,10 @@
           </div>
           <div style="display:flex; gap:6px; flex-shrink:0;">
             <button onclick="startExamSession('${encodeURIComponent(ex.id)}', 'FLASHCARD')" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; padding:7px 11px; border-radius:8px; font-size:11.5px; font-weight:800; cursor:pointer;">
-              📇 카드
+              📇 플래시카드
             </button>
             <button onclick="startExamSession('${encodeURIComponent(ex.id)}', 'EXAM')" style="background:linear-gradient(135deg, #0284c7, #0369a1); color:white; border:none; padding:7px 12px; border-radius:8px; font-size:11.5px; font-weight:800; cursor:pointer;">
-              ✍️ 풀기
+              ✍️ 시험풀기
             </button>
           </div>
         `;
@@ -8157,7 +8264,7 @@
       });
     }
 
-    // ✍️ 특정 모의고사 회차 풀기 / 플래시카드 시작 (인라인 서브뷰 전환)
+    // ✍️ 특정 모의고사 회차 풀기 / 플래시카드 시작
     async function startExamSession(encodedExamId, mode = 'EXAM') {
       const examId = decodeURIComponent(encodedExamId);
       currentStudyMode = mode;
@@ -8185,8 +8292,19 @@
 
         if (data && data.status === "success" && data.questions && data.questions.length > 0) {
           currentExamData = data;
-          currentQuestionIdx = 0;
-          renderCurrentExamQuestion();
+          
+          if (mode === 'FLASHCARD') {
+            // 🌟 플래시카드 모드: 문제를 랜덤 순서로 셔플하고 플래시카드 큐 가동!
+            flashcardQueue = [...data.questions].sort(() => Math.random() - 0.5);
+            flashcardMastered = 0;
+            flashcardTotal = data.questions.length;
+            flashcardCurrentState = { selectedIdx: null, isAnswered: false };
+            renderFlashcardMode();
+          } else {
+            // ✍️ 시험 모드
+            currentQuestionIdx = 0;
+            renderExamModeQuestion();
+          }
         } else {
           if (qText) qText.innerText = "문제를 불러오지 못했습니다.";
         }
@@ -8204,116 +8322,300 @@
       currentExamData = null;
     }
 
-    function renderCurrentExamQuestion() {
+    // ========================================================
+    // 📇 1. 플래시카드 고유 모드 렌더러 & 스와이프 제스처
+    // ========================================================
+    function renderFlashcardMode() {
+      const solverView = document.getElementById('studySolverView');
+      if (!solverView) return;
+
+      const progText = document.getElementById('solverProgressText');
+      if (progText) progText.innerText = `정복 ${flashcardMastered} / 남은 카드 ${flashcardQueue.length}`;
+
+      if (flashcardQueue.length === 0) {
+        solverView.innerHTML = `
+          <div style="background:white; border-radius:18px; padding:30px 20px; text-align:center; box-shadow:0 4px 16px rgba(0,0,0,0.06); border:1px solid #e2e8f0;">
+            <div style="font-size:40px; margin-bottom:10px;">🎉</div>
+            <h3 style="font-size:17px; font-weight:900; color:#0f172a; margin-bottom:6px;">모든 문제를 정복했습니다!</h3>
+            <p style="color:#64748b; font-size:12px; margin-bottom:20px;">이 파트의 모든 플래시카드를 Clear 완료했습니다.</p>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <button onclick="startExamSession('${encodeURIComponent(currentExamData.examId)}', 'FLASHCARD')" style="background:linear-gradient(135deg, #8b5cf6, #7c3aed); color:white; border:none; padding:11px; border-radius:10px; font-weight:900; cursor:pointer;">처음부터 다시 학습하기</button>
+              <button onclick="backToStudyList()" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; padding:10px; border-radius:10px; font-weight:800; cursor:pointer;">목록으로 이동</button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const q = flashcardQueue[0];
+      flashcardCurrentState = flashcardCurrentState || { selectedIdx: null, isAnswered: false };
+      const isAnswered = flashcardCurrentState.isAnswered;
+      const selectedIdx = flashcardCurrentState.selectedIdx;
+      const correctZeroIdx = (Number(q.answer) - 1);
+
+      let optionsHtml = '';
+      (q.options || []).forEach((optText, idx) => {
+        let optStyle = "background:white; border:1.5px solid #cbd5e1; border-radius:10px; padding:10px 12px; font-size:13px; font-weight:600; color:#1e293b; cursor:pointer; display:flex; align-items:center; gap:8px; line-height:1.35;";
+
+        if (isAnswered) {
+          if (idx === correctZeroIdx) {
+            optStyle = "background:#ecfdf5; border:1.5px solid #10b981; border-radius:10px; padding:10px 12px; font-size:13px; font-weight:800; color:#047857; display:flex; align-items:center; gap:8px;";
+          } else if (idx === selectedIdx) {
+            optStyle = "background:#fef2f2; border:1.5px solid #ef4444; border-radius:10px; padding:10px 12px; font-size:13px; font-weight:800; color:#b91c1c; display:flex; align-items:center; gap:8px;";
+          }
+        }
+
+        optionsHtml += `
+          <div class="exam-option-item" style="${optStyle}" onclick="onFlashcardOptionClick(${idx})">
+            <span style="font-weight:900; color:#0284c7; width:20px;">${idx + 1}.</span>
+            <span style="flex:1;">${optText}</span>
+          </div>
+        `;
+      });
+
+      let popupHtml = '';
+      if (isAnswered) {
+        const isCorrect = (selectedIdx === correctZeroIdx);
+        const badge = isCorrect 
+          ? `<span class="popup-result-badge badge-correct">🎉 정답입니다! (+10 XP)</span>`
+          : `<span class="popup-result-badge badge-incorrect">❌ 오답입니다! (정답: ${q.answer}번)</span>`;
+
+        popupHtml = `
+          <div class="flashcard-popup">
+            ${badge}
+            <div style="font-size:12px; font-weight:900; color:#0284c7; margin-bottom:4px;">💡 상세 해설</div>
+            <div style="font-size:12px; line-height:1.45; color:#334155; white-space:pre-wrap; margin-bottom:12px;">
+              ${q.explanation || "등록된 해설이 없습니다."}
+            </div>
+
+            <div class="flashcard-actions">
+              <button class="btn-card-clear" onclick="triggerCardSwipeAction('left')">
+                👈 정복 (Clear)
+              </button>
+              <button class="btn-card-repeat" onclick="triggerCardSwipeAction('right')">
+                👉 다시풀기 (Repeat)
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      solverView.innerHTML = `
+        <!-- 상단 바 -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; background:rgba(255,255,255,0.9); padding:8px 12px; border-radius:12px; border:1px solid rgba(0,0,0,0.06);">
+          <button onclick="backToStudyList()" style="background:#e2e8f0; color:#1e293b; border:none; padding:5px 10px; border-radius:8px; font-size:11.5px; font-weight:800; cursor:pointer;">
+            ⬅ 목록
+          </button>
+          <div style="text-align:center; flex:1; min-width:0; padding:0 8px;">
+            <div style="font-size:10px; color:#64748b; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${currentExamData.examId}</div>
+            <div style="font-size:13px; font-weight:900; color:#8b5cf6;">정복 ${flashcardMastered}장 • 남은 카드 ${flashcardQueue.length}장</div>
+          </div>
+          <span style="background:#8b5cf6; color:white; font-size:10.5px; font-weight:800; padding:3px 8px; border-radius:8px;">📇 플래시카드</span>
+        </div>
+
+        <div class="flashcard-wrapper">
+          <div class="swipe-hint-bar">
+            <span style="color:#10b981; font-weight:800;">👈 왼쪽: 정복 (Clear)</span>
+            <span style="color:#f97316; font-weight:800;">오른쪽: 다시풀기 (Repeat) 👉</span>
+          </div>
+
+          <div class="flashcard card-enter" id="activeFlashcard">
+            <div style="font-size:12.5px; font-weight:900; color:#8b5cf6; margin-bottom:4px;">Q${q.number} (남은 문제: ${flashcardQueue.length})</div>
+            <div style="font-size:14.5px; font-weight:800; line-height:1.45; color:#0f172a; margin-bottom:10px;">${q.text}</div>
+            ${q.passage ? `<div style="background:#f1f5f9; border-left:4px solid #8b5cf6; border-radius:8px; padding:10px 12px; font-size:12px; line-height:1.45; color:#334155; margin-bottom:12px; white-space:pre-wrap;">${q.passage}</div>` : ''}
+
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              ${optionsHtml}
+            </div>
+
+            ${popupHtml}
+          </div>
+        </div>
+      `;
+
+      attachFlashcardSwipeEvents();
+    }
+
+    function onFlashcardOptionClick(idx) {
+      if (flashcardCurrentState && flashcardCurrentState.isAnswered) return;
+
+      const q = flashcardQueue[0];
+      const correctZeroIdx = (Number(q.answer) - 1);
+      const isCorrect = (idx === correctZeroIdx);
+
+      flashcardCurrentState = { selectedIdx: idx, isAnswered: true };
+
+      if (isCorrect) {
+        haptic.complete();
+        triggerPokemonRewardGlow();
+        processXpGainAndEvolve(10);
+        showGameRewardToast("🎉 정답입니다! +10 XP 획득! ✨");
+      } else {
+        haptic.tick();
+      }
+
+      // 통계 누적
+      let totalSolved = Number(localStorage.getItem('study_solved_count') || 0) + 1;
+      let correctCount = Number(localStorage.getItem('study_correct_count') || 0);
+      if (isCorrect) correctCount++;
+      localStorage.setItem('study_solved_count', totalSolved);
+      localStorage.setItem('study_correct_count', correctCount);
+      StudyTimerManager.updateUiDisplay();
+
+      renderFlashcardMode();
+    }
+
+    function triggerCardSwipeAction(direction) {
+      const card = document.getElementById('activeFlashcard');
+      if (!card) return;
+
+      haptic.tick();
+      if (direction === 'left') {
+        // 👈 왼쪽 스와이프: 정복 (Clear) - 큐에서 완전 제거
+        card.classList.add('swipe-out-left');
+        setTimeout(() => {
+          flashcardQueue.shift();
+          flashcardMastered++;
+          flashcardCurrentState = { selectedIdx: null, isAnswered: false };
+          renderFlashcardMode();
+        }, 220);
+      } else if (direction === 'right') {
+        // 👉 오른쪽 스와이프: 다시풀기 (Repeat) - 큐 맨 뒤로 회전
+        card.classList.add('swipe-out-right');
+        setTimeout(() => {
+          const repeatQ = flashcardQueue.shift();
+          flashcardQueue.push(repeatQ);
+          flashcardCurrentState = { selectedIdx: null, isAnswered: false };
+          renderFlashcardMode();
+        }, 220);
+      }
+    }
+
+    let fcTouchStartX = 0;
+    let fcTouchStartY = 0;
+    let fcTouchMoveX = 0;
+
+    function attachFlashcardSwipeEvents() {
+      const card = document.getElementById('activeFlashcard');
+      if (!card) return;
+
+      card.addEventListener('touchstart', function(e) {
+        fcTouchStartX = e.touches[0].clientX;
+        fcTouchStartY = e.touches[0].clientY;
+        fcTouchMoveX = fcTouchStartX;
+        card.style.transition = 'none';
+      }, { passive: true });
+
+      card.addEventListener('touchmove', function(e) {
+        fcTouchMoveX = e.touches[0].clientX;
+        const diffX = fcTouchMoveX - fcTouchStartX;
+        const diffY = e.touches[0].clientY - fcTouchStartY;
+
+        if (Math.abs(diffX) > Math.abs(diffY)) {
+          card.style.transform = `translateX(${diffX}px) rotate(${diffX * 0.04}deg)`;
+        }
+      }, { passive: true });
+
+      card.addEventListener('touchend', function(e) {
+        const diffX = fcTouchMoveX - fcTouchStartX;
+        card.style.transition = 'transform 0.22s ease, opacity 0.22s ease';
+
+        if (diffX < -70) {
+          // 왼쪽 스와이프 -> 정복
+          triggerCardSwipeAction('left');
+        } else if (diffX > 70) {
+          // 오른쪽 스와이프 -> 다시풀기
+          triggerCardSwipeAction('right');
+        } else {
+          card.style.transform = 'none';
+        }
+      });
+    }
+
+    // ========================================================
+    // ✍️ 2. 실전 모의고사 퀴즈 모드 렌더러
+    // ========================================================
+    function renderExamModeQuestion() {
       if (!currentExamData || !currentExamData.questions) return;
       const q = currentExamData.questions[currentQuestionIdx];
       if (!q) return;
 
       selectedOptionIdx = null;
+      const solverView = document.getElementById('studySolverView');
+      if (!solverView) return;
 
-      const progText = document.getElementById('solverProgressText');
-      const qNumEl = document.getElementById('solverQNum');
-      const qTextEl = document.getElementById('solverQText');
-      const passageBox = document.getElementById('solverPassage');
-      const optionsList = document.getElementById('solverOptionsList');
-      const explBox = document.getElementById('solverExplanationBox');
-      const submitBtn = document.getElementById('btnSolverSubmit');
-
-      if (progText) progText.innerText = `문항 ${currentQuestionIdx + 1} / ${currentExamData.questions.length}`;
-      if (qNumEl) qNumEl.innerText = `Q. ${q.number || (currentQuestionIdx + 1)}`;
-      if (qTextEl) qTextEl.innerText = q.text;
-
-      if (passageBox) {
-        if (q.passage && q.passage.trim()) {
-          passageBox.innerText = q.passage;
-          passageBox.style.display = 'block';
-        } else {
-          passageBox.style.display = 'none';
-        }
-      }
-
-      if (explBox) explBox.style.display = 'none';
-
-      if (optionsList) {
-        optionsList.innerHTML = '';
-        const opts = q.options || [];
-        opts.forEach((optText, idx) => {
-          const optDiv = document.createElement('div');
-          optDiv.className = 'exam-option-item';
-          optDiv.dataset.idx = idx + 1;
-          optDiv.style.cssText = "background:white; border:1.5px solid #cbd5e1; border-radius:10px; padding:10px 12px; font-size:13px; font-weight:600; color:#1e293b; cursor:pointer; display:flex; align-items:center; gap:8px; transition:all 0.15s ease;";
-          optDiv.innerHTML = `
+      let optionsHtml = '';
+      (q.options || []).forEach((optText, idx) => {
+        optionsHtml += `
+          <div class="exam-option-item" data-idx="${idx + 1}" style="background:white; border:1.5px solid #cbd5e1; border-radius:10px; padding:10px 12px; font-size:13px; font-weight:600; color:#1e293b; cursor:pointer; display:flex; align-items:center; gap:8px;" onclick="onExamOptionSelect(${idx + 1})">
             <span style="font-weight:900; color:#0284c7; width:20px;">${idx + 1}.</span>
             <span style="flex:1;">${optText}</span>
-          `;
-          optDiv.onclick = () => {
-            haptic.tick();
-            selectedOptionIdx = idx + 1;
-            document.querySelectorAll('#solverOptionsList .exam-option-item').forEach(el => {
-              el.style.borderColor = "#cbd5e1";
-              el.style.background = "white";
-              el.style.color = "#1e293b";
-            });
-            optDiv.style.borderColor = "#0284c7";
-            optDiv.style.background = "#f0f9ff";
-            optDiv.style.color = "#0369a1";
-          };
-          optionsList.appendChild(optDiv);
-        });
-      }
+          </div>
+        `;
+      });
 
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        if (currentStudyMode === 'FLASHCARD') {
-          submitBtn.innerText = "💡 정답 & 해설 열기";
-          submitBtn.style.background = "linear-gradient(135deg, #8b5cf6, #7c3aed)";
-        } else {
-          submitBtn.innerText = "정답 확인 ✓";
-          submitBtn.style.background = "linear-gradient(135deg, #10b981, #059669)";
-        }
+      solverView.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; background:rgba(255,255,255,0.9); padding:8px 12px; border-radius:12px; border:1px solid rgba(0,0,0,0.06);">
+          <button onclick="backToStudyList()" style="background:#e2e8f0; color:#1e293b; border:none; padding:5px 10px; border-radius:8px; font-size:11.5px; font-weight:800; cursor:pointer;">
+            ⬅ 목록
+          </button>
+          <div style="text-align:center; flex:1; min-width:0; padding:0 8px;">
+            <div style="font-size:10px; color:#64748b; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${currentExamData.examId}</div>
+            <div style="font-size:13px; font-weight:900; color:#0284c7;">문항 ${currentQuestionIdx + 1} / ${currentExamData.questions.length}</div>
+          </div>
+          <span style="background:#0284c7; color:white; font-size:10.5px; font-weight:800; padding:3px 8px; border-radius:8px;">✍️ 시험 모드</span>
+        </div>
+
+        <div style="background:white; border-radius:16px; padding:16px; border:1px solid rgba(0,0,0,0.08); box-shadow:0 4px 12px rgba(0,0,0,0.03); margin-bottom:12px;">
+          <div style="font-size:12.5px; font-weight:900; color:#0284c7; margin-bottom:4px;">Q. ${q.number || (currentQuestionIdx + 1)}</div>
+          <div style="font-size:14.5px; font-weight:800; line-height:1.45; color:#0f172a; margin-bottom:10px;">${q.text}</div>
+          ${q.passage ? `<div style="background:#f1f5f9; border-left:4px solid #0284c7; border-radius:8px; padding:10px 12px; font-size:12px; line-height:1.45; color:#334155; margin-bottom:12px; white-space:pre-wrap;">${q.passage}</div>` : ''}
+
+          <div id="examOptionsListContainer" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+            ${optionsHtml}
+          </div>
+
+          <div id="examExplBox" style="display:none; background:#f0fdf4; border:1.5px solid #86efac; border-radius:10px; padding:12px; font-size:12.5px; line-height:1.45; color:#166534; white-space:pre-wrap; margin-top:8px;"></div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+          <button onclick="navigateExamQuestion(-1)" style="background:white; color:#334155; border:1px solid #cbd5e1; padding:9px 15px; border-radius:10px; font-size:12.5px; font-weight:800; cursor:pointer;">◀ 이전</button>
+          <button id="btnExamModeSubmit" onclick="checkExamModeAnswer()" style="background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:10px 16px; border-radius:10px; font-size:13px; font-weight:900; cursor:pointer; flex:1; box-shadow:0 3px 8px rgba(16,185,129,0.3);">정답 확인 ✓</button>
+          <button onclick="navigateExamQuestion(1)" style="background:#0284c7; color:white; border:none; padding:9px 15px; border-radius:10px; font-size:12.5px; font-weight:800; cursor:pointer;">다음 ▶</button>
+        </div>
+      `;
+    }
+
+    function onExamOptionSelect(idx) {
+      haptic.tick();
+      selectedOptionIdx = idx;
+      document.querySelectorAll('#examOptionsListContainer .exam-option-item').forEach(el => {
+        el.style.borderColor = "#cbd5e1";
+        el.style.background = "white";
+        el.style.color = "#1e293b";
+      });
+      const chosen = document.querySelector(`#examOptionsListContainer .exam-option-item[data-idx="${idx}"]`);
+      if (chosen) {
+        chosen.style.borderColor = "#0284c7";
+        chosen.style.background = "#f0f9ff";
+        chosen.style.color = "#0369a1";
       }
     }
 
-    function checkSolverAnswer() {
+    function checkExamModeAnswer() {
       if (!currentExamData || !currentExamData.questions) return;
       const q = currentExamData.questions[currentQuestionIdx];
       if (!q) return;
 
-      const correctAns = Number(q.answer);
-
-      // 📇 플래시카드 모드
-      if (currentStudyMode === 'FLASHCARD') {
-        haptic.tick();
-        document.querySelectorAll('#solverOptionsList .exam-option-item').forEach(el => {
-          if (Number(el.dataset.idx) === correctAns) {
-            el.style.borderColor = "#10b981";
-            el.style.background = "#ecfdf5";
-            el.style.color = "#047857";
-            el.style.fontWeight = "800";
-          }
-        });
-        const explBox = document.getElementById('solverExplanationBox');
-        if (explBox) {
-          explBox.innerText = q.explanation || `■ 정답은 ${correctAns}번 입니다.`;
-          explBox.style.display = 'block';
-        }
-        const submitBtn = document.getElementById('btnSolverSubmit');
-        if (submitBtn) {
-          submitBtn.disabled = true;
-          submitBtn.innerText = "해설 확인 완료 👍";
-        }
-        return;
-      }
-
-      // ✍️ 실전 모의고사 모드
       if (!selectedOptionIdx) {
         alert("선택지를 골라주세요!");
         return;
       }
 
+      const correctAns = Number(q.answer);
       const isCorrect = (selectedOptionIdx === correctAns);
 
-      document.querySelectorAll('#solverOptionsList .exam-option-item').forEach(el => {
+      document.querySelectorAll('#examOptionsListContainer .exam-option-item').forEach(el => {
         const idx = Number(el.dataset.idx);
         if (idx === correctAns) {
           el.style.borderColor = "#10b981";
@@ -8327,7 +8629,7 @@
         }
       });
 
-      const explBox = document.getElementById('solverExplanationBox');
+      const explBox = document.getElementById('examExplBox');
       if (explBox) {
         explBox.innerText = q.explanation || (isCorrect ? "■ 정답입니다! 👏" : `■ 정답은 ${correctAns}번 입니다.`);
         explBox.style.display = 'block';
@@ -8351,20 +8653,20 @@
         haptic.tick();
       }
 
-      const submitBtn = document.getElementById('btnSolverSubmit');
+      const submitBtn = document.getElementById('btnExamModeSubmit');
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerText = isCorrect ? "정답! (+10 XP) 🎉" : "오답 확인 완료 ✍️";
       }
     }
 
-    function navigateSolverQuestion(delta) {
+    function navigateExamQuestion(delta) {
       if (!currentExamData || !currentExamData.questions) return;
       const nextIdx = currentQuestionIdx + delta;
       if (nextIdx < 0 || nextIdx >= currentExamData.questions.length) return;
 
       currentQuestionIdx = nextIdx;
-      renderCurrentExamQuestion();
+      renderExamModeQuestion();
     }
 </script>
 
