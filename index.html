@@ -1743,26 +1743,22 @@
         </div>
       </div>
 
-      <!-- 👉 우측: 포켓몬 정보 & 경험치 & 뱃지 패널 -->
+      <!-- 👉 우측: 포켓몬 정보 & 실시간 경험치 패널 -->
       <div class="tamagotchi-info-panel">
         
-        <!-- 1단: 레벨, 이름, 성별, 필수 퀘스트 뱃지 -->
+        <!-- 1단: 레벨, 이름, 성별 -->
         <div class="info-top-row">
           <div class="info-name-box">
             <span class="level-badge" id="lvBadge">Lv.1</span>
             <span class="pokemon-name" id="pokeName">이상해씨 <span class="gender-symbol male" id="genderSymbol">♂</span></span>
           </div>
-          <div class="quest-badge" id="questBadge" style="font-size:10.5px; padding:2px 7px;" onclick="switchWorkspaceTab('QUEST')">
-            필수 <span id="questText">0/0</span>
-          </div>
         </div>
 
-        <!-- 2단: 타입 아이콘 & 성격 뱃지 & 미니 치트 -->
+        <!-- 2단: 타입 아이콘 & 성격 뱃지 -->
         <div class="info-mid-row">
-          <div class="type-icons-row" id="typeIconsRow" style="gap:3px;"></div>
+          <div class="type-icons-row" id="typeIconsRow" style="gap:4px;"></div>
           <div style="display:flex; align-items:center; gap:4px;">
-            <span class="nature-tag" id="natureTag" style="font-size:10.5px; padding:1px 6px;" onclick="toggleNaturePopover(event)">고집</span>
-            <button class="mini-cheat-trigger" style="font-size:9.5px; padding:2px 6px;" onclick="openCheatModal()" title="치트 콘솔">🕹️ 치트</button>
+            <span class="nature-tag" id="natureTag" style="font-size:11px; padding:2px 8px;" onclick="toggleNaturePopover(event)">고집</span>
           </div>
 
           <!-- ℹ️ 성격 & 성장속도 클릭 팝오버 창 -->
@@ -1842,12 +1838,14 @@
         
         <!-- 1. 📋 퀘스트 목록 (기본 뷰) -->
         <div id="paneQuestView">
-          <div class="quest-toolbar">
+          <div class="quest-toolbar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <div class="quest-toolbar-left">
-              <button class="btn-quest-add" id="btnAddQuest" style="background:rgba(255,255,255,0.85); color:#334155; border:1px solid rgba(0,0,0,0.12); padding:7px 14px; box-shadow:0 2px 5px rgba(0,0,0,0.05); font-weight:800;" onclick="openAddQuestModal()">➕ 퀘스트 추가</button>
+              <button class="btn-quest-add" id="btnAddQuest" style="background:rgba(255,255,255,0.85); color:#334155; border:1px solid rgba(0,0,0,0.12); padding:7px 14px; box-shadow:0 2px 5px rgba(0,0,0,0.05); font-weight:800; border-radius:10px;" onclick="openAddQuestModal()">➕ 퀘스트 추가</button>
             </div>
-            <div class="quest-toolbar-right">
-              <button class="btn-quest-batch-del" id="btnToggleBatchDelete" style="background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; padding:7px 12px; font-weight:800;" onclick="toggleBatchDeleteMode()">삭제</button>
+            <div class="quest-toolbar-right" style="display:flex; align-items:center; gap:8px;">
+              <!-- 🌟 퀘스트 기록(📊) 상단 툴바 버튼 -->
+              <button class="btn-quest-history" id="btnQuestHistory" style="background:rgba(255,255,255,0.85); color:#0284c7; border:1px solid rgba(2,132,199,0.25); padding:7px 12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="toggleQuestHistoryView()">📊 기록</button>
+              <button class="btn-quest-batch-del" id="btnToggleBatchDelete" style="background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; padding:7px 12px; font-weight:800; border-radius:10px;" onclick="toggleBatchDeleteMode()">삭제</button>
               <button class="btn-quest-batch-exec" id="btnExecBatchDelete" onclick="executeBatchDelete()">❌ 삭제 실행 (0)</button>
               <button class="btn-quest-batch-cancel" id="btnCancelBatchDelete" onclick="cancelBatchDeleteMode()">취소</button>
             </div>
@@ -1857,6 +1855,10 @@
 
         <!-- 2. 📊 연속 실천 기록 (Streak) -->
         <div id="paneStreakView" style="display:none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; padding:0 2px;">
+            <button onclick="toggleQuestHistoryView()" style="background:rgba(255,255,255,0.85); color:#334155; border:1px solid rgba(0,0,0,0.12); padding:6px 12px; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">⬅ 퀘스트 목록으로</button>
+            <span style="font-size:14px; font-weight:900; color:#0f172a;">📊 퀘스트 연속 실천 기록</span>
+          </div>
           <div id="streakListContainer"></div>
         </div>
 
@@ -1899,8 +1901,24 @@
           <div class="pokedex-grid-container" id="pokedexGrid"></div>
         </div>
 
-        <!-- 5. ⚙️ 알림 & PWA 설정 -->
+        <!-- 5. ⚙️ 알림, 치트 & PWA 설정 -->
         <div id="paneNotifView" style="display:none;">
+          <!-- 🕹️ 개발자 치트 콘솔 카드 -->
+          <div style="background:#1e1b4b; border-radius:14px; padding:15px; margin-bottom:14px; border:1.5px solid #a855f7; box-shadow:0 4px 14px rgba(168,85,247,0.2);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <div style="font-size:15px; font-weight:900; color:#f3e8ff; display:flex; align-items:center; gap:6px;">
+                <span>🕹️</span> <span>개발자 치트 콘솔</span>
+              </div>
+              <span style="background:#a855f7; color:white; font-size:10px; font-weight:900; padding:2px 7px; border-radius:8px;">DEV</span>
+            </div>
+            <p style="font-size:11.5px; color:#cbd5e1; line-height:1.4; margin-bottom:10px;">
+              경험치 즉시 추가, 포켓몬 즉시 변경, 알 부화 및 주간 정산 테스트를 진행할 수 있습니다.
+            </p>
+            <button onclick="openCheatModal()" style="width:100%; background:linear-gradient(135deg, #a855f7, #7e22ce); color:white; border:none; padding:10px; border-radius:10px; font-size:13px; font-weight:900; cursor:pointer; box-shadow:0 3px 10px rgba(168,85,247,0.3);">
+              🕹️ 치트 콘솔 열기
+            </button>
+          </div>
+
           <!-- 📲 PWA 앱 설치 카드 -->
           <div style="background:rgba(255,255,255,0.75); backdrop-filter:blur(16px); border-radius:14px; padding:16px; margin-bottom:14px; border:1px solid rgba(255,255,255,0.8); box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -1920,6 +1938,7 @@
             </div>
           </div>
 
+          <!-- 🔔 스마트폰 자체 알림 설정 -->
           <div style="background:#1e293b; border-radius:14px; padding:16px; margin-bottom:14px; border:1.5px solid #38bdf8;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
               <div style="font-size:15px; font-weight:900; color:white;">🔔 오프라인 스마트폰 자체 알림</div>
@@ -1933,6 +1952,7 @@
             </button>
           </div>
 
+          <!-- ⚡ 알림 테스트 -->
           <div style="background:#252b36; border-radius:14px; padding:14px; margin-bottom:14px; border:1px solid #22c55e;">
             <div style="font-size:14px; font-weight:800; color:white; margin-bottom:6px;">⚡ 알림 & 인터랙티브 액션 테스트</div>
             <p style="font-size:11px; color:#8892a0; margin-bottom:10px;">상단바 알림에서 [✓ 완료]를 누르면 앱을 켜지 않고도 퀘스트가 처리됩니다.</p>
@@ -1944,15 +1964,11 @@
 
       </div>
 
-      <!-- 🧭 하단 고정 5개 탭 네비게이션 바 -->
+      <!-- 🧭 하단 고정 4개 탭 네비게이션 바 -->
       <div class="bottom-nav">
         <button class="nav-btn active" data-tab="QUEST" onclick="switchWorkspaceTab('QUEST')">
           <span class="icon">📋</span>
           <span>퀘스트</span>
-        </button>
-        <button class="nav-btn" data-tab="STREAK" onclick="switchWorkspaceTab('STREAK')">
-          <span class="icon">📊</span>
-          <span>기록</span>
         </button>
         <button class="nav-btn" data-tab="ARCADE" onclick="switchWorkspaceTab('ARCADE')">
           <span class="icon">🎮</span>
@@ -2194,6 +2210,25 @@
   </div>
 
   <script>
+    function toggleQuestHistoryView() {
+      haptic.tick();
+      const qView = document.getElementById('paneQuestView');
+      const sView = document.getElementById('paneStreakView');
+      if (!qView || !sView) return;
+
+      smoothTransition(() => {
+        if (sView.style.display === 'none' || !sView.style.display) {
+          qView.style.display = 'none';
+          sView.style.display = 'block';
+          if (appState && appState.quests) renderStreakList(appState.quests);
+        } else {
+          sView.style.display = 'none';
+          qView.style.display = 'block';
+          if (appState && appState.quests) renderQuestList(appState.quests);
+        }
+      });
+    }
+
     function onTamagotchiPokemonTap() {
       haptic.feed();
       triggerPokemonSpeechBubble();
