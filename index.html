@@ -65,22 +65,153 @@
       }
     }
 
-    /* 🌟 상단 30% 포켓몬 다마고치 고정 스테이지 */
-    .habitat-pane {
+    /* 🌟 상단 고정 영역: 좌측 3:2 다마고치 화면 + 우측 정보 패널 */
+    .habitat-pane, .tamagotchi-stage-container {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: stretch !important;
+      height: 185px !important;
+      min-height: 185px !important;
+      max-height: 210px !important;
+      padding: 10px 12px !important;
+      gap: 12px !important;
+      background: #0f172a !important;
+      flex-shrink: 0 !important;
+      z-index: 5 !important;
+      border-bottom: 2px solid rgba(0, 0, 0, 0.3) !important;
+      box-sizing: border-box !important;
+    }
+
+    /* 👈 좌측: 3:2 다마고치 액자 화면 */
+    .tamagotchi-screen-box {
+      aspect-ratio: 3 / 2;
+      height: 100%;
       position: relative;
-      height: 31%;
-      min-height: 205px;
-      max-height: 250px;
+      border-radius: 16px;
+      overflow: hidden;
       background-position: center center;
       background-size: cover;
       background-repeat: no-repeat;
-      overflow: hidden;
+      border: 2px solid rgba(255, 255, 255, 0.22);
+      box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.35);
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .tamagotchi-screen-box .stage-area {
+      position: absolute;
+      bottom: 8px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      pointer-events: auto;
+    }
+
+    .tamagotchi-screen-box .pokemon-sprite-container {
+      width: 80px;
+      height: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .tamagotchi-screen-box .pokemon-sprite {
+      max-width: 76px;
+      max-height: 76px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+      transition: transform 0.15s ease;
+    }
+    .tamagotchi-screen-box:active .pokemon-sprite {
+      transform: scale(0.92);
+    }
+
+    /* 👉 우측: 포켓몬 정보 & 경험치 & 퀘스트 뱃지 패널 */
+    .tamagotchi-info-panel {
+      flex: 1;
+      min-width: 0;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 16px;
+      padding: 9px 11px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+      box-sizing: border-box;
+    }
+
+    .info-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+    }
+    .info-name-box {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 0;
+      flex: 1;
+    }
+    .info-name-box .level-badge {
+      font-size: 11px;
+      font-weight: 900;
+      padding: 1px 5px;
+      border-radius: 5px;
+      background: #10b981;
+      color: white;
       flex-shrink: 0;
-      z-index: 5;
-      border-bottom: 2px solid rgba(0, 0, 0, 0.22);
+    }
+    .info-name-box .pokemon-name {
+      font-size: 14px;
+      font-weight: 900;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .info-mid-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin: 2px 0;
+      position: relative;
+    }
+
+    .info-exp-box {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .info-exp-box .xp-text {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      font-weight: 800;
+      color: #94a3b8;
+    }
+    .info-exp-box .xp-bar-bg {
+      height: 7px;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .info-exp-box .xp-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      border-radius: 4px;
+      transition: width 0.4s ease-out;
     }
 
     /* 🌟 하단 70% 메인 콘텐츠 뷰포트 (퀘스트 기본 노출 & 탭 전환) */
@@ -1588,76 +1719,78 @@
   </div>
 <div class="app-screen" id="appScreen">
 
-    <!-- 🌟 [상단 30% 영역]: 포켓몬 다마고치 고정 스테이지 -->
+    <!-- 🌟 [상단 30% 영역]: 좌측 3:2 다마고치 화면 + 우측 정보 패널 -->
     <div class="habitat-pane" id="habitatPane">
       
-      <!-- 상단 헤더 카드 & 퀘스트 뱃지 -->
-      <div class="top-header">
-        <div class="pokemon-card">
-          <div class="card-top">
+      <!-- 👈 좌측: 3:2 비율 다마고치 액자 화면 -->
+      <div class="tamagotchi-screen-box" id="tamagotchiScreenBox" onclick="onTamagotchiPokemonTap()">
+        <div class="stage-area ground-mode" id="stageArea">
+          <div class="speech-bubble" id="speechBubble">씨-익! 🍃</div>
+          <div class="sprite-hop-wrapper" id="spriteHopWrapper">
+            <div class="idle-wander-ground" id="idleWanderWrapper">
+              <div class="pokemon-sprite-container" id="monSpriteContainer">
+                <img 
+                  id="pokemonImage" 
+                  class="pokemon-sprite" 
+                  src="./images/pokemon/showdown/1.gif" 
+                  alt="포켓몬"
+                  draggable="false"
+                  ondragstart="return false;"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 👉 우측: 포켓몬 정보 & 경험치 & 뱃지 패널 -->
+      <div class="tamagotchi-info-panel">
+        
+        <!-- 1단: 레벨, 이름, 성별, 필수 퀘스트 뱃지 -->
+        <div class="info-top-row">
+          <div class="info-name-box">
             <span class="level-badge" id="lvBadge">Lv.1</span>
             <span class="pokemon-name" id="pokeName">이상해씨 <span class="gender-symbol male" id="genderSymbol">♂</span></span>
           </div>
-          
-          <div class="type-nature-row" style="position:relative;">
-            <div class="type-icons-row" id="typeIconsRow"></div>
-            <div style="display:flex; align-items:center; gap:4px;">
-              <span class="growth-tag" id="growthTag" style="display:none;">보통느림</span>
-              <span class="nature-tag" id="natureTag" onclick="toggleNaturePopover(event)">고집</span>
-            </div>
+          <div class="quest-badge" id="questBadge" style="font-size:10.5px; padding:2px 7px;" onclick="switchWorkspaceTab('QUEST')">
+            필수 <span id="questText">0/0</span>
+          </div>
+        </div>
 
-            <!-- ℹ️ 성격 & 성장속도 클릭 팝오버 창 -->
-            <div class="nature-popover" id="naturePopover" onclick="event.stopPropagation()">
-              <div class="nature-popover-title">
-                <span id="popoverNatureName">고집 성격</span>
-                <span style="font-size:10px; color:#94a3b8; cursor:pointer;" onclick="hideNaturePopover()">닫기 ✕</span>
-              </div>
-              <div class="nature-popover-row" id="popoverNatureDesc">
-                • <b>성격 효과</b>: 공격 +10%, 특수공격 -10%
-              </div>
-              <div class="nature-popover-row" id="popoverGrowthDesc">
-                • <b>성장 속도</b>: 보통느림 (표준 경험치)
-              </div>
-            </div>
+        <!-- 2단: 타입 아이콘 & 성격 뱃지 & 미니 치트 -->
+        <div class="info-mid-row">
+          <div class="type-icons-row" id="typeIconsRow" style="gap:3px;"></div>
+          <div style="display:flex; align-items:center; gap:4px;">
+            <span class="nature-tag" id="natureTag" style="font-size:10.5px; padding:1px 6px;" onclick="toggleNaturePopover(event)">고집</span>
+            <button class="mini-cheat-trigger" style="font-size:9.5px; padding:2px 6px;" onclick="openCheatModal()" title="치트 콘솔">🕹️ 치트</button>
           </div>
 
+          <!-- ℹ️ 성격 & 성장속도 클릭 팝오버 창 -->
+          <div class="nature-popover" id="naturePopover" onclick="event.stopPropagation()">
+            <div class="nature-popover-title">
+              <span id="popoverNatureName">고집 성격</span>
+              <span style="font-size:10px; color:#94a3b8; cursor:pointer;" onclick="hideNaturePopover()">닫기 ✕</span>
+            </div>
+            <div class="nature-popover-row" id="popoverNatureDesc">
+              • <b>성격 효과</b>: 공격 +10%, 특수공격 -10%
+            </div>
+            <div class="nature-popover-row" id="popoverGrowthDesc">
+              • <b>성장 속도</b>: 보통느림 (표준 경험치)
+            </div>
+          </div>
+        </div>
+
+        <!-- 3단: 실시간 EXP 바 -->
+        <div class="info-exp-box">
           <div class="xp-text">
             <span>EXP</span>
-            <span id="xpValues">0 / 100</span>
+            <span id="xpValues" style="color:#38bdf8; font-weight:900;">0 / 100</span>
           </div>
           <div class="xp-bar-bg">
             <div class="xp-bar-fill" id="xpBarFill"></div>
           </div>
         </div>
 
-        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
-          <div class="quest-badge" id="questBadge" onclick="switchWorkspaceTab('QUEST')">
-            필수 <span id="questText">0/0</span>
-          </div>
-          <button class="mini-cheat-trigger" onclick="openCheatModal()" title="치트 콘솔">🕹️ 치트</button>
-        </div>
-      </div>
-
-      <!-- 🌾 배경별 인터랙티브 파밍 레이어 -->
-      <div class="berry-harvest-layer" id="berryLayer"></div>
-
-      <!-- 🌟 중앙 서식지 & 캐릭터 위치 영역 -->
-      <div class="stage-area ground-mode" id="stageArea">
-        <div class="speech-bubble" id="speechBubble">씨-익! 🍃</div>
-        <div class="sprite-hop-wrapper" id="spriteHopWrapper">
-          <div class="idle-wander-ground" id="idleWanderWrapper">
-            <div class="pokemon-sprite-container" id="monSpriteContainer">
-              <img 
-                id="pokemonImage" 
-                class="pokemon-sprite" 
-                src="./images/pokemon/showdown/1.gif" 
-                alt="포켓몬"
-                draggable="false"
-                ondragstart="return false;"
-              />
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- ✨ 자동 진화 축하 연출 팝업 모달 -->
@@ -2061,6 +2194,16 @@
   </div>
 
   <script>
+    function onTamagotchiPokemonTap() {
+      haptic.feed();
+      triggerPokemonSpeechBubble();
+      const hop = document.getElementById('spriteHopWrapper');
+      if (hop) {
+        hop.classList.add('hop-active');
+        setTimeout(() => hop.classList.remove('hop-active'), 350);
+      }
+    }
+
     // ========================================================
     // 📟 OneSignal 내부 로그 가로채기
     // ========================================================
@@ -4967,6 +5110,8 @@
     let slingshotRafId = null;
 
     function initPokemonSlingshotEngine() {
+      return;
+
       const spriteContainer = document.querySelector('.pokemon-sprite-container');
       const spriteImg = document.getElementById('pokemonImage');
       if (!spriteContainer || !spriteImg) return;
@@ -6500,6 +6645,8 @@
     }
 
     function startHabitatFarming(bgKey) {
+      clearAllBerryTimers(); return;
+
       clearAllBerryTimers();
 
       // 슬롯 1 (메인 빠른 스폰): 2.5초 ~ 5초
