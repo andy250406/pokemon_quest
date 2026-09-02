@@ -2186,12 +2186,24 @@
               <!-- 🌟 퀘스트 기록(📊) 상단 툴바 버튼 -->
               <button class="btn-quest-history" id="btnQuestHistory" style="background:rgba(255,255,255,0.85); color:#0284c7; border:1px solid rgba(2,132,199,0.25); padding:7px 12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="toggleQuestHistoryView()">📊 기록</button>
               <button class="btn-quest-batch-del" id="btnToggleBatchDelete" style="background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; padding:7px 12px; font-weight:800; border-radius:10px;" onclick="toggleBatchDeleteMode()">삭제</button>
-              <button class="btn-quest-batch-exec" id="btnExecBatchDelete" onclick="executeBatchDelete()">❌ 삭제 실행 (0)</button>
-              <button class="btn-quest-batch-cancel" id="btnCancelBatchDelete" onclick="cancelBatchDeleteMode()">취소</button>
+              <button class="btn-quest-batch-exec" id="btnExecBatchDelete" style="display:none; background:#ef4444; color:white; border:none; padding:7px 12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="executeBatchDelete()">❌ 삭제 실행 (0)</button>
+              <button class="btn-quest-batch-cancel" id="btnCancelBatchDelete" style="display:none; background:#e2e8f0; color:#334155; border:none; padding:7px 12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="cancelBatchDeleteMode()">취소</button>
             </div>
           </div>
           <div id="questListContainer"></div>
         </div>
+
+        <!-- 1-2. 📊 퀘스트 기록 및 연속 실천 (Streak) 뷰 -->
+        <div id="paneStreakView" style="display:none;">
+          <div class="quest-toolbar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="font-size:14px; font-weight:900; color:#0f172a; display:flex; align-items:center; gap:6px;">
+              <span>📊</span> <span>퀘스트 달성 기록 및 Streak</span>
+            </div>
+            <button style="background:rgba(255,255,255,0.85); color:#0284c7; border:1px solid rgba(2,132,199,0.25); padding:7px 12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="toggleQuestHistoryView()">📋 퀘스트 목록 복귀</button>
+          </div>
+          <div id="streakListContainer"></div>
+        </div>
+
         <!-- 🌟 2. 📝 모의고사 공부 & 플래시카드 학습 뷰 -->
         <div id="paneStudyView" style="display:none;">
           
@@ -2619,6 +2631,26 @@
   </div>
 
   <script>
+    // ========================================================
+    // 📳 정밀 다단계 햅틱 피드백 시스템 (Tiered Vibration API)
+    // ========================================================
+    function triggerHaptic(pattern = 30) {
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try {
+          navigator.vibrate(pattern);
+        } catch(e) {}
+      }
+    }
+
+    const haptic = {
+      tick() { triggerHaptic(10); },
+      select() { triggerHaptic([12, 20]); },
+      complete() { triggerHaptic([30, 40, 60]); },
+      feed() { triggerHaptic([40, 50, 100]); },
+      gameClear() { triggerHaptic([50, 50, 100, 50, 150]); },
+      evolve() { triggerHaptic([100, 50, 150, 60, 200, 80, 300, 100, 500, 150, 800]); }
+    };
+
     function toggleQuestHistoryView() {
       haptic.tick();
       const qView = document.getElementById('paneQuestView');
@@ -5350,6 +5382,7 @@
 
     function renderTypeIconsInstant(typeStr) {
       const row = document.getElementById('typeIconsRow');
+      if (!row) return;
       row.innerHTML = '';
       const types = (typeStr || "풀/독").split('/');
       types.forEach(t => {
@@ -5364,14 +5397,439 @@
     }
 
     // ========================================================
-    // 📳 모바일 햅틱 진동 유틸리티
+    // 🌟 핵심 UI 렌더러 (포켓몬 다마고치 스테이지 & 퀘스트 워크스페이스)
     // ========================================================
-    function triggerHaptic(pattern = 30) {
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-        try {
-          navigator.vibrate(pattern);
-        } catch(e) {}
+    function initUI(state) {
+      if (!state) state = appState;
+      const isEgg = Boolean(state.isEgg);
+
+      // 1) 🌲 서식지 배경 갱신
+      const bgKey = determineHabitatBgKey(isEgg ? "노말" : (state.pokemon?.type || "풀/독"));
+      currentHabitatBgKey = bgKey;
+      const bgUrl = HABITAT_BACKGROUNDS[bgKey] || "./images/backgrounds/PogoGrasslandBg.png";
+      const tamagotchiBox = document.getElementById('tamagotchiScreenBox');
+      if (tamagotchiBox) {
+        tamagotchiBox.style.backgroundImage = `url('${bgUrl}')`;
       }
+
+      // 2) 🏷️ 포켓몬 스프라이트 & 상단 정보 패널 갱신
+      const pokeImg = document.getElementById('pokemonImage');
+      const lvBadge = document.getElementById('lvBadge');
+      const pokeName = document.getElementById('pokeName');
+      const natureTag = document.getElementById('natureTag');
+      const xpValues = document.getElementById('xpValues');
+      const xpBarFill = document.getElementById('xpBarFill');
+      const speechBubble = document.getElementById('speechBubble');
+      const typeRow = document.getElementById('typeIconsRow');
+
+      if (isEgg) {
+        if (lvBadge) lvBadge.innerText = '알 상태';
+        if (pokeName) pokeName.innerHTML = `${state.pokemon?.name || '포켓몬 알'} <span class="gender-symbol" id="genderSymbol">?</span>`;
+        if (natureTag) natureTag.innerText = '월요일 부화 🥚';
+        if (xpValues) xpValues.innerText = `0 / ${state.userStats.requiredXp}`;
+        if (xpBarFill) xpBarFill.style.width = '0%';
+        
+        if (pokeImg) {
+          pokeImg.src = "./images/items/poke-ball.png";
+          pokeImg.className = "pokemon-sprite egg-wobble";
+          const scale = getPokemonScaleFactor(0, true);
+          pokeImg.style.transform = `scale(${scale})`;
+          pokeImg.dataset.baseScale = scale;
+        }
+        if (speechBubble) speechBubble.innerText = "토독... 토독...";
+        if (typeRow) typeRow.innerHTML = '';
+      } else {
+        const curMon = state.pokemon || { id: 1, name: "이상해씨", gender: "♂", nature: "고집", type: "풀/독" };
+        if (lvBadge) lvBadge.innerText = 'Lv.' + state.userStats.level;
+        const genderClass = curMon.gender === '♀' ? 'female' : 'male';
+        if (pokeName) pokeName.innerHTML = `${curMon.name} <span class="gender-symbol ${genderClass}" id="genderSymbol">${curMon.gender || '♂'}</span>`;
+        if (natureTag) natureTag.innerText = `${curMon.nature || '고집'}`;
+        
+        const reqXp = Math.max(1, state.userStats.requiredXp || 70);
+        const xpPercent = Math.min(100, Math.floor((state.userStats.currentXp / reqXp) * 100));
+        if (xpValues) xpValues.innerText = `${state.userStats.currentXp} / ${reqXp}`;
+        if (xpBarFill) xpBarFill.style.width = xpPercent + '%';
+        
+        if (pokeImg) {
+          pokeImg.src = curMon.idleGif || `./images/pokemon/showdown/${curMon.id || 1}.gif`;
+          pokeImg.className = "pokemon-sprite";
+          const scale = getPokemonScaleFactor(curMon.id, false);
+          pokeImg.style.transform = `scale(${scale})`;
+          pokeImg.dataset.baseScale = scale;
+        }
+        renderTypeIconsInstant(curMon.type);
+      }
+
+      // 3) 📋 퀘스트 뱃지 및 목록 렌더링
+      updateQuestBadge(state.quests || []);
+      renderQuestList(state.quests || []);
+      renderStreakList(state.quests || []);
+    }
+
+    function triggerPokemonSpeechBubble(customText) {
+      const bubble = document.getElementById('speechBubble');
+      if (!bubble) return;
+      if (customText) {
+        bubble.innerText = customText;
+      } else if (appState.isEgg) {
+        const eggLines = ["토독... 토독...", "따스한 온기가 느껴져요 🥚", "두근... 두근...", "부화가 기다려져요! ✨"];
+        bubble.innerText = eggLines[Math.floor(Math.random() * eggLines.length)];
+      } else {
+        const name = appState.pokemon?.name || "포켓몬";
+        const normalLines = [
+          `${name}는 기분이 좋아 보인다! 🍃`,
+          `오늘도 파이팅이야! ⭐`,
+          `씨-익! 🌿`,
+          `퀘스트를 완료하고 강해지자! ✨`,
+          `집중해서 함께 성장해요! 🚀`,
+          `${name}가 반갑게 인사합니다! 👋`
+        ];
+        bubble.innerText = normalLines[Math.floor(Math.random() * normalLines.length)];
+      }
+      bubble.classList.remove('pop-anim');
+      void bubble.offsetWidth;
+      bubble.classList.add('pop-anim');
+    }
+
+    // ========================================================
+    // 📋 퀘스트 모달 (추가 / 수정 / 삭제) 엔진
+    // ========================================================
+    function openAddQuestModal() {
+      haptic.select();
+      pushModalHistory('addQuestModal');
+      const modal = document.getElementById('addQuestModal');
+      if (!modal) return;
+      document.getElementById('modalTitleText').innerText = "🌱 새로운 퀘스트 추가";
+      document.getElementById('editingQuestId').value = "";
+      document.getElementById('inputQuestName').value = "";
+      document.getElementById('inputQuestDesc').value = "";
+      
+      const todayIso = new Date().toISOString().split('T')[0];
+      document.getElementById('inputQuestDateTab1').value = todayIso;
+      document.getElementById('inputQuestTimeTab1').value = "";
+      document.getElementById('inputQuestDateTab2').value = todayIso;
+      document.getElementById('inputQuestTimeTab2').value = "";
+      
+      document.getElementById('selectQuestRecurrence').value = "DAILY";
+      const dayGroup = document.getElementById('daySelectGroup');
+      if (dayGroup) dayGroup.style.display = "none";
+      document.querySelectorAll('.day-btn').forEach(btn => btn.classList.remove('selected'));
+      
+      document.getElementById('inputQuestXp').value = "20";
+      document.getElementById('inputQuestRequired').checked = false;
+      document.getElementById('btnDeleteQuest').style.display = "none";
+      document.getElementById('btnSubmitQuest').innerText = "포켓Tasks 퀘스트 등록";
+      
+      switchQuestModalTab(1);
+      modal.classList.add('open');
+    }
+
+    function closeAddQuestModal() {
+      const modal = document.getElementById('addQuestModal');
+      if (modal) modal.classList.remove('open');
+    }
+
+    function switchQuestModalTab(tabNum) {
+      haptic.tick();
+      const tabInput = document.getElementById('activeQuestModalTab');
+      if (tabInput) tabInput.value = tabNum;
+      const btn1 = document.getElementById('btnQuestTab1');
+      const btn2 = document.getElementById('btnQuestTab2');
+      const sec1 = document.getElementById('questTab1Section');
+      const sec2 = document.getElementById('questTab2Section');
+      
+      if (tabNum === 1) {
+        if (btn1) btn1.classList.add('active');
+        if (btn2) btn2.classList.remove('active');
+        if (sec1) sec1.style.display = 'block';
+        if (sec2) sec2.style.display = 'none';
+      } else {
+        if (btn1) btn1.classList.remove('active');
+        if (btn2) btn2.classList.add('active');
+        if (sec1) sec1.style.display = 'none';
+        if (sec2) sec2.style.display = 'block';
+      }
+    }
+
+    function onRecurrenceChange() {
+      const rec = document.getElementById('selectQuestRecurrence').value;
+      const dayGroup = document.getElementById('daySelectGroup');
+      if (dayGroup) {
+        dayGroup.style.display = (rec === 'WEEKLY') ? 'block' : 'none';
+      }
+    }
+
+    function toggleDayBtn(el) {
+      haptic.tick();
+      el.classList.toggle('selected');
+    }
+
+    function openEditQuestModal(questId) {
+      haptic.select();
+      const q = appState.quests.find(item => String(item.id).trim() === String(questId).trim());
+      if (!q) return;
+      
+      pushModalHistory('editQuestModal');
+      const modal = document.getElementById('addQuestModal');
+      if (!modal) return;
+      
+      document.getElementById('modalTitleText').innerText = "✏️ 퀘스트 수정";
+      document.getElementById('editingQuestId').value = q.id;
+      document.getElementById('inputQuestName').value = q.name || "";
+      document.getElementById('inputQuestDesc').value = q.description || "";
+      document.getElementById('inputQuestXp').value = q.rewardXp || 20;
+      document.getElementById('inputQuestRequired').checked = isQuestRequired(q);
+      document.getElementById('btnDeleteQuest').style.display = "inline-block";
+      document.getElementById('btnSubmitQuest').innerText = "퀘스트 수정 저장";
+      
+      const rec = (q.recurrence || "").toUpperCase().trim();
+      const isRecurring = rec && rec !== "NONE" && rec !== "일회성";
+      
+      if (!isRecurring) {
+        switchQuestModalTab(1);
+        document.getElementById('inputQuestDateTab1').value = q.dueDate || "";
+        document.getElementById('inputQuestTimeTab1').value = q.notifyTime || "";
+      } else {
+        switchQuestModalTab(2);
+        document.getElementById('inputQuestDateTab2').value = q.dueDate || "";
+        document.getElementById('inputQuestTimeTab2').value = q.notifyTime || "";
+        
+        if (rec.startsWith("WEEKLY") || rec.startsWith("DAYS:") || rec.includes(",")) {
+          document.getElementById('selectQuestRecurrence').value = "WEEKLY";
+          const dayGroup = document.getElementById('daySelectGroup');
+          if (dayGroup) dayGroup.style.display = "block";
+          const daysPart = rec.includes(":") ? rec.split(":")[1] : rec;
+          const targetDays = daysPart.split(",").map(d => d.trim().toUpperCase());
+          document.querySelectorAll('.day-btn').forEach(btn => {
+            const d = btn.dataset.day;
+            if (targetDays.includes(d)) {
+              btn.classList.add('selected');
+            } else {
+              btn.classList.remove('selected');
+            }
+          });
+        } else if (rec === "MONTHLY" || rec === "매월") {
+          document.getElementById('selectQuestRecurrence').value = "MONTHLY";
+          const dayGroup = document.getElementById('daySelectGroup');
+          if (dayGroup) dayGroup.style.display = "none";
+        } else if (rec === "HOURLY" || rec === "시간별") {
+          document.getElementById('selectQuestRecurrence').value = "HOURLY";
+          const dayGroup = document.getElementById('daySelectGroup');
+          if (dayGroup) dayGroup.style.display = "none";
+        } else {
+          document.getElementById('selectQuestRecurrence').value = "DAILY";
+          const dayGroup = document.getElementById('daySelectGroup');
+          if (dayGroup) dayGroup.style.display = "none";
+        }
+      }
+      
+      modal.classList.add('open');
+    }
+
+    function submitQuestForm() {
+      const name = document.getElementById('inputQuestName').value.trim();
+      if (!name) {
+        alert("퀘스트 제목을 입력해주세요!");
+        return;
+      }
+      
+      const desc = document.getElementById('inputQuestDesc').value.trim();
+      const xp = Number(document.getElementById('inputQuestXp').value) || 20;
+      const isReq = document.getElementById('inputQuestRequired').checked;
+      const tabNum = Number(document.getElementById('activeQuestModalTab').value) || 1;
+      const editingId = document.getElementById('editingQuestId').value;
+      
+      let dueDate = "";
+      let notifyTime = "";
+      let recurrence = "NONE";
+      
+      if (tabNum === 1) {
+        dueDate = document.getElementById('inputQuestDateTab1').value || new Date().toISOString().split('T')[0];
+        notifyTime = document.getElementById('inputQuestTimeTab1').value || "";
+        recurrence = "NONE";
+      } else {
+        dueDate = document.getElementById('inputQuestDateTab2').value || new Date().toISOString().split('T')[0];
+        notifyTime = document.getElementById('inputQuestTimeTab2').value || "";
+        const recType = document.getElementById('selectQuestRecurrence').value;
+        if (recType === 'WEEKLY') {
+          const selectedDays = Array.from(document.querySelectorAll('.day-btn.selected')).map(b => b.dataset.day);
+          recurrence = selectedDays.length > 0 ? `DAYS:${selectedDays.join(',')}` : 'DAILY';
+        } else {
+          recurrence = recType;
+        }
+      }
+      
+      if (editingId) {
+        const q = appState.quests.find(x => String(x.id).trim() === String(editingId).trim());
+        if (q) {
+          q.name = name;
+          q.description = desc;
+          q.dueDate = dueDate;
+          q.notifyTime = notifyTime;
+          q.recurrence = recurrence;
+          q.rewardXp = xp;
+          q.isRequired = isReq;
+        }
+      } else {
+        const newQuest = {
+          id: "Q_" + Date.now(),
+          name: name,
+          description: desc,
+          dueDate: dueDate,
+          notifyTime: notifyTime,
+          recurrence: recurrence,
+          rewardXp: xp,
+          isRequired: isReq,
+          isActive: true,
+          isCompletedToday: false,
+          lastCompletedDate: "",
+          consecutiveDays: 0
+        };
+        appState.quests.push(newQuest);
+      }
+      
+      haptic.complete();
+      closeAddQuestModal();
+      saveLocalFullCache();
+      initUI(appState);
+      LocalNotificationManager.scheduleAllQuestNotifications();
+      
+      try {
+        fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: editingId ? "editQuest" : "addQuest",
+            quest: {
+              id: editingId || ("Q_" + Date.now()),
+              name, description: desc, dueDate, notifyTime, recurrence, rewardXp: xp, isRequired: isReq
+            }
+          })
+        }).catch(() => {});
+      } catch(e) {}
+    }
+
+    function submitDeleteQuest() {
+      const editingId = document.getElementById('editingQuestId').value;
+      if (!editingId) return;
+      if (!confirm("정말로 이 퀘스트를 삭제하시겠습니까?")) return;
+      
+      haptic.complete();
+      appState.quests = appState.quests.filter(q => String(q.id).trim() !== String(editingId).trim());
+      closeAddQuestModal();
+      saveLocalFullCache();
+      initUI(appState);
+      LocalNotificationManager.scheduleAllQuestNotifications();
+      
+      try {
+        fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "deleteQuest",
+            questId: editingId
+          })
+        }).catch(() => {});
+      } catch(e) {}
+    }
+
+    // ========================================================
+    // 🗑️ 퀘스트 일괄 삭제 (Batch Delete) 엔진
+    // ========================================================
+    function toggleBatchDeleteMode() {
+      haptic.tick();
+      isBatchDeleteMode = !isBatchDeleteMode;
+      updateBatchDeleteUI();
+    }
+
+    function cancelBatchDeleteMode() {
+      haptic.tick();
+      isBatchDeleteMode = false;
+      updateBatchDeleteUI();
+    }
+
+    function onQuestCheckboxChange() {
+      const checkedBoxes = document.querySelectorAll('.quest-batch-cb:checked');
+      const count = checkedBoxes.length;
+      const execBtn = document.getElementById('btnExecBatchDelete');
+      if (execBtn) {
+        execBtn.innerText = `❌ 삭제 실행 (${count})`;
+        execBtn.style.display = count > 0 ? 'inline-block' : 'none';
+      }
+    }
+
+    function updateBatchDeleteUI() {
+      const toggleBtn = document.getElementById('btnToggleBatchDelete');
+      const execBtn = document.getElementById('btnExecBatchDelete');
+      const cancelBtn = document.getElementById('btnCancelBatchDelete');
+      const addBtn = document.getElementById('btnAddQuest');
+      const historyBtn = document.getElementById('btnQuestHistory');
+
+      if (isBatchDeleteMode) {
+        if (toggleBtn) toggleBtn.style.display = 'none';
+        if (cancelBtn) cancelBtn.style.display = 'inline-block';
+        if (execBtn) {
+          execBtn.style.display = 'inline-block';
+          execBtn.innerText = '❌ 삭제 실행 (0)';
+        }
+        if (addBtn) addBtn.style.display = 'none';
+        if (historyBtn) historyBtn.style.display = 'none';
+      } else {
+        if (toggleBtn) toggleBtn.style.display = 'inline-block';
+        if (cancelBtn) cancelBtn.style.display = 'none';
+        if (execBtn) execBtn.style.display = 'none';
+        if (addBtn) addBtn.style.display = 'inline-block';
+        if (historyBtn) historyBtn.style.display = 'inline-block';
+      }
+      renderQuestList(appState.quests);
+    }
+
+    async function executeBatchDelete() {
+      const checkedBoxes = Array.from(document.querySelectorAll('.quest-batch-cb:checked'));
+      const idsToDelete = checkedBoxes.map(cb => cb.dataset.id).filter(Boolean);
+      if (idsToDelete.length === 0) {
+        alert("삭제할 퀘스트를 선택해주세요.");
+        return;
+      }
+      if (!confirm(`선택한 ${idsToDelete.length}개의 퀘스트를 정말 삭제하시겠습니까?`)) {
+        return;
+      }
+      haptic.complete();
+      appState.quests = appState.quests.filter(q => !idsToDelete.includes(String(q.id)));
+      isBatchDeleteMode = false;
+      saveLocalFullCache();
+      updateBatchDeleteUI();
+      
+      try {
+        fetch(GAS_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            action: "batchDeleteQuests",
+            questIds: idsToDelete
+          })
+        }).catch(() => {});
+      } catch(e) {}
+    }
+
+    // ========================================================
+    // 📚 시험 모달 제어 헬퍼
+    // ========================================================
+    function closeStudyExamModal() {
+      const m = document.getElementById('studyExamModal');
+      if (m) m.style.display = 'none';
+    }
+
+    function checkExamAnswer() {
+      checkExamModeAnswer();
+    }
+
+    function navigateSolverQuestion(delta) {
+      navigateExamQuestion(delta);
+    }
+
+    function checkSolverAnswer() {
+      checkExamModeAnswer();
     }
 
     // ========================================================
@@ -7518,18 +7976,6 @@
 
     // ========================================================
     
-    // ========================================================
-    // 📳 정밀 다단계 햅틱 피드백 시스템 (Tiered Vibration API)
-    // ========================================================
-    const haptic = {
-      tick() { triggerHaptic(10); },
-      select() { triggerHaptic([12, 20]); },
-      complete() { triggerHaptic([30, 40, 60]); },
-      feed() { triggerHaptic([40, 50, 100]); },
-      gameClear() { triggerHaptic([50, 50, 100, 50, 150]); },
-      evolve() { triggerHaptic([100, 50, 150, 60, 200, 80, 300, 100, 500, 150, 800]); }
-    };
-
     // ========================================================
     // 🎬 View Transitions API 부드러운 화면 전환 래퍼
     // ========================================================
