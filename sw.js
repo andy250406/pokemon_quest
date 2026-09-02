@@ -5,7 +5,7 @@
 // - 인터랙티브 알림 액션 ([✓ 완료], [✕ 10분 뒤]) 백그라운드 처리
 // =======================================================
 
-const CACHE_NAME = 'pokettasks-app-shell-v20260902-v3';
+const CACHE_NAME = 'pokettasks-app-shell-v20260902-v4';
 const APP_SHELL_ASSETS = [
   './',
   './index.html',
@@ -94,6 +94,7 @@ self.addEventListener('fetch', event => {
 
 let scheduledQuests = [];
 const notifiedTodaySet = new Set();
+let lastRecordedDayStr = "";
 
 // 📩 메인 페이지로부터의 메시지 수신
 self.addEventListener('message', event => {
@@ -118,26 +119,54 @@ self.addEventListener('message', event => {
   }
 });
 
-// ⏰ 서비스 워커 내부 정밀 시간 감시 엔진 (30초 주기)
+// ⏰ 서비스 워커 내부 정밀 시간 감시 엔진 (20초 주기)
 setInterval(() => {
   checkAndTriggerDueQuests();
-}, 30000);
+}, 20000);
 
 function checkAndTriggerDueQuests() {
   if (!scheduledQuests || scheduledQuests.length === 0) return;
 
   const now = new Date();
-  // 한국 표준시 기준 시/분
-  const kstHours = String((now.getUTCHours() + 9) % 24).padStart(2, '0');
-  const kstMinutes = String(now.getUTCMinutes()).padStart(2, '0');
+  // 🌟 KST (UTC+9) 정밀 시간 및 날짜 변환
+  const kstDate = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+  const kstHours = String(kstDate.getUTCHours()).padStart(2, '0');
+  const kstMinutes = String(kstDate.getUTCMinutes()).padStart(2, '0');
   const currentTime = `${kstHours}:${kstMinutes}`;
-  const todayStr = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
+  const todayStr = `${kstDate.getUTCFullYear()}-${String(kstDate.getUTCMonth() + 1).padStart(2, '0')}-${String(kstDate.getUTCDate()).padStart(2, '0')}`;
+  const dayCodeMap = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
+  const todayDayCode = dayCodeMap[kstDate.getUTCDay()];
+
+  // 🌟 자정이 지나 날짜가 바뀌었으면 알림 발송 기록 셋 초기화 -> 반복 퀘스트 자동 재활성화!
+  if (lastRecordedDayStr && lastRecordedDayStr !== todayStr) {
+    notifiedTodaySet.clear();
+  }
+  lastRecordedDayStr = todayStr;
 
   scheduledQuests.forEach(q => {
     if (!q.notifyTime || !q.notifyTime.includes(':')) return;
 
-    // 오늘 이미 완료된 퀘스트는 제외
-    if (q.isCompletedToday || q.isSingleCompleted) return;
+    const rec = String(q.recurrence || 'DAILY').toUpperCase().trim();
+    const isRecurring = (rec !== 'NONE' && rec !== '일회성');
+
+    // 1) 일회성 퀘스트인 경우: 이미 완료되었으면 영구 건너뜀
+    if (!isRecurring && (q.isSingleCompleted || q.isCompletedToday)) {
+      return;
+    }
+
+    // 2) 반복 퀘스트인 경우: 오늘 이미 완료했으면 오늘 발송은 건너뜀 (내일 날짜가 되면 자동 발송됨)
+    if (isRecurring && q.lastCompletedDate === todayStr) {
+      return;
+    }
+
+    // 3) 주간 특정 요일 반복 검사 (WEEKLY:MON,FRI 등)
+    if (rec.startsWith('WEEKLY') || rec.includes(',')) {
+      const daysPart = rec.includes(':') ? rec.split(':')[1] : rec;
+      const targetDays = daysPart.split(',').map(d => d.trim().toUpperCase());
+      if (!targetDays.includes(todayDayCode)) {
+        return;
+      }
+    }
 
     const notifKey = `${q.id}_${todayStr}_${q.notifyTime}`;
 
@@ -147,7 +176,7 @@ function checkAndTriggerDueQuests() {
 
       showLocalNotification(
         `⏰ [포켓Tasks] ${q.name}`,
-        `'${q.name}' 실천할 시간입니다! 완료하고 포켓몬에게 XP를 선물하세요! 🎁`,
+        `'${q.name}' 실천할 시간입니다! 완료하고 포켓몬에게 경험치(XP)를 선물하세요! 🎁`,
         `quest_${q.id}`,
         q.id,
         q.rewardXp || 20,
