@@ -655,19 +655,19 @@
       transition: bottom 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
 
-    /* 1) 🌿 [하] 지상 포켓몬 위치 (바닥 접지) */
+    /* 1) 🌿 [하] 지상 포켓몬 위치: 바닥 경계에서 살짝 떠 있는 자연스러운 접지 (6px) */
     .stage-area.ground-mode {
-      bottom: clamp(21%, 25vh, 28%);
+      bottom: 6px !important;
     }
 
-    /* 2) ☁️ [중] 중간 부유 / 호버링 포켓몬 위치 */
+    /* 2) ☁️ [중] 중간 부유 / 호버링 포켓몬 위치 (14px) */
     .stage-area.hover-mode {
-      bottom: clamp(34%, 39vh, 44%);
+      bottom: 14px !important;
     }
 
-    /* 3) 🕊️ [상] 하늘을 나는 비행 / 고공 부유 포켓몬 위치 */
+    /* 3) 🕊️ [상] 하늘을 나는 비행 / 고공 부유 포켓몬 위치 (24px) */
     .stage-area.sky-mode {
-      bottom: clamp(47%, 54vh, 61%);
+      bottom: 24px !important;
     }
 
     .speech-bubble {
@@ -5175,13 +5175,6 @@
           initUI(appState);
           logDebug(`⚡ 시트 데이터 고속 최신화 완료 (퀘스트 ${appState.quests.length}개)`, "success");
 
-          // 🐣 [알 부화 감지]: 이미 레벨 2 이상 달성한 알은 즉시 부화 시네마틱 실행!
-          if (appState.isEgg && appState.userStats.level >= 2) {
-            setTimeout(() => {
-              hatchCurrentEgg();
-            }, 350);
-          }
-
           // 🏆 [일요일 22시 주간 정산 감지]: 일요일 22시 이후 접속 시 자동 정산 & 알 지급 시네마틱 실행!
           checkSundayWeeklyGraduation();
         }
@@ -5279,6 +5272,22 @@
       } catch(e) {}
     }
 
+    // 🌟 [진화 자동 정합성 판별기]: 현재 포켓몬 ID와 레벨을 비교하여 도달해야 할 최종 진화 단계 포켓몬 객체 반환
+    function getEvolvedPokemonForLevel(baseOrCurrentId, level) {
+      if (!baseOrCurrentId || baseOrCurrentId <= 0) return null;
+      let cur = getPokemonData(baseOrCurrentId);
+      if (!cur) return null;
+      const targetLevel = Number(level) || 1;
+
+      // 진화 트리를 순회하며 현재 레벨에 도달한 최종 진화체 탐색 (예: 이상해씨 Lv.22 ➜ 이상해풀)
+      while (cur && cur.evolvesTo && cur.evolveLevel && targetLevel >= cur.evolveLevel) {
+        const next = getPokemonData(cur.evolvesTo);
+        if (!next || next.id === cur.id) break;
+        cur = next;
+      }
+      return cur;
+    }
+
     function applyBackendDataToAppState(data) {
       if (!data) return;
       if (data.quests && Array.isArray(data.quests)) {
@@ -5287,37 +5296,7 @@
       if (data.pokemonHistory && Array.isArray(data.pokemonHistory)) {
         appState.pokemonHistory = data.pokemonHistory;
       }
-      if (data.pokemon) {
-        const isEgg = Boolean(data.isEgg);
-        appState.isEgg = isEgg;
-        if (isEgg) {
-          appState.eggTier = Number(data.pokemon.eggTier || data.eggTier) || 2;
-          appState.pokemon = {
-            id: 0,
-            name: data.pokemon.name || "포켓몬 알",
-            gender: " ",
-            nature: " ",
-            natureBuff: "+확률보너스",
-            type: "노말",
-            growth: "MEDIUM_SLOW",
-            idleGif: "./images/items/poke-ball.png"
-          };
-        } else {
-          const pInfo = getPokemonData(data.pokemon.id);
-          const gender = data.pokemon.gender || (pInfo?.genderType === 'GENDERLESS' ? ' ' : '♂');
-          const nature = (data.pokemon.nature && !data.pokemon.nature.includes('알')) ? data.pokemon.nature : "고집";
-          appState.pokemon = {
-            id: data.pokemon.id,
-            name: data.pokemon.name,
-            gender: gender,
-            nature: nature,
-            natureBuff: data.pokemon.natureBuff || "+공격",
-            type: pInfo ? pInfo.type : data.pokemon.type,
-            growth: pInfo ? pInfo.growth : "MEDIUM_SLOW",
-            idleGif: `./images/pokemon/showdown/${data.pokemon.id}.gif`
-          };
-        }
-      }
+
       if (data.userStats) {
         const backendLevel = Number(data.userStats.level) || 1;
         const backendXp = Number(data.userStats.currentXp) || 0;
@@ -5349,6 +5328,58 @@
         }
         if (autoLeveled) {
           syncCurrentPokemonStatsToBackend();
+        }
+      }
+
+      if (data.pokemon) {
+        const isEgg = Boolean(data.isEgg || data.pokemon.isEgg);
+        appState.isEgg = isEgg;
+        if (isEgg) {
+          appState.eggTier = Number(data.pokemon.eggTier || data.eggTier) || 2;
+          appState.pokemon = {
+            id: 0,
+            name: data.pokemon.name || "포켓몬 알",
+            gender: " ",
+            nature: " ",
+            natureBuff: "+확률보너스",
+            type: "노말",
+            growth: "MEDIUM_SLOW",
+            idleGif: "./images/items/poke-ball.png"
+          };
+        } else {
+          const rawId = Number(data.pokemon.id) || 1;
+          const currentLevel = Number(appState.userStats.level) || 1;
+          // 🌟 레벨에 따른 진화 정합성 자동 보정 (예: 이상해씨 Lv.22 ➜ 이상해풀 No.2)
+          const resolvedMon = getEvolvedPokemonForLevel(rawId, currentLevel) || getPokemonData(rawId);
+          const finalId = resolvedMon ? resolvedMon.id : rawId;
+          const finalName = resolvedMon ? resolvedMon.name : data.pokemon.name;
+          const finalType = resolvedMon ? resolvedMon.type : data.pokemon.type;
+          const finalGrowth = resolvedMon ? resolvedMon.growth : (data.pokemon.growth || "MEDIUM_SLOW");
+
+          const pInfo = getPokemonData(finalId);
+          const gender = data.pokemon.gender || (pInfo?.genderType === 'GENDERLESS' ? ' ' : '♂');
+          const nature = (data.pokemon.nature && !data.pokemon.nature.includes('알')) ? data.pokemon.nature : "고집";
+          const natureBuffMap = {
+            "고집": "+공격", "조심": "+특공", "명랑": "+스피드", "겁쟁이": "+스피드",
+            "장난꾸러기": "+방어", "신중": "+특방", "대담": "+방어", "차분": "+특방",
+            "외로움": "+공격", "용감": "+공격", "의젓": "+특공", "냉정": "+특공"
+          };
+
+          appState.pokemon = {
+            id: finalId,
+            name: finalName,
+            gender: gender,
+            nature: nature,
+            natureBuff: natureBuffMap[nature] || "+공격",
+            type: finalType,
+            growth: finalGrowth,
+            idleGif: `./images/pokemon/showdown/${finalId}.gif`
+          };
+
+          // 시트의 ID가 아직 진화 전 ID였다면 백엔드에 즉시 진화 후 ID 동기화
+          if (rawId !== finalId) {
+            syncCheatToGasBackend(finalId, false, currentLevel, appState.userStats.currentXp, false, gender, nature);
+          }
         }
       }
     }
@@ -7438,6 +7469,7 @@
 
         recordCurrentPokemonToHistory("ACTIVE");
         saveLocalFullCache();
+        syncCheatToGasBackend(nextMon.id, false, appState.userStats.level, appState.userStats.currentXp, false, gender, nature);
         initUI(appState);
 
         triggerEvolutionOverlay(pInfo.name, nextMon.name, nextMon.id, reqLevel, "EVOLVE");
