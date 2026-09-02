@@ -2036,20 +2036,14 @@
 <body>
 
   
-  <!-- 🌟 지연 경험치 큐잉 미니 토스트 UI -->
-  <div id="pendingXpToast" class="pending-xp-toast" style="display:none;">
-    <span style="font-size:15px;">✨</span>
-    <span id="pendingXpToastText">+20 XP 획득 대기 중...</span>
-  </div>
 <div class="app-screen" id="appScreen">
 
-    <!-- 🌟 [상단 30% 영역]: 좌측 3:2 다마고치 화면 + 우측 정보 패널 -->
+    <!-- 🌟 [상단 20% 영역]: 좌측 3:2 다마고치 화면 + 우측 정보/알림 패널 -->
     <div class="habitat-pane" id="habitatPane">
       
       <!-- 👈 좌측: 3:2 비율 다마고치 액자 화면 -->
       <div class="tamagotchi-screen-box" id="tamagotchiScreenBox" onclick="onTamagotchiPokemonTap()">
         <div class="stage-area ground-mode" id="stageArea">
-          <div class="speech-bubble" id="speechBubble">씨-익! 🍃</div>
           <div class="sprite-hop-wrapper" id="spriteHopWrapper">
             <div class="idle-wander-ground" id="idleWanderWrapper">
               <div class="pokemon-sprite-container" id="monSpriteContainer">
@@ -2067,8 +2061,8 @@
         </div>
       </div>
 
-      <!-- 👉 우측: 포켓몬 정보 & 실시간 타이머 유기적 전환 패널 -->
-      <div class="tamagotchi-info-panel">
+      <!-- 👉 우측: 포켓몬 정보 & 실시간 타이머 & 동적 알림/상태바 유기적 전환 패널 -->
+      <div class="tamagotchi-info-panel" id="tamagotchiInfoPanel">
         
         <!-- [VIEW A] 기본 포켓몬 정보란 (퀘스트, 게임, 도감, 설정 탭일 때) -->
         <div id="topPanelPokemonInfo" style="height:100%; display:flex; flex-direction:column; justify-content:space-between;">
@@ -2128,6 +2122,15 @@
             <span>오늘: <b id="topTodayStudyTime" style="color:white;">0분</b></span>
             <span style="color:#38bdf8; font-weight:800;" id="topTodayStudyXp">+0 XP 적립</span>
           </div>
+        </div>
+
+        <!-- [VIEW C] ✨ 실시간 보상 & 상태 알림/안내 패널 (화면 가림 없는 우측 상태바 통합 표시) -->
+        <div id="topPanelNotice" style="display:none; height:100%; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:2px 4px; box-sizing:border-box;">
+          <div style="display:flex; align-items:center; justify-content:center; gap:4px; margin-bottom:2px;">
+            <span id="topNoticeIcon" style="font-size:15px;">✨</span>
+            <span id="topNoticeTitle" style="font-size:11px; font-weight:900; color:#facc15; line-height:1.2; word-break:keep-all;">알림 메시지</span>
+          </div>
+          <div id="topNoticeDesc" style="font-size:9.5px; font-weight:800; color:#38bdf8; line-height:1.2; word-break:keep-all;">+20 XP 획득 완료!</div>
         </div>
 
       </div>
@@ -5422,7 +5425,6 @@
       const natureTag = document.getElementById('natureTag');
       const xpValues = document.getElementById('xpValues');
       const xpBarFill = document.getElementById('xpBarFill');
-      const speechBubble = document.getElementById('speechBubble');
       const typeRow = document.getElementById('typeIconsRow');
 
       if (isEgg) {
@@ -5439,7 +5441,6 @@
           pokeImg.style.transform = `scale(${scale})`;
           pokeImg.dataset.baseScale = scale;
         }
-        if (speechBubble) speechBubble.innerText = "토독... 토독...";
         if (typeRow) typeRow.innerHTML = '';
       } else {
         const curMon = state.pokemon || { id: 1, name: "이상해씨", gender: "♂", nature: "고집", type: "풀/독" };
@@ -5469,29 +5470,75 @@
       renderStreakList(state.quests || []);
     }
 
-    function triggerPokemonSpeechBubble(customText) {
-      const bubble = document.getElementById('speechBubble');
-      if (!bubble) return;
-      if (customText) {
-        bubble.innerText = customText;
-      } else if (appState.isEgg) {
-        const eggLines = ["토독... 토독...", "따스한 온기가 느껴져요 🥚", "두근... 두근...", "부화가 기다려져요! ✨"];
-        bubble.innerText = eggLines[Math.floor(Math.random() * eggLines.length)];
-      } else {
-        const name = appState.pokemon?.name || "포켓몬";
-        const normalLines = [
-          `${name}는 기분이 좋아 보인다! 🍃`,
-          `오늘도 파이팅이야! ⭐`,
-          `씨-익! 🌿`,
-          `퀘스트를 완료하고 강해지자! ✨`,
-          `집중해서 함께 성장해요! 🚀`,
-          `${name}가 반갑게 인사합니다! 👋`
-        ];
-        bubble.innerText = normalLines[Math.floor(Math.random() * normalLines.length)];
+    // ========================================================
+    // 🌟 상단 우측 상태바 동적 알림/안내 엔진 (화면 가림 없는 통합 알림)
+    // ========================================================
+    let topPanelNoticeTimer = null;
+
+    function showTopPanelNotice(msgOrTitle, descText = "", icon = "✨", durationMs = 2800) {
+      const topPokeInfo = document.getElementById('topPanelPokemonInfo');
+      const topStudyTimer = document.getElementById('topPanelStudyTimer');
+      const topNotice = document.getElementById('topPanelNotice');
+      const titleEl = document.getElementById('topNoticeTitle');
+      const descEl = document.getElementById('topNoticeDesc');
+      const iconEl = document.getElementById('topNoticeIcon');
+
+      if (!topNotice) return;
+
+      let title = msgOrTitle || "알림";
+      let desc = descText || "";
+      let ico = icon || "✨";
+
+      // 텍스트 스마트 분리: 예) "🎉 [물 마시기] 완료! +20 XP 획득! ✨"
+      if (!desc && typeof msgOrTitle === 'string') {
+        let clean = msgOrTitle.trim();
+        if (clean.startsWith('🎉') || clean.startsWith('✨') || clean.startsWith('⭐') || clean.startsWith('🏆') || clean.startsWith('🥚') || clean.startsWith('🐣') || clean.startsWith('📝') || clean.startsWith('🎮')) {
+          ico = clean.slice(0, 2);
+          clean = clean.slice(2).trim();
+        }
+
+        if (clean.includes('!')) {
+          const splitIdx = clean.indexOf('!');
+          title = clean.substring(0, splitIdx + 1).trim();
+          desc = clean.substring(splitIdx + 1).replace(/[✨🎉]/g, '').trim();
+        } else if (clean.includes('+') && clean.includes('XP')) {
+          const xpIdx = clean.indexOf('+');
+          title = clean.substring(0, xpIdx).trim();
+          desc = clean.substring(xpIdx).trim();
+        } else {
+          title = clean;
+          desc = "";
+        }
       }
-      bubble.classList.remove('pop-anim');
-      void bubble.offsetWidth;
-      bubble.classList.add('pop-anim');
+
+      if (titleEl) titleEl.innerText = title;
+      if (descEl) {
+        descEl.innerText = desc;
+        descEl.style.display = desc ? 'block' : 'none';
+      }
+      if (iconEl) iconEl.innerText = ico;
+
+      if (topPokeInfo) topPokeInfo.style.display = 'none';
+      if (topStudyTimer) topStudyTimer.style.display = 'none';
+      topNotice.style.display = 'flex';
+
+      if (topPanelNoticeTimer) clearTimeout(topPanelNoticeTimer);
+      topPanelNoticeTimer = setTimeout(() => {
+        topNotice.style.display = 'none';
+        if (appState && appState.currentTab === 'STUDY') {
+          if (topStudyTimer) topStudyTimer.style.display = 'flex';
+        } else {
+          if (topPokeInfo) topPokeInfo.style.display = 'flex';
+        }
+        topPanelNoticeTimer = null;
+      }, durationMs);
+    }
+
+    function triggerPokemonSpeechBubble(customText) {
+      // 말풍선 대신 상단 우측 상태바 알림으로 깔끔하게 연동
+      if (customText) {
+        showTopPanelNotice(customText, "", "💬", 2200);
+      }
     }
 
     function triggerSpriteHopAnimation() {
@@ -8033,22 +8080,10 @@
       },
 
       showToast(msg) {
-        const toast = document.getElementById('pendingXpToast');
-        const text = document.getElementById('pendingXpToastText');
-        if (toast && text) {
-          text.innerText = msg;
-          toast.style.display = 'flex';
-          toast.style.opacity = '1';
-        }
+        showTopPanelNotice(msg, "", "✨", 2800);
       },
 
-      hideToast() {
-        const toast = document.getElementById('pendingXpToast');
-        if (toast) {
-          toast.style.opacity = '0';
-          setTimeout(() => { toast.style.display = 'none'; }, 300);
-        }
-      },
+      hideToast() {},
 
       flushIfReady() {
         if (this.pendingXp <= 0) return;
@@ -8368,37 +8403,7 @@
     }
 
     function showGameRewardToast(msg) {
-      let toast = document.getElementById('gameRewardToast');
-      if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'gameRewardToast';
-        toast.style.cssText = `
-          position: fixed;
-          top: 65px;
-          left: 50%;
-          transform: translateX(-50%) translateY(-20px);
-          background: linear-gradient(135deg, #1e3a8a, #0284c7);
-          color: white;
-          padding: 10px 18px;
-          border-radius: 20px;
-          font-size: 13px;
-          font-weight: 800;
-          box-shadow: 0 8px 25px rgba(0,0,0,0.6), 0 0 15px rgba(56, 189, 248, 0.6);
-          border: 1px solid rgba(255,255,255,0.3);
-          z-index: 1000;
-          opacity: 0;
-          transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-          pointer-events: none;
-        `;
-        document.body.appendChild(toast);
-      }
-      toast.innerText = msg;
-      toast.style.opacity = '1';
-      toast.style.transform = 'translateX(-50%) translateY(0)';
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(-50%) translateY(-20px)';
-      }, 2800);
+      showTopPanelNotice(msg, "", "🎉", 2800);
     }
 
     function checkPendingGameReward() {
