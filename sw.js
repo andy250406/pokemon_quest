@@ -5,7 +5,7 @@
 // - 인터랙티브 알림 액션 ([✓ 완료], [✕ 10분 뒤]) 백그라운드 처리
 // =======================================================
 
-const CACHE_NAME = 'pokettasks-app-shell-v20260902-v4';
+const CACHE_NAME = 'pokettasks-app-shell-v20260902-v5';
 const APP_SHELL_ASSETS = [
   './',
   './index.html',
@@ -16,7 +16,7 @@ const APP_SHELL_ASSETS = [
   './shortcut-add.png',
   './shortcut-quest.png',
   './shortcut-arcade.png',
-  './snake_untangle.html',
+  './bus_parking.html',
   './sudoku.html',
   './game_2048.html',
   './minesweeper.html',

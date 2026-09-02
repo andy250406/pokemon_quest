@@ -2390,9 +2390,9 @@
               <div class="mini-game-icon">🔢</div>
               <div class="mini-game-title">Sudoku</div>
             </div>
-            <div class="mini-game-card highlight" onclick="openArcadeGame('snake_untangle')">
-              <div class="mini-game-icon">🐍</div>
-              <div class="mini-game-title">Snake Point</div>
+            <div class="mini-game-card highlight" onclick="openArcadeGame('bus_parking')">
+              <div class="mini-game-icon">🚌</div>
+              <div class="mini-game-title">버스 주차 탈출</div>
             </div>
             <div class="mini-game-card highlight" onclick="openArcadeGame('minesweeper')">
               <div class="mini-game-icon">💣</div>
@@ -8580,12 +8580,13 @@
         if (gameType === 'sudoku') window.location.href = './sudoku.html';
         else if (gameType === 'minesweeper') window.location.href = './minesweeper.html';
         else if (gameType === 'game_2048' || gameType === '2048') window.location.href = './game_2048.html';
-        else window.location.href = './snake_untangle.html';
+        else if (gameType === 'bus_parking') window.location.href = './bus_parking.html';
+        else window.location.href = './bus_parking.html';
         return;
       }
 
-      if (gameType === 'snake_untangle') {
-        iframe.src = './snake_untangle.html?v=' + Date.now();
+      if (gameType === 'bus_parking' || gameType === 'snake_untangle') {
+        iframe.src = './bus_parking.html?v=' + Date.now();
         modal.style.display = 'flex';
       } else if (gameType === 'sudoku') {
         iframe.src = './sudoku.html?v=' + Date.now();
@@ -8608,7 +8609,7 @@
     }
 
     // 🌟 메인 화면 복귀 시 모아둔 미니게임 경험치 일괄 지급 및 황금빛 오라 연출
-    function applyGameSessionReward(earnedXp, gameName = "Snake Point") {
+    function applyGameSessionReward(earnedXp, gameName = "버스 주차 탈출") {
       if (!earnedXp || isNaN(earnedXp) || earnedXp <= 0) return;
       DeferredXpQueue.queueOrApply(Number(earnedXp), gameName);
     }
@@ -8641,12 +8642,12 @@
           return;
         }
 
-        // 2) 로컬 스토리지 펜딩 XP 체크 (Snake Point & Sudoku)
-        const snakeXp = parseInt(localStorage.getItem('SNAKE_PENDING_XP')) || 0;
-        if (snakeXp > 0) {
-          localStorage.removeItem('SNAKE_PENDING_XP');
+        // 2) 로컬 스토리지 펜딩 XP 체크 (Bus Parking & Sudoku)
+        const busParkingXp = parseInt(localStorage.getItem('BUS_PARKING_PENDING_XP')) || 0;
+        if (busParkingXp > 0) {
+          localStorage.removeItem('BUS_PARKING_PENDING_XP');
           setTimeout(() => {
-            applyGameSessionReward(snakeXp, "Snake Point");
+            applyGameSessionReward(busParkingXp, "버스 주차 탈출");
           }, 400);
         }
 
@@ -8680,16 +8681,15 @@
       if (!event.data) return;
 
       // 게임 완료 후 닫기 시 누적 경험치 전달받음
-      if (event.data.type === 'GAME_FINISHED_RETURN') {
-        closeArcadeGame();
+      if (event.data.type === 'GAME_SESSION_CLEAR' || event.data.type === 'GAME_FINISHED_RETURN') {
         const totalXp = Number(event.data.totalXp) || 0;
-        const gameName = event.data.gameName || "Snake Point";
+        const gameName = event.data.gameName || "버스 주차 탈출";
         if (totalXp > 0) {
           setTimeout(() => {
             applyGameSessionReward(totalXp, gameName);
           }, 200);
         }
-      } else if (event.data.type === 'CLOSE_GAME') {
+      } else if (event.data.type === 'CLOSE_GAME' || event.data.type === 'CLOSE_ARCADE_GAME') {
         closeArcadeGame();
       }
     });

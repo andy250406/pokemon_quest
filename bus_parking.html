@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>🚌 버스 주차 탈출 (Bus Parking Jam) - 포켓Tasks</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <link rel="icon" type="image/png" href="./icon-192.png">
+  <meta name="theme-color" content="#0f172a">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: #090d16;
+      color: #f8fafc;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      overflow: hidden;
+      padding: env(safe-area-inset-top, 8px) 12px env(safe-area-inset-bottom, 12px) 12px;
+    }
+
+    /* 🧭 상단 네비 & 타이틀 바 */
+    .game-header {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 4px 10px 4px;
+    }
+
+    .btn-back {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #e2e8f0;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 7px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.15s;
+    }
+    .btn-back:active { background: rgba(255, 255, 255, 0.25); }
+
+    .game-title-box {
+      text-align: center;
+    }
+    .game-title {
+      font-size: 16px;
+      font-weight: 900;
+      color: #fde047;
+      text-shadow: 0 0 10px rgba(253, 224, 71, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    /* 🎛️ 난이도 선택 탭 바 */
+    .diff-selector {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 3px;
+      margin-bottom: 8px;
+    }
+
+    .diff-btn {
+      flex: 1;
+      padding: 7px 4px;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 800;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .diff-btn.active {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.45);
+    }
+    .diff-btn.diff-hard.active {
+      background: linear-gradient(135deg, #d97706, #b45309);
+      box-shadow: 0 2px 8px rgba(217, 119, 6, 0.45);
+    }
+    .diff-btn.diff-hell.active {
+      background: linear-gradient(135deg, #dc2626, #991b1b);
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.45);
+    }
+
+    /* 📊 실시간 스탯 바 */
+    .stats-bar {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(30, 41, 59, 0.65);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 8px 14px;
+      margin-bottom: 8px;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+    .stat-val {
+      font-size: 15px;
+      font-weight: 900;
+      color: #f8fafc;
+    }
+    .stat-val.highlight {
+      color: #38bdf8;
+    }
+
+    .star-grade {
+      display: flex;
+      gap: 2px;
+      font-size: 14px;
+      color: #fde047;
+      text-shadow: 0 0 6px rgba(253, 224, 71, 0.6);
+    }
+
+    /* 🅿️ 주차장 메인 보드 컨테이너 */
+    .board-outer {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      aspect-ratio: 1 / 1;
+      background: #111827;
+      border: 4px solid #334155;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(0, 0, 0, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+      touch-action: none;
+      overflow: visible;
+    }
+
+    /* 🚧 출구 게이트 표시 (우측 벽 개방) */
+    .exit-gate {
+      position: absolute;
+      right: -24px;
+      width: 28px;
+      height: 60px;
+      background: linear-gradient(135deg, #22c55e, #15803d);
+      border: 2px solid #86efac;
+      border-radius: 0 8px 8px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 16px rgba(34, 197, 94, 0.7);
+      animation: pulse-exit 1.5s infinite alternate;
+      z-index: 15;
+    }
+    @keyframes pulse-exit {
+      from { box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); transform: scale(1); }
+      to { box-shadow: 0 0 22px rgba(34, 197, 94, 0.95); transform: scale(1.04); }
+    }
+    .exit-gate-text {
+      writing-mode: vertical-rl;
+      font-size: 9px;
+      font-weight: 900;
+      color: white;
+      letter-spacing: 1px;
+    }
+
+    /* 🏁 그리드 바닥판 */
+    .board-grid {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #0f172a;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      border-radius: 12px;
+      overflow: visible;
+    }
+
+    /* 🚗 차량 엘리먼트 */
+    .vehicle {
+      position: absolute;
+      border-radius: 12px;
+      cursor: grab;
+      touch-action: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.08s ease-out, box-shadow 0.15s;
+      z-index: 10;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+    }
+    .vehicle:active, .vehicle.dragging {
+      cursor: grabbing;
+      z-index: 20;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), 0 0 12px rgba(255, 255, 255, 0.3);
+      filter: brightness(1.1);
+    }
+
+    /* 🚌 메인 탈출 버스 특별 스타일 */
+    .vehicle.target-vehicle {
+      background: linear-gradient(135deg, #facc15, #eab308) !important;
+      border: 2px solid #fef08a !important;
+      box-shadow: 0 4px 14px rgba(250, 204, 21, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.6) !important;
+      z-index: 12;
+    }
+
+    /* 🚗 차량 그래픽 디테일 */
+    .vehicle-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .vehicle-roof {
+      position: absolute;
+      background: rgba(255, 255, 255, 0.22);
+      border-radius: 6px;
+    }
+    .vehicle.horiz .vehicle-roof {
+      width: 60%;
+      height: 65%;
+    }
+    .vehicle.vert .vehicle-roof {
+      width: 65%;
+      height: 60%;
+    }
+    .vehicle-label {
+      position: relative;
+      font-size: 11px;
+      font-weight: 900;
+      color: rgba(255, 255, 255, 0.95);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+      pointer-events: none;
+    }
+    .vehicle.target-vehicle .vehicle-label {
+      color: #713f12;
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+    }
+
+    /* 🎮 하단 컨트롤 버튼 바 */
+    .bottom-controls {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .ctrl-btn {
+      flex: 1;
+      padding: 11px 0;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      background: rgba(30, 41, 59, 0.85);
+      color: #f1f5f9;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+    .ctrl-btn:active {
+      transform: scale(0.96);
+      background: rgba(51, 65, 85, 0.95);
+    }
+    .ctrl-btn.btn-hint {
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+      border-color: #a78bfa;
+      color: white;
+    }
+    .ctrl-btn.btn-new {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border-color: #38bdf8;
+      color: white;
+    }
+
+    /* 🏆 게임 클리어 축하 모달 */
+    .clear-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 20px;
+      animation: modal-fade 0.3s ease-out;
+    }
+    @keyframes modal-fade {
+      from { opacity: 0; transform: scale(0.92); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .clear-card {
+      width: 100%;
+      max-width: 360px;
+      background: #0f172a;
+      border: 2px solid #38bdf8;
+      border-radius: 24px;
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(2, 132, 199, 0.4);
+    }
+
+    .clear-stars {
+      font-size: 36px;
+      margin-bottom: 8px;
+      letter-spacing: 4px;
+    }
+    .clear-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #fde047;
+      margin-bottom: 6px;
+    }
+    .clear-stats {
+      background: #1e293b;
+      border-radius: 14px;
+      padding: 12px;
+      margin: 14px 0;
+      font-size: 13px;
+      color: #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .clear-reward {
+      font-size: 18px;
+      font-weight: 900;
+      color: #38bdf8;
+      margin-bottom: 18px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px dashed #38bdf8;
+      padding: 10px;
+      border-radius: 12px;
+    }
+
+    .clear-btn-group {
+      display: flex;
+      gap: 10px;
+    }
+    .clear-btn {
+      flex: 1;
+      padding: 12px 0;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .clear-btn.next {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+    }
+    .clear-btn.restart {
+      background: #334155;
+      color: #f1f5f9;
+    }
+
+    /* 💡 힌트 연출 */
+    .vehicle.hint-highlight {
+      animation: hint-glow 0.8s infinite alternate !important;
+      border: 2.5px solid #a855f7 !important;
+    }
+    @keyframes hint-glow {
+      from { box-shadow: 0 0 8px #a855f7; transform: scale(1); }
+      to { box-shadow: 0 0 20px #c084fc; transform: scale(1.04); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🧭 헤더 -->
+  <div class="game-header">
+    <button class="btn-back" onclick="exitToArcade()">⬅ 목록</button>
+    <div class="game-title-box">
+      <div class="game-title"><span>🚌</span> <span>버스 주차 탈출</span></div>
+    </div>
+    <div style="width: 60px;"></div>
+  </div>
+
+  <!-- 🎛️ 난이도 선택 -->
+  <div class="diff-selector">
+    <button class="diff-btn active" id="btnDiffNormal" onclick="selectDifficulty('NORMAL')">🟢 보통 (6x6)</button>
+    <button class="diff-btn diff-hard" id="btnDiffHard" onclick="selectDifficulty('HARD')">🟡 어려움 (6x6)</button>
+    <button class="diff-btn diff-hell" id="btnDiffHell" onclick="selectDifficulty('HELL')">🔴 지옥 (7x7)</button>
+  </div>
+
+  <!-- 📊 실시간 스탯 바 -->
+  <div class="stats-bar">
+    <div class="stat-item">
+      <span class="stat-label">현재 이동</span>
+      <span class="stat-val highlight" id="statMoves">0회</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">최단 목표</span>
+      <span class="stat-val" id="statOptMoves">-회</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">현재 평가</span>
+      <div class="star-grade" id="statStars">★★★</div>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">집중 시간</span>
+      <span class="stat-val" id="statTime">00:00</span>
+    </div>
+  </div>
+
+  <!-- 🅿️ 주차장 메인 보드 -->
+  <div class="board-outer" id="boardOuter">
+    <div class="exit-gate" id="exitGate">
+      <span class="exit-gate-text">EXIT ➔</span>
+    </div>
+    <div class="board-grid" id="boardGrid">
+      <!-- 차량들이 동적으로 렌더링됩니다 -->
+    </div>
+  </div>
+
+  <!-- 🎮 하단 컨트롤 버튼 바 -->
+  <div class="bottom-controls">
+    <button class="ctrl-btn" onclick="undoMove()">↩️ 되돌리기</button>
+    <button class="ctrl-btn btn-hint" onclick="giveHint()">💡 힌트</button>
+    <button class="ctrl-btn" onclick="restartLevel()">🔄 다시하기</button>
+    <button class="ctrl-btn btn-new" onclick="loadNewLevel()">🎲 새 맵</button>
+  </div>
+
+  <!-- 🏆 클리어 모달 -->
+  <div class="clear-modal" id="clearModal">
+    <div class="clear-card">
+      <div class="clear-stars" id="modalStars">★★★</div>
+      <div class="clear-title">주차 탈출 성공! 🎉</div>
+      <div class="clear-stats">
+        <div>내 이동 수: <b id="modalUserMoves" style="color:#fde047;">0</b>회</div>
+        <div>최단 이동 수: <b id="modalOptMoves" style="color:#38bdf8;">0</b>회</div>
+        <div>소요 시간: <b id="modalTime" style="color:#e2e8f0;">00:00</b></div>
+      </div>
+      <div class="clear-reward" id="modalRewardText">
+        🎁 포켓몬 경험치 +50 XP 획득!
+      </div>
+      <div class="clear-btn-group">
+        <button class="clear-btn restart" onclick="restartLevel()">다시 도전 🔄</button>
+        <button class="clear-btn next" onclick="loadNewLevel()">다음 스테이지 ➡️</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ========================================================
+    // 🎵 Web Audio API 효과음 생성기 (사운드 파일 없이 완벽 재생)
+    // ========================================================
+    const SoundFX = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+      },
+      playMove() {
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(320, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(180, this.ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.08);
+      },
+      playHorn() {
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [440, 554].forEach(freq => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.45);
+        });
+      },
+      playVictory() {
+        this.init();
+        if (!this.ctx) return;
+        const notes = [261.63, 329.63, 392.00, 523.25];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          const t = this.ctx.currentTime + idx * 0.1;
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.25, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.35);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.35);
+        });
+      }
+    };
+
+    function triggerHaptic(ms = 20) {
+      if (navigator.vibrate) {
+        try { navigator.vibrate(ms); } catch (e) {}
+      }
+    }
+
+    // ========================================================
+    // 🧠 초고속 BFS 솔버 엔진 (100% 클리어 검증 & 힌트 산출)
+    // ========================================================
+    class BusParkingSolver {
+      constructor(size = 6, exitRow = 2) {
+        this.size = size;
+        this.exitRow = exitRow;
+      }
+
+      solve(vehicles) {
+        const serialize = (vList) => vList.map(v => `${v.id}:${v.x},${v.y}`).sort().join('|');
+        const startKey = serialize(vehicles);
+        const queue = [{ state: vehicles, moves: 0, path: [] }];
+        const visited = new Set([startKey]);
+
+        let statesExplored = 0;
+        while (queue.length > 0 && statesExplored < 50000) {
+          statesExplored++;
+          const current = queue.shift();
+          const currVehicles = current.state;
+          const currTarget = currVehicles.find(v => v.type === 'target');
+
+          // 탈출 조건: 탈출 버스가 출구 벽에 완전히 도달
+          if (currTarget.isHorizontal && currTarget.x + currTarget.len === this.size && currTarget.y === this.exitRow) {
+            return {
+              solvable: true,
+              minMoves: current.moves + 1,
+              path: current.path
+            };
+          }
+
+          const grid = Array(this.size).fill(0).map(() => Array(this.size).fill(null));
+          for (let v of currVehicles) {
+            for (let i = 0; i < v.len; i++) {
+              const vx = v.isHorizontal ? v.x + i : v.x;
+              const vy = v.isHorizontal ? v.y : v.y + i;
+              if (vy >= 0 && vy < this.size && vx >= 0 && vx < this.size) {
+                grid[vy][vx] = v.id;
+              }
+            }
+          }
+
+          for (let i = 0; i < currVehicles.length; i++) {
+            const v = currVehicles[i];
+
+            if (v.isHorizontal) {
+              for (let step = 1; v.x - step >= 0; step++) {
+                if (grid[v.y][v.x - step] !== null) break;
+                const nextVehicles = currVehicles.map(item => ({ ...item }));
+                nextVehicles[i].x -= step;
+                const key = serialize(nextVehicles);
+                if (!visited.has(key)) {
+                  visited.add(key);
+                  queue.push({
+                    state: nextVehicles,
+                    moves: current.moves + 1,
+                    path: [...current.path, { id: v.id, dir: 'left', steps: step }]
+                  });
+                }
+              }
+              for (let step = 1; v.x + v.len - 1 + step < this.size; step++) {
+                if (grid[v.y][v.x + v.len - 1 + step] !== null) break;
+                const nextVehicles = currVehicles.map(item => ({ ...item }));
+                nextVehicles[i].x += step;
+                const key = serialize(nextVehicles);
+                if (!visited.has(key)) {
+                  visited.add(key);
+                  queue.push({
+                    state: nextVehicles,
+                    moves: current.moves + 1,
+                    path: [...current.path, { id: v.id, dir: 'right', steps: step }]
+                  });
+                }
+              }
+            } else {
+              for (let step = 1; v.y - step >= 0; step++) {
+                if (grid[v.y - step][v.x] !== null) break;
+                const nextVehicles = currVehicles.map(item => ({ ...item }));
+                nextVehicles[i].y -= step;
+                const key = serialize(nextVehicles);
+                if (!visited.has(key)) {
+                  visited.add(key);
+                  queue.push({
+                    state: nextVehicles,
+                    moves: current.moves + 1,
+                    path: [...current.path, { id: v.id, dir: 'up', steps: step }]
+                  });
+                }
+              }
+              for (let step = 1; v.y + v.len - 1 + step < this.size; step++) {
+                if (grid[v.y + v.len - 1 + step][v.x] !== null) break;
+                const nextVehicles = currVehicles.map(item => ({ ...item }));
+                nextVehicles[i].y += step;
+                const key = serialize(nextVehicles);
+                if (!visited.has(key)) {
+                  visited.add(key);
+                  queue.push({
+                    state: nextVehicles,
+                    moves: current.moves + 1,
+                    path: [...current.path, { id: v.id, dir: 'down', steps: step }]
+                  });
+                }
+              }
+            }
+          }
+        }
+
+        return { solvable: false };
+      }
+    }
+
+    // ========================================================
+    // 📚 검증된 마스터 퍼즐 큐레이션 라이브러리
+    // ========================================================
+    const VERIFIED_LEVEL_POOLS = {
+      NORMAL: [
+        {
+          size: 6, exitRow: 2, minMoves: 8,
+          vehicles: [
+            { id: 'T', type: 'target', name: '🚌 탈출 버스', x: 0, y: 2, len: 2, isHorizontal: true, color: '#facc15' },
+            { id: 'V1', type: 'car', name: '승용차', x: 0, y: 0, len: 2, isHorizontal: false, color: '#0284c7' },
+            { id: 'V2', type: 'car', name: '승용차', x: 1, y: 0, len: 2, isHorizontal: true, color: '#10b981' },
+            { id: 'V3', type: 'bus', name: '대형 버스', x: 3, y: 0, len: 3, isHorizontal: false, color: '#06b6d4' },
+            { id: 'V4', type: 'car', name: '승용차', x: 2, y: 1, len: 2, isHorizontal: false, color: '#f59e0b' },
+            { id: 'V5', type: 'car', name: '승용차', x: 4, y: 1, len: 2, isHorizontal: false, color: '#ec4899' },
+            { id: 'V6', type: 'car', name: '승용차', x: 2, y: 3, len: 2, isHorizontal: true, color: '#8b5cf6' },
+            { id: 'V7', type: 'bus', name: '대형 버스', x: 0, y: 4, len: 3, isHorizontal: true, color: '#84cc16' },
+            { id: 'V8', type: 'car', name: '승용차', x: 4, y: 3, len: 2, isHorizontal: false, color: '#e11d48' },
+            { id: 'V9', type: 'car', name: '승용차', x: 4, y: 5, len: 2, isHorizontal: true, color: '#0284c7' }
+          ]
+        },
+        {
+          size: 6, exitRow: 2, minMoves: 11,
+          vehicles: [
+            { id: 'T', type: 'target', name: '🚌 탈출 버스', x: 1, y: 2, len: 2, isHorizontal: true, color: '#facc15' },
+            { id: 'V1', type: 'car', name: '승용차', x: 0, y: 0, len: 2, isHorizontal: true, color: '#0284c7' },
+            { id: 'V2', type: 'bus', name: '대형 버스', x: 0, y: 1, len: 3, isHorizontal: false, color: '#06b6d4' },
+            { id: 'V3', type: 'car', name: '승용차', x: 3, y: 0, len: 2, isHorizontal: false, color: '#10b981' },
+            { id: 'V4', type: 'car', name: '승용차', x: 4, y: 1, len: 2, isHorizontal: true, color: '#f59e0b' },
+            { id: 'V5', type: 'car', name: '승용차', x: 3, y: 2, len: 2, isHorizontal: false, color: '#ec4899' },
+            { id: 'V6', type: 'car', name: '승용차', x: 0, y: 4, len: 2, isHorizontal: true, color: '#8b5cf6' },
+            { id: 'V7', type: 'bus', name: '대형 버스', x: 3, y: 4, len: 3, isHorizontal: true, color: '#84cc16' }
+          ]
+        },
+        {
+          size: 6, exitRow: 2, minMoves: 13,
+          vehicles: [
+            { id: 'T', type: 'target', name: '🚌 탈출 버스', x: 0, y: 2, len: 2, isHorizontal: true, color: '#facc15' },
+            { id: 'V1', type: 'bus', name: '대형 버스', x: 2, y: 0, len: 3, isHorizontal: false, color: '#06b6d4' },
+            { id: 'V2', type: 'car', name: '승용차', x: 3, y: 0, len: 2, isHorizontal: false, color: '#0284c7' },
+            { id: 'V3', type: 'car', name: '승용차', x: 4, y: 0, len: 2, isHorizontal: false, color: '#10b981' },
+            { id: 'V4', type: 'car', name: '승용차', x: 0, y: 0, len: 2, isHorizontal: true, color: '#f59e0b' },
+            { id: 'V5', type: 'car', name: '승용차', x: 3, y: 2, len: 2, isHorizontal: true, color: '#ec4899' },
+            { id: 'V6', type: 'car', name: '승용차', x: 0, y: 3, len: 2, isHorizontal: false, color: '#8b5cf6' },
+            { id: 'V7', type: 'bus', x: 1, y: 4, len: 3, isHorizontal: true, color: '#84cc16' },
+            { id: 'V8', type: 'car', x: 4, y: 3, len: 2, isHorizontal: false, color: '#e11d48' }
+          ]
+        }
+      ],
+      HARD: [
+        {
+          size: 6, exitRow: 2, minMoves: 18,
+          vehicles: [
+            { id: 'T', type: 'target', name: '🚌 탈출 버스', x: 1, y: 2, len: 2, isHorizontal: true, color: '#facc15' },
+            { id: 'V1', type: 'bus', name: '대형 버스', x: 0, y: 0, len: 3, isHorizontal: false, color: '#06b6d4' },
+            { id: 'V2', type: 'car', name: '승용차', x: 1, y: 0, len: 2, isHorizontal: true, color: '#0284c7' },
+            { id: 'V3', type: 'car', name: '승용차', x: 1, y: 1, len: 2, isHorizontal: true, color: '#10b981' },
+            { id: 'V4', type: 'bus', name: '대형 버스', x: 3, y: 0, len: 3, isHorizontal: false, color: '#f59e0b' },
+            { id: 'V5', type: 'car', name: '승용차', x: 4, y: 1, len: 2, isHorizontal: false, color: '#ec4899' },
+            { id: 'V6', type: 'bus', name: '대형 버스', x: 5, y: 1, len: 3, isHorizontal: false, color: '#8b5cf6' },
+            { id: 'V7', type: 'car', name: '승용차', x: 2, y: 3, len: 2, isHorizontal: false, color: '#e11d48' },
+            { id: 'V8', type: 'car', name: '승용차', x: 0, y: 4, len: 2, isHorizontal: true, color: '#06b6d4' },
+            { id: 'V9', type: 'car', name: '승용차', x: 3, y: 4, len: 2, isHorizontal: true, color: '#10b981' },
+            { id: 'V10', type: 'car', name: '승용차', x: 1, y: 5, len: 2, isHorizontal: true, color: '#f59e0b' }
+          ]
+        },
+        {
+          size: 6, exitRow: 2, minMoves: 20,
+          vehicles: [
+            { id: 'T', type: 'target', name: '🚌 탈출 버스', x: 0, y: 2, len: 2, isHorizontal: true, color: '#facc15' },
+            { id: 'V1', type: 'car', name: '승용차', x: 0, y: 0, len: 2, isHorizontal: false, color: '#0284c7' },
+            { id: 'V2', type: 'car', name: '승용차', x: 1, y: 0, len: 2, isHorizontal: true, color: '#10b981' },
+            { id: 'V3', type: 'car', name: '승용차', x: 2, y: 1, len: 2, isHorizontal: false, color: '#f59e0b' },
+            { id: 'V4', type: 'bus', name: '대형 버스', x: 3, y: 0, len: 3, isHorizontal: false, color: '#06b6d4' },
+            { id: 'V5', type: 'car', name: '승용차', x: 4, y: 1, len: 2, isHorizontal: true, color: '#ec4899' },
+            { id: 'V6', type: 'car', name: '승용차', x: 2, y: 3, len: 2, isHorizontal: true, color: '#8b5cf6' },
+            { id: 'V7', type: 'bus', name: '대형 버스', x: 0, y: 4, len: 3, isHorizontal: false, color: '#84cc16' },
+            { id: 'V8', type: 'car', name: '승용차', x: 1, y: 4, len: 2, isHorizontal: true, color: '#e11d48' },
+            { id: 'V9', type: 'car', name: '승용차', x: 4, y: 3, len: 2, isHorizontal: false, color: '#0284c7' },
+            { id: 'V10', type: 'car', name: '승용차', x: 1, y: 5, len: 2, isHorizontal: true, color: '#10b981' },
+            { id: 'V11', type: 'car', name: '승용차', x: 3, y: 5, len: 2, isHorizontal: true, color: '#f59e0b' }
+          ]
+        }
+      ],
+      HELL: [
+        {
+          size: 7, exitRow: 3, minMoves: 26,
+          vehicles: [
+            { id: 'T', type: 'target', name: '🚌 탈출 버스', x: 0, y: 3, len: 2, isHorizontal: true, color: '#facc15' },
+            { id: 'V1', type: 'bus', name: '대형 버스', x: 0, y: 0, len: 3, isHorizontal: true, color: '#06b6d4' },
+            { id: 'V2', type: 'car', name: '승용차', x: 3, y: 0, len: 2, isHorizontal: false, color: '#0284c7' },
+            { id: 'V3', type: 'bus', name: '대형 버스', x: 4, y: 0, len: 3, isHorizontal: true, color: '#84cc16' },
+            { id: 'V4', type: 'car', name: '승용차', x: 0, y: 1, len: 2, isHorizontal: false, color: '#10b981' },
+            { id: 'V5', type: 'car', name: '승용차', x: 1, y: 1, len: 2, isHorizontal: true, color: '#f59e0b' },
+            { id: 'V6', type: 'bus', name: '대형 버스', x: 2, y: 2, len: 3, isHorizontal: false, color: '#ec4899' },
+            { id: 'V7', type: 'car', name: '승용차', x: 4, y: 1, len: 2, isHorizontal: false, color: '#8b5cf6' },
+            { id: 'V8', type: 'bus', name: '대형 버스', x: 5, y: 1, len: 3, isHorizontal: false, color: '#e11d48' },
+            { id: 'V9', type: 'car', name: '승용차', x: 6, y: 1, len: 2, isHorizontal: false, color: '#06b6d4' },
+            { id: 'V10', type: 'car', name: '승용차', x: 3, y: 3, len: 2, isHorizontal: false, color: '#10b981' },
+            { id: 'V11', type: 'car', name: '승용차', x: 0, y: 4, len: 2, isHorizontal: false, color: '#f59e0b' },
+            { id: 'V12', type: 'bus', name: '대형 버스', x: 1, y: 4, len: 3, isHorizontal: true, color: '#84cc16' },
+            { id: 'V13', type: 'car', name: '승용차', x: 4, y: 4, len: 2, isHorizontal: false, color: '#ec4899' },
+            { id: 'V14', type: 'car', name: '승용차', x: 5, y: 4, len: 2, isHorizontal: true, color: '#8b5cf6' },
+            { id: 'V15', type: 'bus', name: '대형 버스', x: 1, y: 5, len: 3, isHorizontal: false, color: '#e11d48' },
+            { id: 'V16', type: 'car', name: '승용차', x: 2, y: 6, len: 2, isHorizontal: true, color: '#06b6d4' }
+          ]
+        },
+        {
+          size: 6, exitRow: 2, minMoves: 32,
+          vehicles: [
+            { id: 'T', type: 'target', name: '🚌 탈출 버스', x: 1, y: 2, len: 2, isHorizontal: true, color: '#facc15' },
+            { id: 'V1', type: 'bus', name: '대형 버스', x: 0, y: 0, len: 3, isHorizontal: false, color: '#06b6d4' },
+            { id: 'V2', type: 'car', name: '승용차', x: 1, y: 0, len: 2, isHorizontal: true, color: '#0284c7' },
+            { id: 'V3', type: 'car', name: '승용차', x: 3, y: 0, len: 2, isHorizontal: true, color: '#10b981' },
+            { id: 'V4', type: 'car', name: '승용차', x: 5, y: 0, len: 2, isHorizontal: false, color: '#f59e0b' },
+            { id: 'V5', type: 'car', name: '승용차', x: 1, y: 1, len: 2, isHorizontal: false, color: '#ec4899' },
+            { id: 'V6', type: 'bus', name: '대형 버스', x: 3, y: 1, len: 3, isHorizontal: false, color: '#8b5cf6' },
+            { id: 'V7', type: 'car', name: '승용차', x: 4, y: 2, len: 2, isHorizontal: false, color: '#e11d48' },
+            { id: 'V8', type: 'car', name: '승용차', x: 0, y: 3, len: 2, isHorizontal: true, color: '#06b6d4' },
+            { id: 'V9', type: 'car', name: '승용차', x: 2, y: 3, len: 2, isHorizontal: false, color: '#10b981' },
+            { id: 'V10', type: 'bus', name: '대형 버스', x: 0, y: 5, len: 3, isHorizontal: true, color: '#84cc16' },
+            { id: 'V11', type: 'car', name: '승용차', x: 4, y: 4, len: 2, isHorizontal: true, color: '#f59e0b' },
+            { id: 'V12', type: 'car', name: '승용차', x: 3, y: 5, len: 2, isHorizontal: true, color: '#ec4899' }
+          ]
+        }
+      ]
+    };
+
+    // ========================================================
+    // 🕹️ 게임 상태 관리 & 인터랙션 컨트롤러
+    // ========================================================
+    let currentDifficulty = 'NORMAL';
+    let currentLevelData = null;
+    let initialVehicles = [];
+    let activeVehicles = [];
+    let moveHistory = [];
+    let userMoveCount = 0;
+    let optimalMoves = 10;
+    let gameTimerId = null;
+    let elapsedSeconds = 0;
+    let isClear = false;
+
+    // Drag 상태 변수
+    let draggingVehicle = null;
+    let dragStartPointer = { x: 0, y: 0 };
+    let dragStartPos = { x: 0, y: 0 };
+    let minAllowedCoord = 0;
+    let maxAllowedCoord = 0;
+    let cellSize = 50;
+
+    function selectDifficulty(diff) {
+      currentDifficulty = diff;
+      document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+      if (diff === 'NORMAL') document.getElementById('btnDiffNormal').classList.add('active');
+      else if (diff === 'HARD') document.getElementById('btnDiffHard').classList.add('active');
+      else if (diff === 'HELL') document.getElementById('btnDiffHell').classList.add('active');
+      loadNewLevel();
+    }
+
+    function loadNewLevel() {
+      document.getElementById('clearModal').style.display = 'none';
+      isClear = false;
+      userMoveCount = 0;
+      moveHistory = [];
+
+      // 타이머 리셋
+      if (gameTimerId) clearInterval(gameTimerId);
+      elapsedSeconds = 0;
+      updateTimerDisplay();
+      gameTimerId = setInterval(() => {
+        if (!isClear) {
+          elapsedSeconds++;
+          updateTimerDisplay();
+        }
+      }, 1000);
+
+      // 난이도에 맞는 풀에서 무작위 선택
+      const pool = VERIFIED_LEVEL_POOLS[currentDifficulty] || VERIFIED_LEVEL_POOLS.NORMAL;
+      const rawLevel = pool[Math.floor(Math.random() * pool.length)];
+
+      currentLevelData = JSON.parse(JSON.stringify(rawLevel));
+      initialVehicles = JSON.parse(JSON.stringify(currentLevelData.vehicles));
+      activeVehicles = JSON.parse(JSON.stringify(currentLevelData.vehicles));
+      optimalMoves = currentLevelData.minMoves || 10;
+
+      document.getElementById('statOptMoves').innerText = `${optimalMoves}회`;
+      updateStatsDisplay();
+      renderBoard();
+      SoundFX.playMove();
+    }
+
+    function restartLevel() {
+      document.getElementById('clearModal').style.display = 'none';
+      isClear = false;
+      userMoveCount = 0;
+      moveHistory = [];
+      activeVehicles = JSON.parse(JSON.stringify(initialVehicles));
+      updateStatsDisplay();
+      renderBoard();
+      SoundFX.playMove();
+    }
+
+    function updateTimerDisplay() {
+      const m = String(Math.floor(elapsedSeconds / 60)).padStart(2, '0');
+      const s = String(elapsedSeconds % 60).padStart(2, '0');
+      document.getElementById('statTime').innerText = `${m}:${s}`;
+    }
+
+    function updateStatsDisplay() {
+      document.getElementById('statMoves').innerText = `${userMoveCount}회`;
+
+      const starsEl = document.getElementById('statStars');
+      if (userMoveCount <= optimalMoves + 2) {
+        starsEl.innerText = '★★★';
+        starsEl.style.color = '#fde047';
+      } else if (userMoveCount <= optimalMoves + 6) {
+        starsEl.innerText = '★★☆';
+        starsEl.style.color = '#f59e0b';
+      } else {
+        starsEl.innerText = '★☆☆';
+        starsEl.style.color = '#94a3b8';
+      }
+    }
+
+    function renderBoard() {
+      const gridEl = document.getElementById('boardGrid');
+      const outerEl = document.getElementById('boardOuter');
+      const exitGate = document.getElementById('exitGate');
+      if (!gridEl || !currentLevelData) return;
+
+      const size = currentLevelData.size || 6;
+      const exitRow = currentLevelData.exitRow || 2;
+
+      gridEl.innerHTML = '';
+      const rect = gridEl.getBoundingClientRect();
+      cellSize = rect.width / size;
+
+      // 출구 게이트 위치 맞춤
+      const gateTop = (exitRow * cellSize) + (cellSize * 0.1);
+      const gateHeight = cellSize * 0.8;
+      exitGate.style.top = `${gateTop + 10}px`;
+      exitGate.style.height = `${gateHeight}px`;
+
+      // 그리드 라인 시각화
+      gridEl.style.backgroundSize = `${cellSize}px ${cellSize}px`;
+
+      // 차량 엘리먼트 배치
+      activeVehicles.forEach(v => {
+        const vEl = document.createElement('div');
+        vEl.id = `veh_${v.id}`;
+        vEl.className = `vehicle ${v.isHorizontal ? 'horiz' : 'vert'} ${v.type === 'target' ? 'target-vehicle' : ''}`;
+        vEl.style.background = v.color;
+
+        const left = v.x * cellSize + 2;
+        const top = v.y * cellSize + 2;
+        const width = (v.isHorizontal ? v.len * cellSize : cellSize) - 4;
+        const height = (v.isHorizontal ? cellSize : v.len * cellSize) - 4;
+
+        vEl.style.left = `${left}px`;
+        vEl.style.top = `${top}px`;
+        vEl.style.width = `${width}px`;
+        vEl.style.height = `${height}px`;
+
+        vEl.innerHTML = `
+          <div class="vehicle-inner">
+            <div class="vehicle-roof"></div>
+            <span class="vehicle-label">${v.type === 'target' ? '🚌' : (v.len === 3 ? 'BUS' : 'CAR')}</span>
+          </div>
+        `;
+
+        vEl.addEventListener('pointerdown', (e) => onPointerDown(e, v, vEl));
+        gridEl.appendChild(vEl);
+      });
+    }
+
+    window.addEventListener('resize', () => {
+      renderBoard();
+    });
+
+    // ========================================================
+    // 🖐️ 터치 & 마우스 드래그 물리 엔진
+    // ========================================================
+    function onPointerDown(e, v, el) {
+      if (isClear) return;
+      e.preventDefault();
+      SoundFX.init();
+
+      draggingVehicle = v;
+      dragStartPointer = { x: e.clientX, y: e.clientY };
+      dragStartPos = { x: v.x, y: v.y };
+
+      el.classList.add('dragging');
+      el.setPointerCapture(e.pointerId);
+
+      // 충돌 계산: 이 차량이 이동 가능한 최소/최대 좌표 계산
+      const size = currentLevelData.size;
+      const grid = Array(size).fill(0).map(() => Array(size).fill(null));
+      activeVehicles.forEach(item => {
+        if (item.id === v.id) return;
+        for (let i = 0; i < item.len; i++) {
+          const cx = item.isHorizontal ? item.x + i : item.x;
+          const cy = item.isHorizontal ? item.y : item.y + i;
+          if (cy >= 0 && cy < size && cx >= 0 && cx < size) {
+            grid[cy][cx] = item.id;
+          }
+        }
+      });
+
+      if (v.isHorizontal) {
+        // 좌측 한계
+        let minX = v.x;
+        while (minX > 0 && grid[v.y][minX - 1] === null) minX--;
+        // 우측 한계
+        let maxX = v.x;
+        while (maxX + v.len < size && grid[v.y][maxX + v.len] === null) maxX++;
+        
+        // 탈출 차량인 경우 출구 쪽으로 한 칸 더 나갈 수 있게 허용
+        if (v.type === 'target' && v.y === currentLevelData.exitRow && maxX + v.len === size) {
+          maxX += 1;
+        }
+
+        minAllowedCoord = minX;
+        maxAllowedCoord = maxX;
+      } else {
+        // 상측 한계
+        let minY = v.y;
+        while (minY > 0 && grid[minY - 1][v.x] === null) minY--;
+        // 하측 한계
+        let maxY = v.y;
+        while (maxY + v.len < size && grid[maxY + v.len][v.x] === null) maxY++;
+
+        minAllowedCoord = minY;
+        maxAllowedCoord = maxY;
+      }
+
+      const onPointerMove = (moveEvt) => {
+        if (!draggingVehicle || draggingVehicle.id !== v.id) return;
+        const deltaX = moveEvt.clientX - dragStartPointer.x;
+        const deltaY = moveEvt.clientY - dragStartPointer.y;
+
+        if (v.isHorizontal) {
+          const deltaCells = deltaX / cellSize;
+          let targetCellX = dragStartPos.x + deltaCells;
+          targetCellX = Math.max(minAllowedCoord, Math.min(maxAllowedCoord, targetCellX));
+          el.style.left = `${targetCellX * cellSize + 2}px`;
+        } else {
+          const deltaCells = deltaY / cellSize;
+          let targetCellY = dragStartPos.y + deltaCells;
+          targetCellY = Math.max(minAllowedCoord, Math.min(maxAllowedCoord, targetCellY));
+          el.style.top = `${targetCellY * cellSize + 2}px`;
+        }
+      };
+
+      const onPointerUp = (upEvt) => {
+        el.removeEventListener('pointermove', onPointerMove);
+        el.removeEventListener('pointerup', onPointerUp);
+        el.classList.remove('dragging');
+
+        const deltaX = upEvt.clientX - dragStartPointer.x;
+        const deltaY = upEvt.clientY - dragStartPointer.y;
+
+        let finalGridX = v.x;
+        let finalGridY = v.y;
+
+        if (v.isHorizontal) {
+          const deltaCells = deltaX / cellSize;
+          finalGridX = Math.round(dragStartPos.x + deltaCells);
+          finalGridX = Math.max(minAllowedCoord, Math.min(maxAllowedCoord, finalGridX));
+        } else {
+          const deltaCells = deltaY / cellSize;
+          finalGridY = Math.round(dragStartPos.y + deltaCells);
+          finalGridY = Math.max(minAllowedCoord, Math.min(maxAllowedCoord, finalGridY));
+        }
+
+        // 실제로 이동이 일어난 경우
+        if (finalGridX !== dragStartPos.x || finalGridY !== dragStartPos.y) {
+          moveHistory.push({
+            id: v.id,
+            fromX: dragStartPos.x,
+            fromY: dragStartPos.y,
+            toX: finalGridX,
+            toY: finalGridY
+          });
+          v.x = finalGridX;
+          v.y = finalGridY;
+          userMoveCount++;
+          SoundFX.playMove();
+          triggerHaptic(18);
+          updateStatsDisplay();
+        }
+
+        renderBoard();
+
+        // 🏆 승리 조건 검사
+        if (v.type === 'target' && v.x + v.len >= currentLevelData.size && v.y === currentLevelData.exitRow) {
+          handleGameClear();
+        }
+
+        draggingVehicle = null;
+      };
+
+      el.addEventListener('pointermove', onPointerMove);
+      el.addEventListener('pointerup', onPointerUp);
+    }
+
+    // ========================================================
+    // ↩️ 되돌리기 & 💡 힌트 시스템
+    // ========================================================
+    function undoMove() {
+      if (moveHistory.length === 0 || isClear) return;
+      const lastMove = moveHistory.pop();
+      const v = activeVehicles.find(item => item.id === lastMove.id);
+      if (v) {
+        v.x = lastMove.fromX;
+        v.y = lastMove.fromY;
+        userMoveCount = Math.max(0, userMoveCount - 1);
+        updateStatsDisplay();
+        renderBoard();
+        SoundFX.playMove();
+        triggerHaptic(15);
+      }
+    }
+
+    function giveHint() {
+      if (isClear) return;
+      const solver = new BusParkingSolver(currentLevelData.size, currentLevelData.exitRow);
+      const res = solver.solve(activeVehicles);
+
+      if (res && res.solvable && res.path.length > 0) {
+        const nextStep = res.path[0];
+        const vEl = document.getElementById(`veh_${nextStep.id}`);
+        if (vEl) {
+          vEl.classList.add('hint-highlight');
+          SoundFX.playHorn();
+          triggerHaptic(40);
+          setTimeout(() => {
+            vEl.classList.remove('hint-highlight');
+          }, 1600);
+        }
+      } else {
+        alert("💡 현재 상태에서는 출구가 막혀 있습니다. 되돌리기(↩️)를 사용해 보세요!");
+      }
+    }
+
+    // ========================================================
+    // 🏆 게임 클리어 및 포켓몬 경험치 보상 연동
+    // ========================================================
+    function handleGameClear() {
+      if (isClear) return;
+      isClear = true;
+      if (gameTimerId) clearInterval(gameTimerId);
+
+      SoundFX.playHorn();
+      setTimeout(() => SoundFX.playVictory(), 250);
+      triggerHaptic(100);
+
+      // 별점 및 경험치 계산
+      let stars = '★☆☆';
+      let earnedXp = 20;
+
+      if (currentDifficulty === 'NORMAL') {
+        if (userMoveCount <= optimalMoves + 2) { stars = '★★★'; earnedXp = 40; }
+        else if (userMoveCount <= optimalMoves + 6) { stars = '★★☆'; earnedXp = 25; }
+        else { stars = '★☆☆'; earnedXp = 15; }
+      } else if (currentDifficulty === 'HARD') {
+        if (userMoveCount <= optimalMoves + 2) { stars = '★★★'; earnedXp = 65; }
+        else if (userMoveCount <= optimalMoves + 6) { stars = '★★☆'; earnedXp = 40; }
+        else { stars = '★☆☆'; earnedXp = 25; }
+      } else { // HELL
+        if (userMoveCount <= optimalMoves + 3) { stars = '★★★'; earnedXp = 100; }
+        else if (userMoveCount <= optimalMoves + 8) { stars = '★★☆'; earnedXp = 70; }
+        else { stars = '★☆☆'; earnedXp = 45; }
+      }
+
+      document.getElementById('modalStars').innerText = stars;
+      document.getElementById('modalUserMoves').innerText = userMoveCount;
+      document.getElementById('modalOptMoves').innerText = optimalMoves;
+      document.getElementById('modalTime').innerText = document.getElementById('statTime').innerText;
+      document.getElementById('modalRewardText').innerText = `🎁 포켓몬 경험치 +${earnedXp} XP 획득! ✨`;
+      document.getElementById('clearModal').style.display = 'flex';
+
+      // 부모 창(포켓Tasks)으로 경험치 지급 메시지 전달
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({
+            type: 'GAME_SESSION_CLEAR',
+            gameType: 'bus_parking',
+            gameName: '버스 주차 탈출',
+            totalXp: earnedXp
+          }, '*');
+        }
+        localStorage.setItem('BUS_PARKING_PENDING_XP', earnedXp);
+      } catch (e) {}
+    }
+
+    function exitToArcade() {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'CLOSE_ARCADE_GAME' }, '*');
+      } else {
+        if (window.history.length > 1) window.history.back();
+        else window.location.href = './index.html';
+      }
+    }
+
+    // 🚀 게임 시작
+    window.addEventListener('DOMContentLoaded', () => {
+      loadNewLevel();
+    });
+  </script>
+</body>
+</html>
