@@ -5,7 +5,7 @@
   <title>🚌 버스 주차 탈출 (Bus Parking Jam) - 포켓Tasks</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <link rel="icon" type="image/png" href="./icon-192.png">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#090d16">
 
   <style>
     * {
@@ -26,17 +26,17 @@
       align-items: center;
       justify-content: space-between;
       overflow: hidden;
-      padding: env(safe-area-inset-top, 8px) 12px env(safe-area-inset-bottom, 12px) 12px;
+      padding: env(safe-area-inset-top, 6px) 10px env(safe-area-inset-bottom, 10px) 10px;
     }
 
-    /* 🧭 상단 네비 & 타이틀 바 */
+    /* 🧭 상단 네비 & 타이틀 */
     .game-header {
       width: 100%;
       max-width: 480px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 4px 10px 4px;
+      padding: 4px 4px 6px 4px;
     }
 
     .btn-back {
@@ -45,19 +45,15 @@
       color: #e2e8f0;
       font-size: 13px;
       font-weight: 800;
-      padding: 7px 12px;
+      padding: 6px 12px;
       border-radius: 10px;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 4px;
-      transition: background 0.15s;
     }
     .btn-back:active { background: rgba(255, 255, 255, 0.25); }
 
-    .game-title-box {
-      text-align: center;
-    }
     .game-title {
       font-size: 16px;
       font-weight: 900;
@@ -65,8 +61,7 @@
       text-shadow: 0 0 10px rgba(253, 224, 71, 0.4);
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 5px;
+      gap: 6px;
     }
 
     /* 🎛️ 난이도 선택 탭 바 */
@@ -74,16 +69,16 @@
       width: 100%;
       max-width: 480px;
       display: flex;
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(15, 23, 42, 0.85);
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 12px;
       padding: 3px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .diff-btn {
       flex: 1;
-      padding: 7px 4px;
+      padding: 8px 4px;
       border: none;
       background: transparent;
       color: #94a3b8;
@@ -118,12 +113,12 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(30, 41, 59, 0.65);
+      background: rgba(30, 41, 59, 0.7);
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
-      padding: 8px 14px;
-      margin-bottom: 8px;
+      padding: 7px 14px;
+      margin-bottom: 6px;
     }
 
     .stat-item {
@@ -138,7 +133,7 @@
       color: #94a3b8;
     }
     .stat-val {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 900;
       color: #f8fafc;
     }
@@ -149,35 +144,40 @@
     .star-grade {
       display: flex;
       gap: 2px;
-      font-size: 14px;
+      font-size: 13px;
       color: #fde047;
-      text-shadow: 0 0 6px rgba(253, 224, 71, 0.6);
     }
 
-    /* 🅿️ 주차장 메인 보드 컨테이너 */
-    .board-outer {
+    /* 🅿️ 큼직하고 시원한 주차장 메인 보드 */
+    .board-stage {
       position: relative;
-      width: 100%;
-      max-width: 420px;
+      width: 96vw;
+      max-width: min(94vw, 470px, calc(100dvh - 195px));
       aspect-ratio: 1 / 1;
-      background: #111827;
-      border: 4px solid #334155;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), inset 0 0 20px rgba(0, 0, 0, 0.8);
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 10px;
+      margin: auto 0;
+    }
+
+    .board-outer {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #111827;
+      border: 4px solid #334155;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 0 25px rgba(0, 0, 0, 0.9);
+      padding: 8px;
       touch-action: none;
       overflow: visible;
     }
 
-    /* 🚧 출구 게이트 표시 (우측 벽 개방) */
+    /* 🚧 우측 출구 게이트 (EXIT) */
     .exit-gate {
       position: absolute;
-      right: -24px;
-      width: 28px;
-      height: 60px;
+      right: -22px;
+      width: 24px;
       background: linear-gradient(135deg, #22c55e, #15803d);
       border: 2px solid #86efac;
       border-radius: 0 8px 8px 0;
@@ -186,16 +186,16 @@
       align-items: center;
       justify-content: center;
       box-shadow: 0 0 16px rgba(34, 197, 94, 0.7);
-      animation: pulse-exit 1.5s infinite alternate;
+      animation: pulse-exit 1.4s infinite alternate;
       z-index: 15;
     }
     @keyframes pulse-exit {
-      from { box-shadow: 0 0 10px rgba(34, 197, 94, 0.5); transform: scale(1); }
-      to { box-shadow: 0 0 22px rgba(34, 197, 94, 0.95); transform: scale(1.04); }
+      from { box-shadow: 0 0 8px rgba(34, 197, 94, 0.5); transform: scale(1); }
+      to { box-shadow: 0 0 20px rgba(34, 197, 94, 0.95); transform: scale(1.05); }
     }
     .exit-gate-text {
       writing-mode: vertical-rl;
-      font-size: 9px;
+      font-size: 8.5px;
       font-weight: 900;
       color: white;
       letter-spacing: 1px;
@@ -206,77 +206,176 @@
       position: relative;
       width: 100%;
       height: 100%;
-      background: #0f172a;
+      background: #0b1120;
       background-image: 
-        linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-      border-radius: 12px;
+        linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+      border-radius: 10px;
       overflow: visible;
     }
 
-    /* 🚗 차량 엘리먼트 */
+    /* 🚗 현실감 넘치는 탑뷰 차량 공통 스타일 */
     .vehicle {
       position: absolute;
-      border-radius: 12px;
+      border-radius: 10px;
       cursor: grab;
       touch-action: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: transform 0.08s ease-out, box-shadow 0.15s;
       z-index: 10;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.35);
+      transition: transform 0.08s ease-out, box-shadow 0.15s;
+      padding: 2px;
+      display: flex;
     }
     .vehicle:active, .vehicle.dragging {
       cursor: grabbing;
-      z-index: 20;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6), 0 0 12px rgba(255, 255, 255, 0.3);
-      filter: brightness(1.1);
+      z-index: 25;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 15px rgba(255, 255, 255, 0.4);
+      filter: brightness(1.12);
     }
 
-    /* 🚌 메인 탈출 버스 특별 스타일 */
+    /* 🚌 주인공 탈출 버스 특별 스타일 */
     .vehicle.target-vehicle {
       background: linear-gradient(135deg, #facc15, #eab308) !important;
       border: 2px solid #fef08a !important;
-      box-shadow: 0 4px 14px rgba(250, 204, 21, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.6) !important;
+      box-shadow: 0 4px 16px rgba(250, 204, 21, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.7) !important;
       z-index: 12;
     }
 
-    /* 🚗 차량 그래픽 디테일 */
-    .vehicle-inner {
+    /* 🚗 2D 탑뷰 차량 그래픽 디테일 (헤드라이트, 유리창, 루프, 후미등) */
+    .vehicle-body {
       position: relative;
       width: 100%;
       height: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+    }
+
+    /* 가로 차량 (수평: 좌=후미등, 우=헤드라이트/전면) */
+    .vehicle.horiz .vehicle-body {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* 세로 차량 (수직: 상=후미등, 하=헤드라이트/전면) */
+    .vehicle.vert .vehicle-body {
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* 💡 헤드라이트 (전면부) */
+    .headlights-box {
+      display: flex;
+      z-index: 3;
+    }
+    .vehicle.horiz .headlights-box {
+      flex-direction: column;
+      justify-content: space-between;
+      height: 75%;
+      margin-right: 2px;
+    }
+    .vehicle.vert .headlights-box {
+      flex-direction: row;
+      justify-content: space-between;
+      width: 75%;
+      margin-bottom: 2px;
+    }
+
+    .headlight-lamp {
+      background: #ffffff;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #fef08a, 0 0 12px rgba(254, 240, 138, 0.9);
+    }
+    .vehicle.horiz .headlight-lamp { width: 4px; height: 6px; }
+    .vehicle.vert .headlight-lamp { width: 6px; height: 4px; }
+
+    /* 🔴 테일램프 / 후미등 (후면부) */
+    .taillights-box {
+      display: flex;
+      z-index: 3;
+    }
+    .vehicle.horiz .taillights-box {
+      flex-direction: column;
+      justify-content: space-between;
+      height: 75%;
+      margin-left: 2px;
+    }
+    .vehicle.vert .taillights-box {
+      flex-direction: row;
+      justify-content: space-between;
+      width: 75%;
+      margin-top: 2px;
+    }
+
+    .taillight-lamp {
+      background: #ef4444;
+      border-radius: 50%;
+      box-shadow: 0 0 6px rgba(239, 68, 68, 0.8);
+    }
+    .vehicle.horiz .taillight-lamp { width: 3px; height: 5px; }
+    .vehicle.vert .taillight-lamp { width: 5px; height: 3px; }
+
+    /* 🪟 앞유리 & 뒷유리 & 선루프 */
+    .cabin-area {
+      position: absolute;
+      inset: 4px;
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 5px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 10px;
-      overflow: hidden;
     }
-    .vehicle-roof {
+    .vehicle.horiz .cabin-area {
+      left: 14%;
+      right: 14%;
+    }
+    .vehicle.vert .cabin-area {
+      top: 14%;
+      bottom: 14%;
+    }
+
+    .windshield {
       position: absolute;
-      background: rgba(255, 255, 255, 0.22);
-      border-radius: 6px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.45), rgba(56, 189, 248, 0.25));
+      border-radius: 3px;
     }
-    .vehicle.horiz .vehicle-roof {
-      width: 60%;
-      height: 65%;
+    /* 가로 차량 앞유리 (우측) */
+    .vehicle.horiz .windshield.front {
+      right: 2px;
+      top: 2px;
+      bottom: 2px;
+      width: 25%;
     }
-    .vehicle.vert .vehicle-roof {
-      width: 65%;
-      height: 60%;
+    /* 가로 차량 뒷유리 (좌측) */
+    .vehicle.horiz .windshield.rear {
+      left: 2px;
+      top: 2px;
+      bottom: 2px;
+      width: 18%;
     }
-    .vehicle-label {
-      position: relative;
-      font-size: 11px;
-      font-weight: 900;
-      color: rgba(255, 255, 255, 0.95);
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-      pointer-events: none;
+    /* 세로 차량 앞유리 (하단) */
+    .vehicle.vert .windshield.front {
+      bottom: 2px;
+      left: 2px;
+      right: 2px;
+      height: 25%;
     }
-    .vehicle.target-vehicle .vehicle-label {
-      color: #713f12;
-      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+    /* 세로 차량 뒷유리 (상단) */
+    .vehicle.vert .windshield.rear {
+      top: 2px;
+      left: 2px;
+      right: 2px;
+      height: 18%;
+    }
+
+    .roof-top {
+      width: 45%;
+      height: 45%;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.3);
     }
 
     /* 🎮 하단 컨트롤 버튼 바 */
@@ -285,24 +384,24 @@
       max-width: 480px;
       display: flex;
       justify-content: space-between;
-      gap: 8px;
-      margin-top: 10px;
+      gap: 6px;
+      margin-top: 6px;
     }
 
     .ctrl-btn {
       flex: 1;
-      padding: 11px 0;
+      padding: 10px 0;
       border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 12px;
       background: rgba(30, 41, 59, 0.85);
       color: #f1f5f9;
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 800;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 5px;
+      gap: 4px;
       transition: all 0.15s;
     }
     .ctrl-btn:active {
@@ -332,67 +431,63 @@
       justify-content: center;
       z-index: 100;
       padding: 20px;
-      animation: modal-fade 0.3s ease-out;
-    }
-    @keyframes modal-fade {
-      from { opacity: 0; transform: scale(0.92); }
-      to { opacity: 1; transform: scale(1); }
     }
 
     .clear-card {
       width: 100%;
-      max-width: 360px;
+      max-width: 350px;
       background: #0f172a;
       border: 2px solid #38bdf8;
       border-radius: 24px;
-      padding: 24px 20px;
+      padding: 22px 18px;
       text-align: center;
       box-shadow: 0 20px 50px rgba(2, 132, 199, 0.4);
     }
 
     .clear-stars {
       font-size: 36px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       letter-spacing: 4px;
+      color: #fde047;
     }
     .clear-title {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 900;
       color: #fde047;
       margin-bottom: 6px;
     }
     .clear-stats {
       background: #1e293b;
-      border-radius: 14px;
-      padding: 12px;
-      margin: 14px 0;
+      border-radius: 12px;
+      padding: 10px;
+      margin: 12px 0;
       font-size: 13px;
       color: #cbd5e1;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
     }
     .clear-reward {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 900;
       color: #38bdf8;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       background: rgba(56, 189, 248, 0.15);
       border: 1px dashed #38bdf8;
-      padding: 10px;
+      padding: 9px;
       border-radius: 12px;
     }
 
     .clear-btn-group {
       display: flex;
-      gap: 10px;
+      gap: 8px;
     }
     .clear-btn {
       flex: 1;
-      padding: 12px 0;
+      padding: 11px 0;
       border: none;
       border-radius: 12px;
-      font-size: 14px;
+      font-size: 13.5px;
       font-weight: 900;
       cursor: pointer;
     }
@@ -409,11 +504,11 @@
     /* 💡 힌트 연출 */
     .vehicle.hint-highlight {
       animation: hint-glow 0.8s infinite alternate !important;
-      border: 2.5px solid #a855f7 !important;
+      border: 2px solid #c084fc !important;
     }
     @keyframes hint-glow {
       from { box-shadow: 0 0 8px #a855f7; transform: scale(1); }
-      to { box-shadow: 0 0 20px #c084fc; transform: scale(1.04); }
+      to { box-shadow: 0 0 20px #c084fc; transform: scale(1.06); }
     }
   </style>
 </head>
@@ -422,17 +517,15 @@
   <!-- 🧭 헤더 -->
   <div class="game-header">
     <button class="btn-back" onclick="exitToArcade()">⬅ 목록</button>
-    <div class="game-title-box">
-      <div class="game-title"><span>🚌</span> <span>버스 주차 탈출</span></div>
-    </div>
-    <div style="width: 60px;"></div>
+    <div class="game-title"><span>🚌</span> <span>버스 주차 탈출</span></div>
+    <div style="width: 55px;"></div>
   </div>
 
   <!-- 🎛️ 난이도 선택 -->
   <div class="diff-selector">
     <button class="diff-btn active" id="btnDiffNormal" onclick="selectDifficulty('NORMAL')">🟢 보통 (6x6)</button>
     <button class="diff-btn diff-hard" id="btnDiffHard" onclick="selectDifficulty('HARD')">🟡 어려움 (6x6)</button>
-    <button class="diff-btn diff-hell" id="btnDiffHell" onclick="selectDifficulty('HELL')">🔴 지옥 (7x7)</button>
+    <button class="diff-btn diff-hell" id="btnDiffHell" onclick="selectDifficulty('HELL')">🔴 지옥 (6x6)</button>
   </div>
 
   <!-- 📊 실시간 스탯 바 -->
@@ -455,13 +548,15 @@
     </div>
   </div>
 
-  <!-- 🅿️ 주차장 메인 보드 -->
-  <div class="board-outer" id="boardOuter">
-    <div class="exit-gate" id="exitGate">
-      <span class="exit-gate-text">EXIT ➔</span>
-    </div>
-    <div class="board-grid" id="boardGrid">
-      <!-- 차량들이 동적으로 렌더링됩니다 -->
+  <!-- 🅿️ 큼직한 주차장 메인 보드 -->
+  <div class="board-stage">
+    <div class="board-outer" id="boardOuter">
+      <div class="exit-gate" id="exitGate">
+        <span class="exit-gate-text">EXIT ➔</span>
+      </div>
+      <div class="board-grid" id="boardGrid">
+        <!-- 차량들이 백분율 좌표로 100% 정밀 렌더링됩니다 -->
+      </div>
     </div>
   </div>
 
@@ -484,7 +579,7 @@
         <div>소요 시간: <b id="modalTime" style="color:#e2e8f0;">00:00</b></div>
       </div>
       <div class="clear-reward" id="modalRewardText">
-        🎁 포켓몬 경험치 +50 XP 획득!
+        🎁 포켓몬 경험치 +40 XP 획득!
       </div>
       <div class="clear-btn-group">
         <button class="clear-btn restart" onclick="restartLevel()">다시 도전 🔄</button>
@@ -495,7 +590,7 @@
 
   <script>
     // ========================================================
-    // 🎵 Web Audio API 효과음 생성기 (사운드 파일 없이 완벽 재생)
+    // 🎵 Web Audio API 효과음 생성기
     // ========================================================
     const SoundFX = {
       ctx: null,
@@ -564,7 +659,7 @@
     }
 
     // ========================================================
-    // 🧠 초고속 BFS 솔버 엔진 (100% 클리어 검증 & 힌트 산출)
+    // 🧠 초고속 BFS 솔버 엔진
     // ========================================================
     class BusParkingSolver {
       constructor(size = 6, exitRow = 2) {
@@ -675,134 +770,991 @@
     }
 
     // ========================================================
-    // 📚 검증된 마스터 퍼즐 큐레이션 라이브러리
+    // 📚 100% 무누락 & 무침범 완벽 검증된 마스터 레벨 데이터
     // ========================================================
     const VERIFIED_LEVEL_POOLS = {
-      NORMAL: [
+  "NORMAL": [
+    {
+      "size": 6,
+      "exitRow": 2,
+      "minMoves": 8,
+      "vehicles": [
         {
-          size: 6, exitRow: 2, minMoves: 8,
-          vehicles: [
-            { id: 'T', type: 'target', name: '🚌 탈출 버스', x: 0, y: 2, len: 2, isHorizontal: true, color: '#facc15' },
-            { id: 'V1', type: 'car', name: '승용차', x: 0, y: 0, len: 2, isHorizontal: false, color: '#0284c7' },
-            { id: 'V2', type: 'car', name: '승용차', x: 1, y: 0, len: 2, isHorizontal: true, color: '#10b981' },
-            { id: 'V3', type: 'bus', name: '대형 버스', x: 3, y: 0, len: 3, isHorizontal: false, color: '#06b6d4' },
-            { id: 'V4', type: 'car', name: '승용차', x: 2, y: 1, len: 2, isHorizontal: false, color: '#f59e0b' },
-            { id: 'V5', type: 'car', name: '승용차', x: 4, y: 1, len: 2, isHorizontal: false, color: '#ec4899' },
-            { id: 'V6', type: 'car', name: '승용차', x: 2, y: 3, len: 2, isHorizontal: true, color: '#8b5cf6' },
-            { id: 'V7', type: 'bus', name: '대형 버스', x: 0, y: 4, len: 3, isHorizontal: true, color: '#84cc16' },
-            { id: 'V8', type: 'car', name: '승용차', x: 4, y: 3, len: 2, isHorizontal: false, color: '#e11d48' },
-            { id: 'V9', type: 'car', name: '승용차', x: 4, y: 5, len: 2, isHorizontal: true, color: '#0284c7' }
-          ]
+          "id": "T",
+          "type": "target",
+          "x": 0,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#facc15"
         },
         {
-          size: 6, exitRow: 2, minMoves: 11,
-          vehicles: [
-            { id: 'T', type: 'target', name: '🚌 탈출 버스', x: 1, y: 2, len: 2, isHorizontal: true, color: '#facc15' },
-            { id: 'V1', type: 'car', name: '승용차', x: 0, y: 0, len: 2, isHorizontal: true, color: '#0284c7' },
-            { id: 'V2', type: 'bus', name: '대형 버스', x: 0, y: 1, len: 3, isHorizontal: false, color: '#06b6d4' },
-            { id: 'V3', type: 'car', name: '승용차', x: 3, y: 0, len: 2, isHorizontal: false, color: '#10b981' },
-            { id: 'V4', type: 'car', name: '승용차', x: 4, y: 1, len: 2, isHorizontal: true, color: '#f59e0b' },
-            { id: 'V5', type: 'car', name: '승용차', x: 3, y: 2, len: 2, isHorizontal: false, color: '#ec4899' },
-            { id: 'V6', type: 'car', name: '승용차', x: 0, y: 4, len: 2, isHorizontal: true, color: '#8b5cf6' },
-            { id: 'V7', type: 'bus', name: '대형 버스', x: 3, y: 4, len: 3, isHorizontal: true, color: '#84cc16' }
-          ]
+          "id": "V1",
+          "type": "car",
+          "x": 3,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#38bdf8"
         },
         {
-          size: 6, exitRow: 2, minMoves: 13,
-          vehicles: [
-            { id: 'T', type: 'target', name: '🚌 탈출 버스', x: 0, y: 2, len: 2, isHorizontal: true, color: '#facc15' },
-            { id: 'V1', type: 'bus', name: '대형 버스', x: 2, y: 0, len: 3, isHorizontal: false, color: '#06b6d4' },
-            { id: 'V2', type: 'car', name: '승용차', x: 3, y: 0, len: 2, isHorizontal: false, color: '#0284c7' },
-            { id: 'V3', type: 'car', name: '승용차', x: 4, y: 0, len: 2, isHorizontal: false, color: '#10b981' },
-            { id: 'V4', type: 'car', name: '승용차', x: 0, y: 0, len: 2, isHorizontal: true, color: '#f59e0b' },
-            { id: 'V5', type: 'car', name: '승용차', x: 3, y: 2, len: 2, isHorizontal: true, color: '#ec4899' },
-            { id: 'V6', type: 'car', name: '승용차', x: 0, y: 3, len: 2, isHorizontal: false, color: '#8b5cf6' },
-            { id: 'V7', type: 'bus', x: 1, y: 4, len: 3, isHorizontal: true, color: '#84cc16' },
-            { id: 'V8', type: 'car', x: 4, y: 3, len: 2, isHorizontal: false, color: '#e11d48' }
-          ]
-        }
-      ],
-      HARD: [
-        {
-          size: 6, exitRow: 2, minMoves: 18,
-          vehicles: [
-            { id: 'T', type: 'target', name: '🚌 탈출 버스', x: 1, y: 2, len: 2, isHorizontal: true, color: '#facc15' },
-            { id: 'V1', type: 'bus', name: '대형 버스', x: 0, y: 0, len: 3, isHorizontal: false, color: '#06b6d4' },
-            { id: 'V2', type: 'car', name: '승용차', x: 1, y: 0, len: 2, isHorizontal: true, color: '#0284c7' },
-            { id: 'V3', type: 'car', name: '승용차', x: 1, y: 1, len: 2, isHorizontal: true, color: '#10b981' },
-            { id: 'V4', type: 'bus', name: '대형 버스', x: 3, y: 0, len: 3, isHorizontal: false, color: '#f59e0b' },
-            { id: 'V5', type: 'car', name: '승용차', x: 4, y: 1, len: 2, isHorizontal: false, color: '#ec4899' },
-            { id: 'V6', type: 'bus', name: '대형 버스', x: 5, y: 1, len: 3, isHorizontal: false, color: '#8b5cf6' },
-            { id: 'V7', type: 'car', name: '승용차', x: 2, y: 3, len: 2, isHorizontal: false, color: '#e11d48' },
-            { id: 'V8', type: 'car', name: '승용차', x: 0, y: 4, len: 2, isHorizontal: true, color: '#06b6d4' },
-            { id: 'V9', type: 'car', name: '승용차', x: 3, y: 4, len: 2, isHorizontal: true, color: '#10b981' },
-            { id: 'V10', type: 'car', name: '승용차', x: 1, y: 5, len: 2, isHorizontal: true, color: '#f59e0b' }
-          ]
+          "id": "V2",
+          "type": "car",
+          "x": 4,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#34d399"
         },
         {
-          size: 6, exitRow: 2, minMoves: 20,
-          vehicles: [
-            { id: 'T', type: 'target', name: '🚌 탈출 버스', x: 0, y: 2, len: 2, isHorizontal: true, color: '#facc15' },
-            { id: 'V1', type: 'car', name: '승용차', x: 0, y: 0, len: 2, isHorizontal: false, color: '#0284c7' },
-            { id: 'V2', type: 'car', name: '승용차', x: 1, y: 0, len: 2, isHorizontal: true, color: '#10b981' },
-            { id: 'V3', type: 'car', name: '승용차', x: 2, y: 1, len: 2, isHorizontal: false, color: '#f59e0b' },
-            { id: 'V4', type: 'bus', name: '대형 버스', x: 3, y: 0, len: 3, isHorizontal: false, color: '#06b6d4' },
-            { id: 'V5', type: 'car', name: '승용차', x: 4, y: 1, len: 2, isHorizontal: true, color: '#ec4899' },
-            { id: 'V6', type: 'car', name: '승용차', x: 2, y: 3, len: 2, isHorizontal: true, color: '#8b5cf6' },
-            { id: 'V7', type: 'bus', name: '대형 버스', x: 0, y: 4, len: 3, isHorizontal: false, color: '#84cc16' },
-            { id: 'V8', type: 'car', name: '승용차', x: 1, y: 4, len: 2, isHorizontal: true, color: '#e11d48' },
-            { id: 'V9', type: 'car', name: '승용차', x: 4, y: 3, len: 2, isHorizontal: false, color: '#0284c7' },
-            { id: 'V10', type: 'car', name: '승용차', x: 1, y: 5, len: 2, isHorizontal: true, color: '#10b981' },
-            { id: 'V11', type: 'car', name: '승용차', x: 3, y: 5, len: 2, isHorizontal: true, color: '#f59e0b' }
-          ]
-        }
-      ],
-      HELL: [
-        {
-          size: 7, exitRow: 3, minMoves: 26,
-          vehicles: [
-            { id: 'T', type: 'target', name: '🚌 탈출 버스', x: 0, y: 3, len: 2, isHorizontal: true, color: '#facc15' },
-            { id: 'V1', type: 'bus', name: '대형 버스', x: 0, y: 0, len: 3, isHorizontal: true, color: '#06b6d4' },
-            { id: 'V2', type: 'car', name: '승용차', x: 3, y: 0, len: 2, isHorizontal: false, color: '#0284c7' },
-            { id: 'V3', type: 'bus', name: '대형 버스', x: 4, y: 0, len: 3, isHorizontal: true, color: '#84cc16' },
-            { id: 'V4', type: 'car', name: '승용차', x: 0, y: 1, len: 2, isHorizontal: false, color: '#10b981' },
-            { id: 'V5', type: 'car', name: '승용차', x: 1, y: 1, len: 2, isHorizontal: true, color: '#f59e0b' },
-            { id: 'V6', type: 'bus', name: '대형 버스', x: 2, y: 2, len: 3, isHorizontal: false, color: '#ec4899' },
-            { id: 'V7', type: 'car', name: '승용차', x: 4, y: 1, len: 2, isHorizontal: false, color: '#8b5cf6' },
-            { id: 'V8', type: 'bus', name: '대형 버스', x: 5, y: 1, len: 3, isHorizontal: false, color: '#e11d48' },
-            { id: 'V9', type: 'car', name: '승용차', x: 6, y: 1, len: 2, isHorizontal: false, color: '#06b6d4' },
-            { id: 'V10', type: 'car', name: '승용차', x: 3, y: 3, len: 2, isHorizontal: false, color: '#10b981' },
-            { id: 'V11', type: 'car', name: '승용차', x: 0, y: 4, len: 2, isHorizontal: false, color: '#f59e0b' },
-            { id: 'V12', type: 'bus', name: '대형 버스', x: 1, y: 4, len: 3, isHorizontal: true, color: '#84cc16' },
-            { id: 'V13', type: 'car', name: '승용차', x: 4, y: 4, len: 2, isHorizontal: false, color: '#ec4899' },
-            { id: 'V14', type: 'car', name: '승용차', x: 5, y: 4, len: 2, isHorizontal: true, color: '#8b5cf6' },
-            { id: 'V15', type: 'bus', name: '대형 버스', x: 1, y: 5, len: 3, isHorizontal: false, color: '#e11d48' },
-            { id: 'V16', type: 'car', name: '승용차', x: 2, y: 6, len: 2, isHorizontal: true, color: '#06b6d4' }
-          ]
+          "id": "V3",
+          "type": "car",
+          "x": 5,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#fbbf24"
         },
         {
-          size: 6, exitRow: 2, minMoves: 32,
-          vehicles: [
-            { id: 'T', type: 'target', name: '🚌 탈출 버스', x: 1, y: 2, len: 2, isHorizontal: true, color: '#facc15' },
-            { id: 'V1', type: 'bus', name: '대형 버스', x: 0, y: 0, len: 3, isHorizontal: false, color: '#06b6d4' },
-            { id: 'V2', type: 'car', name: '승용차', x: 1, y: 0, len: 2, isHorizontal: true, color: '#0284c7' },
-            { id: 'V3', type: 'car', name: '승용차', x: 3, y: 0, len: 2, isHorizontal: true, color: '#10b981' },
-            { id: 'V4', type: 'car', name: '승용차', x: 5, y: 0, len: 2, isHorizontal: false, color: '#f59e0b' },
-            { id: 'V5', type: 'car', name: '승용차', x: 1, y: 1, len: 2, isHorizontal: false, color: '#ec4899' },
-            { id: 'V6', type: 'bus', name: '대형 버스', x: 3, y: 1, len: 3, isHorizontal: false, color: '#8b5cf6' },
-            { id: 'V7', type: 'car', name: '승용차', x: 4, y: 2, len: 2, isHorizontal: false, color: '#e11d48' },
-            { id: 'V8', type: 'car', name: '승용차', x: 0, y: 3, len: 2, isHorizontal: true, color: '#06b6d4' },
-            { id: 'V9', type: 'car', name: '승용차', x: 2, y: 3, len: 2, isHorizontal: false, color: '#10b981' },
-            { id: 'V10', type: 'bus', name: '대형 버스', x: 0, y: 5, len: 3, isHorizontal: true, color: '#84cc16' },
-            { id: 'V11', type: 'car', name: '승용차', x: 4, y: 4, len: 2, isHorizontal: true, color: '#f59e0b' },
-            { id: 'V12', type: 'car', name: '승용차', x: 3, y: 5, len: 2, isHorizontal: true, color: '#ec4899' }
-          ]
+          "id": "V4",
+          "type": "car",
+          "x": 1,
+          "y": 5,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#f472b6"
+        },
+        {
+          "id": "V5",
+          "type": "car",
+          "x": 2,
+          "y": 3,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#a78bfa"
+        },
+        {
+          "id": "V6",
+          "type": "car",
+          "x": 3,
+          "y": 0,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#22d3ee"
+        },
+        {
+          "id": "V7",
+          "type": "car",
+          "x": 0,
+          "y": 4,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#a3e635"
+        },
+        {
+          "id": "V8",
+          "type": "car",
+          "x": 0,
+          "y": 0,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#fb7185"
+        },
+        {
+          "id": "V9",
+          "type": "bus",
+          "x": 2,
+          "y": 0,
+          "len": 3,
+          "isHorizontal": false,
+          "color": "#818cf8"
         }
       ]
-    };
+    },
+    {
+      "size": 6,
+      "exitRow": 2,
+      "minMoves": 7,
+      "vehicles": [
+        {
+          "id": "T",
+          "type": "target",
+          "x": 0,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#facc15"
+        },
+        {
+          "id": "V1",
+          "type": "bus",
+          "x": 2,
+          "y": 2,
+          "len": 3,
+          "isHorizontal": false,
+          "color": "#38bdf8"
+        },
+        {
+          "id": "V2",
+          "type": "car",
+          "x": 3,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#34d399"
+        },
+        {
+          "id": "V3",
+          "type": "bus",
+          "x": 5,
+          "y": 2,
+          "len": 3,
+          "isHorizontal": false,
+          "color": "#fbbf24"
+        },
+        {
+          "id": "V4",
+          "type": "bus",
+          "x": 0,
+          "y": 3,
+          "len": 3,
+          "isHorizontal": false,
+          "color": "#f472b6"
+        },
+        {
+          "id": "V5",
+          "type": "bus",
+          "x": 3,
+          "y": 0,
+          "len": 3,
+          "isHorizontal": true,
+          "color": "#a78bfa"
+        },
+        {
+          "id": "V6",
+          "type": "car",
+          "x": 3,
+          "y": 5,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#22d3ee"
+        },
+        {
+          "id": "V7",
+          "type": "bus",
+          "x": 0,
+          "y": 1,
+          "len": 3,
+          "isHorizontal": true,
+          "color": "#a3e635"
+        },
+        {
+          "id": "V8",
+          "type": "car",
+          "x": 3,
+          "y": 4,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#fb7185"
+        },
+        {
+          "id": "V9",
+          "type": "car",
+          "x": 4,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#818cf8"
+        }
+      ]
+    },
+    {
+      "size": 6,
+      "exitRow": 2,
+      "minMoves": 8,
+      "vehicles": [
+        {
+          "id": "T",
+          "type": "target",
+          "x": 0,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#facc15"
+        },
+        {
+          "id": "V1",
+          "type": "car",
+          "x": 2,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#38bdf8"
+        },
+        {
+          "id": "V2",
+          "type": "car",
+          "x": 4,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#34d399"
+        },
+        {
+          "id": "V3",
+          "type": "car",
+          "x": 1,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#fbbf24"
+        },
+        {
+          "id": "V4",
+          "type": "car",
+          "x": 3,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#f472b6"
+        },
+        {
+          "id": "V5",
+          "type": "car",
+          "x": 1,
+          "y": 4,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#a78bfa"
+        },
+        {
+          "id": "V6",
+          "type": "car",
+          "x": 3,
+          "y": 4,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#22d3ee"
+        },
+        {
+          "id": "V7",
+          "type": "bus",
+          "x": 5,
+          "y": 0,
+          "len": 3,
+          "isHorizontal": false,
+          "color": "#a3e635"
+        },
+        {
+          "id": "V8",
+          "type": "bus",
+          "x": 2,
+          "y": 0,
+          "len": 3,
+          "isHorizontal": true,
+          "color": "#fb7185"
+        }
+      ]
+    }
+  ],
+  "HARD": [
+    {
+      "size": 6,
+      "exitRow": 2,
+      "minMoves": 10,
+      "vehicles": [
+        {
+          "id": "T",
+          "type": "target",
+          "x": 0,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#facc15"
+        },
+        {
+          "id": "V1",
+          "type": "bus",
+          "x": 2,
+          "y": 1,
+          "len": 3,
+          "isHorizontal": false,
+          "color": "#38bdf8"
+        },
+        {
+          "id": "V2",
+          "type": "car",
+          "x": 3,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#34d399"
+        },
+        {
+          "id": "V3",
+          "type": "car",
+          "x": 5,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#fbbf24"
+        },
+        {
+          "id": "V4",
+          "type": "car",
+          "x": 0,
+          "y": 4,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#f472b6"
+        },
+        {
+          "id": "V5",
+          "type": "car",
+          "x": 4,
+          "y": 4,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#a78bfa"
+        },
+        {
+          "id": "V6",
+          "type": "car",
+          "x": 2,
+          "y": 0,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#22d3ee"
+        },
+        {
+          "id": "V7",
+          "type": "car",
+          "x": 5,
+          "y": 0,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#a3e635"
+        },
+        {
+          "id": "V8",
+          "type": "bus",
+          "x": 1,
+          "y": 5,
+          "len": 3,
+          "isHorizontal": true,
+          "color": "#fb7185"
+        },
+        {
+          "id": "V9",
+          "type": "car",
+          "x": 3,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#818cf8"
+        },
+        {
+          "id": "V10",
+          "type": "car",
+          "x": 4,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#2dd4bf"
+        }
+      ]
+    },
+    {
+      "size": 6,
+      "exitRow": 2,
+      "minMoves": 13,
+      "vehicles": [
+        {
+          "id": "T",
+          "type": "target",
+          "x": 0,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#facc15"
+        },
+        {
+          "id": "V1",
+          "type": "car",
+          "x": 2,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#38bdf8"
+        },
+        {
+          "id": "V2",
+          "type": "car",
+          "x": 3,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#34d399"
+        },
+        {
+          "id": "V3",
+          "type": "car",
+          "x": 5,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#fbbf24"
+        },
+        {
+          "id": "V4",
+          "type": "car",
+          "x": 4,
+          "y": 3,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#f472b6"
+        },
+        {
+          "id": "V5",
+          "type": "bus",
+          "x": 0,
+          "y": 0,
+          "len": 3,
+          "isHorizontal": true,
+          "color": "#a78bfa"
+        },
+        {
+          "id": "V6",
+          "type": "car",
+          "x": 0,
+          "y": 4,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#22d3ee"
+        },
+        {
+          "id": "V7",
+          "type": "car",
+          "x": 5,
+          "y": 4,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#a3e635"
+        },
+        {
+          "id": "V8",
+          "type": "bus",
+          "x": 2,
+          "y": 4,
+          "len": 3,
+          "isHorizontal": true,
+          "color": "#fb7185"
+        },
+        {
+          "id": "V9",
+          "type": "car",
+          "x": 4,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#818cf8"
+        },
+        {
+          "id": "V10",
+          "type": "car",
+          "x": 1,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#2dd4bf"
+        }
+      ]
+    },
+    {
+      "size": 6,
+      "exitRow": 2,
+      "minMoves": 10,
+      "vehicles": [
+        {
+          "id": "T",
+          "type": "target",
+          "x": 0,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#facc15"
+        },
+        {
+          "id": "V1",
+          "type": "car",
+          "x": 2,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#38bdf8"
+        },
+        {
+          "id": "V2",
+          "type": "car",
+          "x": 4,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#34d399"
+        },
+        {
+          "id": "V3",
+          "type": "car",
+          "x": 1,
+          "y": 5,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#fbbf24"
+        },
+        {
+          "id": "V4",
+          "type": "car",
+          "x": 4,
+          "y": 4,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#f472b6"
+        },
+        {
+          "id": "V5",
+          "type": "car",
+          "x": 1,
+          "y": 3,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#a78bfa"
+        },
+        {
+          "id": "V6",
+          "type": "car",
+          "x": 1,
+          "y": 4,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#22d3ee"
+        },
+        {
+          "id": "V7",
+          "type": "car",
+          "x": 2,
+          "y": 0,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#a3e635"
+        },
+        {
+          "id": "V8",
+          "type": "car",
+          "x": 1,
+          "y": 0,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#fb7185"
+        },
+        {
+          "id": "V9",
+          "type": "bus",
+          "x": 3,
+          "y": 3,
+          "len": 3,
+          "isHorizontal": true,
+          "color": "#818cf8"
+        },
+        {
+          "id": "V10",
+          "type": "car",
+          "x": 4,
+          "y": 0,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#2dd4bf"
+        }
+      ]
+    }
+  ],
+  "HELL": [
+    {
+      "size": 6,
+      "exitRow": 2,
+      "minMoves": 22,
+      "vehicles": [
+        {
+          "id": "T",
+          "type": "target",
+          "x": 0,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#facc15"
+        },
+        {
+          "id": "V1",
+          "type": "car",
+          "x": 3,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#38bdf8"
+        },
+        {
+          "id": "V2",
+          "type": "car",
+          "x": 5,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#34d399"
+        },
+        {
+          "id": "V3",
+          "type": "car",
+          "x": 2,
+          "y": 3,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#fbbf24"
+        },
+        {
+          "id": "V4",
+          "type": "bus",
+          "x": 2,
+          "y": 0,
+          "len": 3,
+          "isHorizontal": true,
+          "color": "#f472b6"
+        },
+        {
+          "id": "V5",
+          "type": "car",
+          "x": 2,
+          "y": 5,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#a78bfa"
+        },
+        {
+          "id": "V6",
+          "type": "car",
+          "x": 3,
+          "y": 4,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#22d3ee"
+        },
+        {
+          "id": "V7",
+          "type": "bus",
+          "x": 0,
+          "y": 1,
+          "len": 3,
+          "isHorizontal": true,
+          "color": "#a3e635"
+        },
+        {
+          "id": "V8",
+          "type": "car",
+          "x": 5,
+          "y": 4,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#fb7185"
+        },
+        {
+          "id": "V9",
+          "type": "car",
+          "x": 0,
+          "y": 4,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#818cf8"
+        },
+        {
+          "id": "V10",
+          "type": "car",
+          "x": 4,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#2dd4bf"
+        },
+        {
+          "id": "V11",
+          "type": "car",
+          "x": 0,
+          "y": 0,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#f97316"
+        },
+        {
+          "id": "V12",
+          "type": "car",
+          "x": 3,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#60a5fa"
+        }
+      ]
+    },
+    {
+      "size": 6,
+      "exitRow": 2,
+      "minMoves": 22,
+      "vehicles": [
+        {
+          "id": "T",
+          "type": "target",
+          "x": 0,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#facc15"
+        },
+        {
+          "id": "V1",
+          "type": "bus",
+          "x": 4,
+          "y": 2,
+          "len": 3,
+          "isHorizontal": false,
+          "color": "#38bdf8"
+        },
+        {
+          "id": "V2",
+          "type": "car",
+          "x": 5,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#34d399"
+        },
+        {
+          "id": "V3",
+          "type": "car",
+          "x": 1,
+          "y": 0,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#fbbf24"
+        },
+        {
+          "id": "V4",
+          "type": "car",
+          "x": 4,
+          "y": 0,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#f472b6"
+        },
+        {
+          "id": "V5",
+          "type": "car",
+          "x": 2,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#a78bfa"
+        },
+        {
+          "id": "V6",
+          "type": "car",
+          "x": 3,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#22d3ee"
+        },
+        {
+          "id": "V7",
+          "type": "car",
+          "x": 0,
+          "y": 0,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#a3e635"
+        },
+        {
+          "id": "V8",
+          "type": "car",
+          "x": 3,
+          "y": 3,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#fb7185"
+        },
+        {
+          "id": "V9",
+          "type": "car",
+          "x": 2,
+          "y": 5,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#818cf8"
+        },
+        {
+          "id": "V10",
+          "type": "car",
+          "x": 0,
+          "y": 3,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#2dd4bf"
+        },
+        {
+          "id": "V11",
+          "type": "car",
+          "x": 0,
+          "y": 5,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#f97316"
+        },
+        {
+          "id": "V12",
+          "type": "car",
+          "x": 5,
+          "y": 4,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#60a5fa"
+        }
+      ]
+    },
+    {
+      "size": 6,
+      "exitRow": 2,
+      "minMoves": 19,
+      "vehicles": [
+        {
+          "id": "T",
+          "type": "target",
+          "x": 0,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#facc15"
+        },
+        {
+          "id": "V1",
+          "type": "car",
+          "x": 2,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#38bdf8"
+        },
+        {
+          "id": "V2",
+          "type": "car",
+          "x": 3,
+          "y": 1,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#34d399"
+        },
+        {
+          "id": "V3",
+          "type": "car",
+          "x": 5,
+          "y": 2,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#fbbf24"
+        },
+        {
+          "id": "V4",
+          "type": "car",
+          "x": 2,
+          "y": 3,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#f472b6"
+        },
+        {
+          "id": "V5",
+          "type": "car",
+          "x": 4,
+          "y": 4,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#a78bfa"
+        },
+        {
+          "id": "V6",
+          "type": "car",
+          "x": 3,
+          "y": 3,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#22d3ee"
+        },
+        {
+          "id": "V7",
+          "type": "car",
+          "x": 0,
+          "y": 3,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#a3e635"
+        },
+        {
+          "id": "V8",
+          "type": "car",
+          "x": 0,
+          "y": 0,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#fb7185"
+        },
+        {
+          "id": "V9",
+          "type": "bus",
+          "x": 4,
+          "y": 1,
+          "len": 3,
+          "isHorizontal": false,
+          "color": "#818cf8"
+        },
+        {
+          "id": "V10",
+          "type": "car",
+          "x": 1,
+          "y": 4,
+          "len": 2,
+          "isHorizontal": false,
+          "color": "#2dd4bf"
+        },
+        {
+          "id": "V11",
+          "type": "car",
+          "x": 4,
+          "y": 5,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#f97316"
+        },
+        {
+          "id": "V12",
+          "type": "car",
+          "x": 4,
+          "y": 0,
+          "len": 2,
+          "isHorizontal": true,
+          "color": "#60a5fa"
+        }
+      ]
+    }
+  ]
+};
 
     // ========================================================
-    // 🕹️ 게임 상태 관리 & 인터랙션 컨트롤러
+    // 🕹️ 게임 상태 관리
     // ========================================================
     let currentDifficulty = 'NORMAL';
     let currentLevelData = null;
@@ -815,13 +1767,12 @@
     let elapsedSeconds = 0;
     let isClear = false;
 
-    // Drag 상태 변수
+    // 드래그 상태
     let draggingVehicle = null;
     let dragStartPointer = { x: 0, y: 0 };
     let dragStartPos = { x: 0, y: 0 };
     let minAllowedCoord = 0;
     let maxAllowedCoord = 0;
-    let cellSize = 50;
 
     function selectDifficulty(diff) {
       currentDifficulty = diff;
@@ -838,7 +1789,6 @@
       userMoveCount = 0;
       moveHistory = [];
 
-      // 타이머 리셋
       if (gameTimerId) clearInterval(gameTimerId);
       elapsedSeconds = 0;
       updateTimerDisplay();
@@ -849,7 +1799,6 @@
         }
       }, 1000);
 
-      // 난이도에 맞는 풀에서 무작위 선택
       const pool = VERIFIED_LEVEL_POOLS[currentDifficulty] || VERIFIED_LEVEL_POOLS.NORMAL;
       const rawLevel = pool[Math.floor(Math.random() * pool.length)];
 
@@ -897,9 +1846,11 @@
       }
     }
 
+    // ========================================================
+    // 🎨 정밀 백분율 보드 & 고품질 2D 탑뷰 차량 렌더링
+    // ========================================================
     function renderBoard() {
       const gridEl = document.getElementById('boardGrid');
-      const outerEl = document.getElementById('boardOuter');
       const exitGate = document.getElementById('exitGate');
       if (!gridEl || !currentLevelData) return;
 
@@ -907,39 +1858,50 @@
       const exitRow = currentLevelData.exitRow || 2;
 
       gridEl.innerHTML = '';
-      const rect = gridEl.getBoundingClientRect();
-      cellSize = rect.width / size;
 
-      // 출구 게이트 위치 맞춤
-      const gateTop = (exitRow * cellSize) + (cellSize * 0.1);
-      const gateHeight = cellSize * 0.8;
-      exitGate.style.top = `${gateTop + 10}px`;
-      exitGate.style.height = `${gateHeight}px`;
+      // 출구 게이트 위치 맞춤 (백분율 기반)
+      const gateTopPercent = (exitRow / size) * 100;
+      const gateHeightPercent = (1 / size) * 100 * 0.8;
+      exitGate.style.top = `calc(${gateTopPercent}% + 4px)`;
+      exitGate.style.height = `${gateHeightPercent}%`;
 
-      // 그리드 라인 시각화
-      gridEl.style.backgroundSize = `${cellSize}px ${cellSize}px`;
+      // 그리드 분할 라인 배경
+      const pctStep = 100 / size;
+      gridEl.style.backgroundSize = `${pctStep}% ${pctStep}%`;
 
-      // 차량 엘리먼트 배치
+      // 차량 렌더링 (텍스트 없이 헤드라이트 + 유리창 + 후미등)
       activeVehicles.forEach(v => {
         const vEl = document.createElement('div');
         vEl.id = `veh_${v.id}`;
         vEl.className = `vehicle ${v.isHorizontal ? 'horiz' : 'vert'} ${v.type === 'target' ? 'target-vehicle' : ''}`;
         vEl.style.background = v.color;
 
-        const left = v.x * cellSize + 2;
-        const top = v.y * cellSize + 2;
-        const width = (v.isHorizontal ? v.len * cellSize : cellSize) - 4;
-        const height = (v.isHorizontal ? cellSize : v.len * cellSize) - 4;
+        // 백분율 포지셔닝으로 1px의 오차 없이 완벽 정렬
+        const leftPct = (v.x / size) * 100;
+        const topPct = (v.y / size) * 100;
+        const widthPct = ((v.isHorizontal ? v.len : 1) / size) * 100;
+        const heightPct = ((v.isHorizontal ? 1 : v.len) / size) * 100;
 
-        vEl.style.left = `${left}px`;
-        vEl.style.top = `${top}px`;
-        vEl.style.width = `${width}px`;
-        vEl.style.height = `${height}px`;
+        vEl.style.left = `calc(${leftPct}% + 2px)`;
+        vEl.style.top = `calc(${topPct}% + 2px)`;
+        vEl.style.width = `calc(${widthPct}% - 4px)`;
+        vEl.style.height = `calc(${heightPct}% - 4px)`;
 
         vEl.innerHTML = `
-          <div class="vehicle-inner">
-            <div class="vehicle-roof"></div>
-            <span class="vehicle-label">${v.type === 'target' ? '🚌' : (v.len === 3 ? 'BUS' : 'CAR')}</span>
+          <div class="vehicle-body">
+            <div class="taillights-box">
+              <div class="taillight-lamp"></div>
+              <div class="taillight-lamp"></div>
+            </div>
+            <div class="cabin-area">
+              <div class="windshield rear"></div>
+              <div class="roof-top"></div>
+              <div class="windshield front"></div>
+            </div>
+            <div class="headlights-box">
+              <div class="headlight-lamp"></div>
+              <div class="headlight-lamp"></div>
+            </div>
           </div>
         `;
 
@@ -947,10 +1909,6 @@
         gridEl.appendChild(vEl);
       });
     }
-
-    window.addEventListener('resize', () => {
-      renderBoard();
-    });
 
     // ========================================================
     // 🖐️ 터치 & 마우스 드래그 물리 엔진
@@ -967,8 +1925,12 @@
       el.classList.add('dragging');
       el.setPointerCapture(e.pointerId);
 
-      // 충돌 계산: 이 차량이 이동 가능한 최소/최대 좌표 계산
+      const gridEl = document.getElementById('boardGrid');
+      const gridRect = gridEl.getBoundingClientRect();
       const size = currentLevelData.size;
+      const cellPx = gridRect.width / size;
+
+      // 충돌 검사용 그리드 맵
       const grid = Array(size).fill(0).map(() => Array(size).fill(null));
       activeVehicles.forEach(item => {
         if (item.id === v.id) return;
@@ -982,14 +1944,12 @@
       });
 
       if (v.isHorizontal) {
-        // 좌측 한계
         let minX = v.x;
         while (minX > 0 && grid[v.y][minX - 1] === null) minX--;
-        // 우측 한계
         let maxX = v.x;
         while (maxX + v.len < size && grid[v.y][maxX + v.len] === null) maxX++;
         
-        // 탈출 차량인 경우 출구 쪽으로 한 칸 더 나갈 수 있게 허용
+        // 탈출 버스는 출구로 1칸 더 나갈 수 있게 허용
         if (v.type === 'target' && v.y === currentLevelData.exitRow && maxX + v.len === size) {
           maxX += 1;
         }
@@ -997,10 +1957,8 @@
         minAllowedCoord = minX;
         maxAllowedCoord = maxX;
       } else {
-        // 상측 한계
         let minY = v.y;
         while (minY > 0 && grid[minY - 1][v.x] === null) minY--;
-        // 하측 한계
         let maxY = v.y;
         while (maxY + v.len < size && grid[maxY + v.len][v.x] === null) maxY++;
 
@@ -1014,15 +1972,17 @@
         const deltaY = moveEvt.clientY - dragStartPointer.y;
 
         if (v.isHorizontal) {
-          const deltaCells = deltaX / cellSize;
+          const deltaCells = deltaX / cellPx;
           let targetCellX = dragStartPos.x + deltaCells;
           targetCellX = Math.max(minAllowedCoord, Math.min(maxAllowedCoord, targetCellX));
-          el.style.left = `${targetCellX * cellSize + 2}px`;
+          const leftPct = (targetCellX / size) * 100;
+          el.style.left = `calc(${leftPct}% + 2px)`;
         } else {
-          const deltaCells = deltaY / cellSize;
+          const deltaCells = deltaY / cellPx;
           let targetCellY = dragStartPos.y + deltaCells;
           targetCellY = Math.max(minAllowedCoord, Math.min(maxAllowedCoord, targetCellY));
-          el.style.top = `${targetCellY * cellSize + 2}px`;
+          const topPct = (targetCellY / size) * 100;
+          el.style.top = `calc(${topPct}% + 2px)`;
         }
       };
 
@@ -1038,16 +1998,15 @@
         let finalGridY = v.y;
 
         if (v.isHorizontal) {
-          const deltaCells = deltaX / cellSize;
+          const deltaCells = deltaX / cellPx;
           finalGridX = Math.round(dragStartPos.x + deltaCells);
           finalGridX = Math.max(minAllowedCoord, Math.min(maxAllowedCoord, finalGridX));
         } else {
-          const deltaCells = deltaY / cellSize;
+          const deltaCells = deltaY / cellPx;
           finalGridY = Math.round(dragStartPos.y + deltaCells);
           finalGridY = Math.max(minAllowedCoord, Math.min(maxAllowedCoord, finalGridY));
         }
 
-        // 실제로 이동이 일어난 경우
         if (finalGridX !== dragStartPos.x || finalGridY !== dragStartPos.y) {
           moveHistory.push({
             id: v.id,
@@ -1066,7 +2025,7 @@
 
         renderBoard();
 
-        // 🏆 승리 조건 검사
+        // 🏆 승리 판정
         if (v.type === 'target' && v.x + v.len >= currentLevelData.size && v.y === currentLevelData.exitRow) {
           handleGameClear();
         }
@@ -1079,7 +2038,7 @@
     }
 
     // ========================================================
-    // ↩️ 되돌리기 & 💡 힌트 시스템
+    // ↩️ 되돌리기 & 💡 힌트
     // ========================================================
     function undoMove() {
       if (moveHistory.length === 0 || isClear) return;
@@ -1118,7 +2077,7 @@
     }
 
     // ========================================================
-    // 🏆 게임 클리어 및 포켓몬 경험치 보상 연동
+    // 🏆 게임 클리어 & 포켓몬 경험치
     // ========================================================
     function handleGameClear() {
       if (isClear) return;
@@ -1129,7 +2088,6 @@
       setTimeout(() => SoundFX.playVictory(), 250);
       triggerHaptic(100);
 
-      // 별점 및 경험치 계산
       let stars = '★☆☆';
       let earnedXp = 20;
 
@@ -1154,7 +2112,6 @@
       document.getElementById('modalRewardText').innerText = `🎁 포켓몬 경험치 +${earnedXp} XP 획득! ✨`;
       document.getElementById('clearModal').style.display = 'flex';
 
-      // 부모 창(포켓Tasks)으로 경험치 지급 메시지 전달
       try {
         if (window.parent && window.parent !== window) {
           window.parent.postMessage({
@@ -1177,7 +2134,10 @@
       }
     }
 
-    // 🚀 게임 시작
+    window.addEventListener('resize', () => {
+      renderBoard();
+    });
+
     window.addEventListener('DOMContentLoaded', () => {
       loadNewLevel();
     });
