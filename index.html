@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>포켓Tasks</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <!-- 🌟 PWA Manifest & App Icons (크로미움 & 삼성 인터넷 단독 구동 필수 요구조건) -->
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" type="image/png" href="./icon-192.png">
@@ -26,37 +26,67 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
-    body {
-      background-color: #060913; /* 🌌 아주 어두운 프리미엄 다크 네이비 */
-      background-image: radial-gradient(circle at 50% 50%, #0d1527 0%, #060913 100%);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      min-height: 100dvh;
-      overflow: hidden;
-      color: #e6edf3;
-      padding: 0;
+    html, body {
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
       margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #060913;
+      color: #e6edf3;
     }
 
-    /* 📱 메인 앱 프레임 기본 설정 (상단 30% 다마고치 + 하단 70% 메인 뷰포트) */
+    /* 📱 메인 앱 프레임 기본 설정 (모바일 & WebAPK에서는 꽉 찬 100% 엣지투엣지 풀스크린) */
     .app-screen {
       position: relative;
+      width: 100%;
       width: 100vw;
-      max-width: 520px;
+      height: 100%;
       height: 100vh;
       height: 100dvh;
       background: #0f172a;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
+      margin: 0;
       border-radius: 0;
+      box-shadow: none;
     }
 
-    @media (min-width: 530px) {
+    /* 📱 모바일 PWA / WebAPK / 전체화면 단독 실행 시 100% 꽉 찬 전체화면 */
+    @media (display-mode: standalone), (display-mode: fullscreen), (max-width: 649px) {
+      html, body {
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        display: block !important;
+      }
       .app-screen {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+      }
+    }
+
+    /* 💻 PC/데스크톱 브라우저 환경에서만 중앙 정렬 카드형 레이아웃 */
+    @media (min-width: 650px) and (display-mode: browser) {
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #060913;
+        background-image: radial-gradient(circle at 50% 50%, #0d1527 0%, #060913 100%);
+      }
+      .app-screen {
+        max-width: 480px;
         height: 880px !important;
         max-height: 94vh !important;
         max-height: 94dvh !important;
@@ -2252,14 +2282,14 @@
         <div id="paneQuestView">
           <div class="quest-toolbar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <div class="quest-toolbar-left">
-              <button class="btn-quest-add" id="btnAddQuest" style="background:rgba(255,255,255,0.85); color:#334155; border:1px solid rgba(0,0,0,0.12); padding:7px 14px; box-shadow:0 2px 5px rgba(0,0,0,0.05); font-weight:800; border-radius:10px;" onclick="openAddQuestModal()">➕ 퀘스트 추가</button>
+              <button class="btn-quest-add" id="btnAddQuest" style="background:rgba(255,255,255,0.9); color:#0284c7; border:1.5px solid #0284c7; width:34px; height:34px; min-width:34px; padding:0; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.05); font-weight:900; font-size:18px; border-radius:10px; cursor:pointer;" onclick="openAddQuestModal()" title="퀘스트 추가">+</button>
             </div>
             <div class="quest-toolbar-right" style="display:flex; align-items:center; gap:8px;">
-              <!-- 🌟 퀘스트 기록(📊) 상단 툴바 버튼 -->
-              <button class="btn-quest-history" id="btnQuestHistory" style="background:rgba(255,255,255,0.85); color:#0284c7; border:1px solid rgba(2,132,199,0.25); padding:7px 12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="toggleQuestHistoryView()">📊 기록</button>
-              <button class="btn-quest-batch-del" id="btnToggleBatchDelete" style="background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; padding:7px 12px; font-weight:800; border-radius:10px;" onclick="toggleBatchDeleteMode()">삭제</button>
-              <button class="btn-quest-batch-exec" id="btnExecBatchDelete" style="display:none; background:#ef4444; color:white; border:none; padding:7px 12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="executeBatchDelete()">❌ 삭제 실행 (0)</button>
-              <button class="btn-quest-batch-cancel" id="btnCancelBatchDelete" style="display:none; background:#e2e8f0; color:#334155; border:none; padding:7px 12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="cancelBatchDeleteMode()">취소</button>
+              <!-- 🌟 퀘스트 기록(📊) 상단 툴바 버튼 & 삭제 버튼 통일 디자인 -->
+              <button class="btn-quest-history" id="btnQuestHistory" style="background:transparent; color:#334155; border:1px solid #cbd5e1; height:34px; min-width:56px; padding:0 10px; font-size:12px; font-weight:800; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;" onclick="toggleQuestHistoryView()">📊 기록</button>
+              <button class="btn-quest-batch-del" id="btnToggleBatchDelete" style="background:transparent; color:#ef4444; border:1px solid #fca5a5; height:34px; min-width:56px; padding:0 10px; font-size:12px; font-weight:800; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center;" onclick="toggleBatchDeleteMode()">삭제</button>
+              <button class="btn-quest-batch-exec" id="btnExecBatchDelete" style="display:none; background:#ef4444; color:white; border:none; height:34px; padding:0 12px; font-size:12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="executeBatchDelete()">❌ 삭제 실행 (0)</button>
+              <button class="btn-quest-batch-cancel" id="btnCancelBatchDelete" style="display:none; background:#e2e8f0; color:#334155; border:none; height:34px; padding:0 12px; font-size:12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="cancelBatchDeleteMode()">취소</button>
             </div>
           </div>
           <div id="questListContainer"></div>
@@ -5448,6 +5478,40 @@
           }
         }
       }
+
+      // ⏱️ [다중 기기 실시간 공부 시간 및 통계 동기화]
+      if (data.studyStats) {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const backendToday = (data.studyStats.dateStr === todayStr) ? Number(data.studyStats.todaySeconds || 0) : 0;
+        const backendAllTime = Number(data.studyStats.allTimeSeconds || 0);
+        const backendSolved = Number(data.studyStats.solvedCount || 0);
+        const backendCorrect = Number(data.studyStats.correctCount || 0);
+
+        const localToday = Number(localStorage.getItem(`study_today_${todayStr}`) || 0);
+        const localAllTime = Number(localStorage.getItem('study_alltime_seconds') || 0);
+        const localSolved = Number(localStorage.getItem('study_solved_count') || 0);
+        const localCorrect = Number(localStorage.getItem('study_correct_count') || 0);
+
+        const finalToday = Math.max(localToday, backendToday);
+        const finalAllTime = Math.max(localAllTime, backendAllTime);
+        const finalSolved = Math.max(localSolved, backendSolved);
+        const finalCorrect = Math.max(localCorrect, backendCorrect);
+
+        localStorage.setItem(`study_today_${todayStr}`, finalToday);
+        localStorage.setItem('study_alltime_seconds', finalAllTime);
+        localStorage.setItem('study_solved_count', finalSolved);
+        localStorage.setItem('study_correct_count', finalCorrect);
+
+        if (typeof StudyTimerManager !== 'undefined') {
+          StudyTimerManager.todaySeconds = finalToday;
+          StudyTimerManager.allTimeSeconds = finalAllTime;
+          StudyTimerManager.updateUiDisplay();
+
+          if (localToday > backendToday || localAllTime > backendAllTime) {
+            StudyTimerManager.saveAndSyncBackend();
+          }
+        }
+      }
     }
 
     async function syncWithGasBackend() {
@@ -6296,17 +6360,25 @@
         const activeNavBtn = document.querySelector(`.bottom-nav .nav-btn[data-tab="${tab}"]`);
         if (activeNavBtn) activeNavBtn.classList.add('active');
 
-        // 🌟 [요구사항 2]: 공부 탭 진입 시 상단 우측 패널이 타이머 패널로 유기적 자동 전환!
+        // 🌟 [요구사항]: 공부 탭 진입 시 상단 우측 패널이 타이머 패널로 전환 (타이머는 실제 문제 풀이 시에만 누적 시작)
         if (tab === 'STUDY') {
           if (topPokeInfo) topPokeInfo.style.display = 'none';
           if (topStudyTimer) topStudyTimer.style.display = 'flex';
           if (studyView) studyView.style.display = 'block';
-          StudyTimerManager.start();
+
+          // 문제 풀이 화면(studySolverView)이 활성화되어 있을 때만 타이머 재개
+          const solverView = document.getElementById('studySolverView');
+          if (solverView && solverView.style.display === 'block') {
+            StudyTimerManager.start();
+          } else {
+            StudyTimerManager.updateUiDisplay();
+          }
           loadStudyExamList();
         } else {
           if (topPokeInfo) topPokeInfo.style.display = 'flex';
           if (topStudyTimer) topStudyTimer.style.display = 'none';
           StudyTimerManager.pause();
+          StudyTimerManager.saveAndSyncBackend();
 
           if (tab === 'QUEST') {
             if (questView) questView.style.display = 'block'; 
@@ -6423,7 +6495,6 @@
       recSection.innerHTML = `
         <div style="font-size:12.5px; font-weight:900; color:#334155; margin:4px 0 8px 2px; display:flex; justify-content:space-between;">
           <span>🔁 반복 퀘스트</span>
-          <span style="color:#0284c7; font-weight:900;">${recurringQuests.length}개</span>
         </div>
       `;
 
@@ -6448,7 +6519,6 @@
       singleSection.innerHTML = `
         <div style="font-size:12.5px; font-weight:900; color:#334155; margin:4px 0 8px 2px; display:flex; justify-content:space-between;">
           <span>⚡ 일회성 퀘스트</span>
-          <span style="color:#0284c7; font-weight:900;">${singleQuests.length}개</span>
         </div>
       `;
 
@@ -6750,7 +6820,6 @@
           <div class="streak-section-title">
             <span>반복 퀘스트 기록</span>
           </div>
-          <span class="streak-section-count">${recurringQuests.length}개</span>
         </div>
         <div class="streak-section-desc">
           지속적으로 실천 중인 습관 퀘스트들의 연속 달성 기록입니다.
@@ -6814,7 +6883,6 @@
           <div class="streak-section-title">
             <span style="color:#cbd5e1;">일회성 퀘스트 기록</span>
           </div>
-          <span class="streak-section-count" style="color:#94a3b8; background:rgba(148,163,184,0.1); border-color:rgba(148,163,184,0.2);">${completedSingleQuests.length}개</span>
         </div>
         <div class="streak-section-desc">
           완료된 일회성 할 일들의 히스토리 기록입니다.
@@ -8647,8 +8715,12 @@
         document.addEventListener('visibilitychange', () => {
           if (document.hidden) {
             this.pause();
-          } else if (appState && appState.currentTab === 'STUDY') {
-            this.resume();
+            this.saveAndSyncBackend();
+          } else {
+            const solverView = document.getElementById('studySolverView');
+            if (appState && appState.currentTab === 'STUDY' && solverView && solverView.style.display === 'block') {
+              this.resume();
+            }
           }
         });
       },
@@ -8668,11 +8740,11 @@
             if (this.sessionSeconds % 60 === 0) {
               this.accumulatedXp += 2;
               processXpGainAndEvolve(2);
-              triggerPokemonSpeechBubble("열공 중! 📖");
             }
 
-            if (this.sessionSeconds % 10 === 0) {
-              this.saveStorage();
+            // 15초마다 로컬 캐시 및 백엔드 실시간 동기화
+            if (this.sessionSeconds % 15 === 0) {
+              this.saveAndSyncBackend();
             }
 
             this.updateUiDisplay();
@@ -8683,6 +8755,7 @@
       pause() {
         this.isPaused = true;
         this.updateBadge();
+        this.saveAndSyncBackend();
       },
 
       resume() {
@@ -8705,13 +8778,35 @@
           clearInterval(this.timerId);
           this.timerId = null;
         }
-        this.saveStorage();
+        this.saveAndSyncBackend();
       },
 
       saveStorage() {
         const todayStr = new Date().toISOString().split('T')[0];
         localStorage.setItem(`study_today_${todayStr}`, this.todaySeconds);
         localStorage.setItem('study_alltime_seconds', this.allTimeSeconds);
+      },
+
+      saveAndSyncBackend() {
+        this.saveStorage();
+        const todayStr = new Date().toISOString().split('T')[0];
+        const totalSolved = Number(localStorage.getItem('study_solved_count') || 0);
+        const correctCount = Number(localStorage.getItem('study_correct_count') || 0);
+
+        try {
+          fetch(GAS_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({
+              action: "syncStudyTime",
+              dateStr: todayStr,
+              todaySeconds: this.todaySeconds,
+              allTimeSeconds: this.allTimeSeconds,
+              solvedCount: totalSolved,
+              correctCount: correctCount
+            })
+          }).catch(() => {});
+        } catch(e) {}
       },
 
       formatTime(totalSec) {
@@ -8726,7 +8821,7 @@
         const m = Math.floor(this.todaySeconds / 60);
         const todayStr = m >= 60 ? `${Math.floor(m / 60)}시간 ${m % 60}분` : `${m}분`;
 
-        // 상단 30% 다마고치 우측 타이머 UI 즉시 동기화
+        // 상단 20% 다마고치 우측 타이머 UI 즉시 동기화
         const topClock = document.getElementById('topLiveStudyClock');
         const topToday = document.getElementById('topTodayStudyTime');
         const topXp = document.getElementById('topTodayStudyXp');
@@ -8849,6 +8944,9 @@
       if (solverView) solverView.style.display = 'block';
       if (qText) qText.innerText = "⏳ 문제를 불러오는 중...";
 
+      // ⏱️ 실제 문제 풀이 화면(플래시카드/시험) 진입 시에만 타이머 누적 시작!
+      StudyTimerManager.start();
+
       try {
         const resp = await fetch(`${STUDY_API_URL}?api=getExam&examId=${encodeURIComponent(examId)}`);
         const data = await resp.json();
@@ -8878,6 +8976,10 @@
 
     function backToStudyList() {
       haptic.tick();
+      // ⏱️ 문제 풀이 종료 후 목록으로 복귀 시 타이머 일시정지 및 백엔드 즉시 동기화!
+      StudyTimerManager.pause();
+      StudyTimerManager.saveAndSyncBackend();
+
       const listView = document.getElementById('studyListView');
       const solverView = document.getElementById('studySolverView');
       if (solverView) solverView.style.display = 'none';
