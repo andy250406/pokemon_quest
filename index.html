@@ -2031,6 +2031,72 @@
       cursor: pointer;
     }
 
+    /* 🌟 해설 마크다운 표 및 구조화 서식 스타일링 */
+    .expl-table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      margin: 8px 0 10px 0;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      -webkit-overflow-scrolling: touch;
+      background: white;
+    }
+    .expl-table {
+      width: 100%;
+      min-width: 280px;
+      border-collapse: collapse;
+      font-size: 11.5px;
+      line-height: 1.4;
+      color: #1e293b;
+    }
+    .expl-table th {
+      background: #f1f5f9;
+      color: #0f172a;
+      font-weight: 800;
+      padding: 6px 8px;
+      border-bottom: 1.5px solid #cbd5e1;
+      border-right: 1px solid #e2e8f0;
+      white-space: nowrap;
+    }
+    .expl-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid #e2e8f0;
+      border-right: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+    .expl-table tr:last-child td {
+      border-bottom: none;
+    }
+    .expl-table tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+    .expl-heading {
+      font-size: 12.5px;
+      font-weight: 900;
+      color: #0369a1;
+      margin: 8px 0 4px 0;
+      line-height: 1.35;
+    }
+    .expl-p {
+      font-size: 12px;
+      color: #334155;
+      line-height: 1.5;
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+    .expl-spacer {
+      height: 4px;
+    }
+    .expl-code {
+      background: #f1f5f9;
+      color: #be185d;
+      font-family: monospace;
+      font-size: 11px;
+      padding: 1px 4px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+    }
+
   </style>
 </head>
 <body>
@@ -2276,7 +2342,7 @@
             </div>
 
             <!-- 하단 컨트롤 버튼 바 -->
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:100px; padding-bottom:20px;">
               <button id="btnSolverPrev" onclick="navigateSolverQuestion(-1)" style="background:white; color:#334155; border:1px solid #cbd5e1; padding:9px 15px; border-radius:10px; font-size:12.5px; font-weight:800; cursor:pointer;">◀ 이전</button>
               <button id="btnSolverSubmit" onclick="checkSolverAnswer()" style="background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:10px 16px; border-radius:10px; font-size:13px; font-weight:900; cursor:pointer; flex:1; box-shadow:0 3px 8px rgba(16,185,129,0.3);">정답 확인 ✓</button>
               <button id="btnSolverNext" onclick="navigateSolverQuestion(1)" style="background:#0284c7; color:white; border:none; padding:9px 15px; border-radius:10px; font-size:12.5px; font-weight:800; cursor:pointer;">다음 ▶</button>
@@ -8820,6 +8886,107 @@
     }
 
     // ========================================================
+    // 💡 정보보안기사 마크다운 표 & 구조화 해설 렌더러
+    // ========================================================
+    function renderFormattedExplanation(raw) {
+      if (!raw) return '<p style="color:#64748b; margin:0;">등록된 상세 해설이 없습니다.</p>';
+
+      const lines = String(raw).split(/\r?\n/);
+      const result = [];
+      let inTable = false;
+      let tableHeader = [];
+      let tableRows = [];
+      let alignList = [];
+
+      function flushTable() {
+        if (!inTable) return;
+        if (tableHeader.length > 0 || tableRows.length > 0) {
+          let html = '<div class="expl-table-wrapper"><table class="expl-table">';
+          if (tableHeader.length > 0) {
+            html += '<thead><tr>';
+            tableHeader.forEach((th, idx) => {
+              const align = alignList[idx] || 'left';
+              html += `<th style="text-align:${align};">${th.trim()}</th>`;
+            });
+            html += '</tr></thead>';
+          }
+          if (tableRows.length > 0) {
+            html += '<tbody>';
+            tableRows.forEach(row => {
+              html += '<tr>';
+              row.forEach((td, idx) => {
+                const align = alignList[idx] || 'left';
+                html += `<td style="text-align:${align};">${td.trim()}</td>`;
+              });
+              html += '</tr>';
+            });
+            html += '</tbody>';
+          }
+          html += '</table></div>';
+          result.push(html);
+        }
+        inTable = false;
+        tableHeader = [];
+        tableRows = [];
+        alignList = [];
+      }
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+
+        // 마크다운 표 감지
+        if (line.startsWith('|') && line.endsWith('|')) {
+          const rawCols = line.substring(1, line.length - 1).split('|');
+          const isSep = rawCols.every(col => /^[\s\:\-]+$/.test(col));
+
+          if (isSep) {
+            alignList = rawCols.map(col => {
+              const c = col.trim();
+              if (c.startsWith(':') && c.endsWith(':')) return 'center';
+              if (c.endsWith(':')) return 'right';
+              return 'left';
+            });
+            continue;
+          }
+
+          if (!inTable) {
+            inTable = true;
+            tableHeader = rawCols;
+          } else {
+            tableRows.push(rawCols);
+          }
+          continue;
+        }
+
+        if (inTable) {
+          flushTable();
+        }
+
+        if (!line) {
+          result.push('<div class="expl-spacer"></div>');
+          continue;
+        }
+
+        // 헤더 / 소제목 강조 (■, ▶, 💡, ※, ◆, ● 등)
+        if (/^[■▶💡※◆●]/.test(line)) {
+          const formatted = line.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+          result.push(`<div class="expl-heading">${formatted}</div>`);
+        } else {
+          let formatted = line
+            .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+            .replace(/`([^`]+)`/g, '<code class="expl-code">$1</code>');
+          result.push(`<div class="expl-p">${formatted}</div>`);
+        }
+      }
+
+      if (inTable) {
+        flushTable();
+      }
+
+      return result.join('');
+    }
+
+    // ========================================================
     // 📇 1. 플래시카드 고유 모드 렌더러 & 스와이프 제스처
     // ========================================================
     function renderFlashcardMode() {
@@ -8831,7 +8998,7 @@
 
       if (flashcardQueue.length === 0) {
         solverView.innerHTML = `
-          <div style="background:white; border-radius:18px; padding:30px 20px; text-align:center; box-shadow:0 4px 16px rgba(0,0,0,0.06); border:1px solid #e2e8f0;">
+          <div style="background:white; border-radius:18px; padding:30px 20px; text-align:center; box-shadow:0 4px 16px rgba(0,0,0,0.06); border:1px solid #e2e8f0; margin-bottom:100px;">
             <div style="font-size:40px; margin-bottom:10px;">🎉</div>
             <h3 style="font-size:17px; font-weight:900; color:#0f172a; margin-bottom:6px;">모든 문제를 정복했습니다!</h3>
             <p style="color:#64748b; font-size:12px; margin-bottom:20px;">이 파트의 모든 플래시카드를 Clear 완료했습니다.</p>
@@ -8880,9 +9047,9 @@
         popupHtml = `
           <div class="flashcard-popup">
             ${badge}
-            <div style="font-size:12px; font-weight:900; color:#0284c7; margin-bottom:4px;">💡 상세 해설</div>
-            <div style="font-size:12px; line-height:1.45; color:#334155; white-space:pre-wrap; margin-bottom:12px;">
-              ${q.explanation || "등록된 해설이 없습니다."}
+            <div style="font-size:12.5px; font-weight:900; color:#0284c7; margin-bottom:6px;">💡 상세 해설</div>
+            <div style="margin-bottom:12px;">
+              ${renderFormattedExplanation(q.explanation)}
             </div>
 
             <div class="flashcard-actions">
@@ -8910,7 +9077,7 @@
           <span style="background:#8b5cf6; color:white; font-size:10.5px; font-weight:800; padding:3px 8px; border-radius:8px;">📇 플래시카드</span>
         </div>
 
-        <div class="flashcard-wrapper">
+        <div class="flashcard-wrapper" style="padding-bottom:100px;">
           <div class="swipe-hint-bar">
             <span style="color:#10b981; font-weight:800;">👈 왼쪽: 정복 (Clear)</span>
             <span style="color:#f97316; font-weight:800;">오른쪽: 다시풀기 (Repeat) 👉</span>
@@ -9072,10 +9239,10 @@
             ${optionsHtml}
           </div>
 
-          <div id="examExplBox" style="display:none; background:#f0fdf4; border:1.5px solid #86efac; border-radius:10px; padding:12px; font-size:12.5px; line-height:1.45; color:#166534; white-space:pre-wrap; margin-top:8px;"></div>
+          <div id="examExplBox" style="display:none; background:#f0fdf4; border:1.5px solid #86efac; border-radius:10px; padding:12px; font-size:12.5px; line-height:1.45; color:#166534; margin-top:8px;"></div>
         </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:100px; padding-bottom:15px;">
           <button onclick="navigateExamQuestion(-1)" style="background:white; color:#334155; border:1px solid #cbd5e1; padding:9px 15px; border-radius:10px; font-size:12.5px; font-weight:800; cursor:pointer;">◀ 이전</button>
           <button id="btnExamModeSubmit" onclick="checkExamModeAnswer()" style="background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:10px 16px; border-radius:10px; font-size:13px; font-weight:900; cursor:pointer; flex:1; box-shadow:0 3px 8px rgba(16,185,129,0.3);">정답 확인 ✓</button>
           <button onclick="navigateExamQuestion(1)" style="background:#0284c7; color:white; border:none; padding:9px 15px; border-radius:10px; font-size:12.5px; font-weight:800; cursor:pointer;">다음 ▶</button>
@@ -9128,7 +9295,7 @@
 
       const explBox = document.getElementById('examExplBox');
       if (explBox) {
-        explBox.innerText = q.explanation || (isCorrect ? "■ 정답입니다! 👏" : `■ 정답은 ${correctAns}번 입니다.`);
+        explBox.innerHTML = renderFormattedExplanation(q.explanation || (isCorrect ? "■ 정답입니다! 👏" : `■ 정답은 ${correctAns}번 입니다.`));
         explBox.style.display = 'block';
       }
 
