@@ -40,11 +40,11 @@
       margin: 0;
     }
 
-    /* 📱 메인 앱 프레임 기본 설정 (상단 30% 다마고치 + 하단 70% 메인 뷰포트) */
+    /* 📱 메인 앱 프레임 기본 설정 (스마트폰, 태블릿, PC 적응형 반응형 인터페이스) */
     .app-screen {
       position: relative;
       width: 100vw;
-      max-width: 520px;
+      max-width: 100vw;
       height: 100vh;
       height: 100dvh;
       background: #0f172a;
@@ -53,33 +53,25 @@
       flex-direction: column;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
       border-radius: 0;
+      box-sizing: border-box;
     }
 
-    @media (min-width: 530px) {
-      .app-screen {
-        height: 880px !important;
-        max-height: 94vh !important;
-        max-height: 94dvh !important;
-        border-radius: 28px !important;
-        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
-      }
-    }
-
-    /* 🌟 상단 고정 영역: 좌측 3:2 다마고치 화면 + 우측 정보 패널 */
+    /* 🌟 상단 다마고치 고정 영역: 좌측 3:2 다마고치 화면 + 우측 정보 패널 (모바일 기본) */
     .habitat-pane, .tamagotchi-stage-container {
       display: flex !important;
       flex-direction: row !important;
       align-items: stretch !important;
-      height: 185px !important;
-      min-height: 185px !important;
-      max-height: 210px !important;
+      height: 180px !important;
+      min-height: 180px !important;
+      max-height: 190px !important;
       padding: 10px 12px !important;
       gap: 12px !important;
       background: #0f172a !important;
       flex-shrink: 0 !important;
       z-index: 5 !important;
-      border-bottom: 2px solid rgba(0, 0, 0, 0.3) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
       box-sizing: border-box !important;
+      position: relative;
     }
 
     /* 👈 좌측: 3:2 다마고치 액자 화면 */
@@ -87,7 +79,7 @@
       aspect-ratio: 3 / 2;
       height: 100%;
       position: relative;
-      border-radius: 16px;
+      border-radius: 14px;
       overflow: hidden;
       background-position: center center;
       background-size: cover;
@@ -103,7 +95,7 @@
 
     .tamagotchi-screen-box .stage-area {
       position: absolute;
-      bottom: 8px;
+      bottom: 6px;
       left: 0;
       right: 0;
       display: flex;
@@ -113,16 +105,16 @@
     }
 
     .tamagotchi-screen-box .pokemon-sprite-container {
-      width: 80px;
-      height: 80px;
+      width: 78px;
+      height: 78px;
       display: flex;
       justify-content: center;
       align-items: center;
     }
 
     .tamagotchi-screen-box .pokemon-sprite {
-      max-width: 76px;
-      max-height: 76px;
+      max-width: 74px;
+      max-height: 74px;
       object-fit: contain;
       filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
       transition: transform 0.15s ease;
@@ -131,7 +123,7 @@
       transform: scale(0.92);
     }
 
-    /* 👉 우측: 포켓몬 정보 & 경험치 & 퀘스트 뱃지 패널 */
+    /* 👉 우측: 포켓몬 정보 & 실시간 타이머 유기적 전환 패널 */
     .tamagotchi-info-panel {
       flex: 1;
       min-width: 0;
@@ -142,7 +134,7 @@
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 16px;
+      border-radius: 14px;
       padding: 9px 11px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
       box-sizing: border-box;
@@ -214,9 +206,10 @@
       transition: width 0.4s ease-out;
     }
 
-    /* 🌟 하단 70% 메인 콘텐츠 뷰포트 (퀘스트 기본 노출 & 탭 전환) */
+    /* 🌟 하단 메인 콘텐츠 뷰포트 (상단과 겹침 없이 100% 매끄럽게 맞물리는 구조) */
     .workspace-pane {
       flex: 1;
+      min-height: 0;
       position: relative !important;
       transform: none !important;
       visibility: visible !important;
@@ -227,10 +220,10 @@
       background: #f8fafc;
       overflow: hidden;
       color: #1e293b;
-      border-radius: 22px 22px 0 0;
-      margin-top: -14px;
+      margin-top: 0 !important; /* 🌟 겹침/깨짐 원인 완전 제거 */
+      border-radius: 0;
       z-index: 10;
-      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.28);
+      box-sizing: border-box;
     }
 
     .pane-header {
@@ -239,9 +232,11 @@
 
     .pane-body {
       flex: 1;
+      min-height: 0;
       padding: 14px 14px 75px 14px;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
+      box-sizing: border-box;
     }
 
     /* 🧭 하단 고정 5개 탭 네비게이션 바 */
@@ -250,11 +245,10 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background: rgba(255, 255, 255, 0.92);
+      background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-top: 1px solid rgba(0, 0, 0, 0.08);
-      border-radius: 22px 22px 0 0;
       padding: 7px 8px max(7px, env(safe-area-inset-bottom)) 8px;
       display: flex;
       justify-content: space-around;
@@ -281,1362 +275,106 @@
     .nav-btn .icon { font-size: 20px; line-height: 1; }
     .nav-btn.active { color: #0284c7; transform: scale(1.08); font-weight: 900; }
 
-    /* 🕹️ 상단 미니 치트 버튼 */
-    .mini-cheat-trigger {
-      background: rgba(15, 23, 42, 0.65);
-      backdrop-filter: blur(10px);
-      color: #fde047;
-      border: 1px solid rgba(253, 224, 71, 0.45);
-      padding: 3px 8px;
-      border-radius: 12px;
-      font-size: 10.5px;
-      font-weight: 800;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-    }
-    .mini-cheat-trigger:active { transform: scale(0.92); }
-/* 👈 왼쪽/오른쪽 작업창 (화이트 글래스모피즘 테마) */
-    .workspace-pane {
-      background: rgba(248, 250, 252, 0.85); /* 🌟 맑고 은은한 화이트 글래스 */
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      color: #1e293b;
-    }
-
-    .pane-header {
-      padding: max(14px, env(safe-area-inset-top)) 16px 14px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-      background: rgba(255, 255, 255, 0.6);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-    }
-
-    .pane-title {
-      font-size: 16px;
-      font-weight: 900;
-      color: #0f172a;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .icon-btn {
-      background: rgba(255, 255, 255, 0.65);
-      border: 1px solid rgba(0, 0, 0, 0.08);
-      color: #334155;
-      font-size: 16px;
-      font-weight: 800;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-    }
-    .icon-btn:active { transform: scale(0.92); }
-
-    .pane-body {
-      flex: 1;
-      padding: 16px;
-      overflow-y: auto;
-    }
-
-    /* 👉 오른쪽 메인 서식지 */
-    .habitat-pane {
-      position: relative;
-      background-position: center center;
-      background-size: cover;
-      background-repeat: no-repeat;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: background-image 0.4s ease;
-    }
-
-    /* 상단 헤더 & 포켓몬 정보 카드 */
-    .top-header {
-      position: absolute;
-      top: max(14px, env(safe-area-inset-top));
-      left: max(14px, env(safe-area-inset-left));
-      right: max(14px, env(safe-area-inset-right));
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 8px;
-      z-index: 20;
-    }
-
-    /* 🌟 포켓몬 상태바: 메뉴바와 동일한 투명도 50% + 블러 16px 글래스모피즘 & 58% 황금 비율 폭 고정 */
-    .pokemon-card {
-      background: rgba(255, 255, 255, 0.5); /* 🌟 투명도 50% */
-      backdrop-filter: blur(16px);          /* 🌟 블러 16px */
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      padding: 7px 13px;
-      border-radius: 18px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-      flex: 0 0 58%;
-      width: 58% !important;
-      max-width: 58% !important; /* 🌟 메인 화면의 약 절반(58%)으로 시원하고 안정되게 고정 */
-      box-sizing: border-box;
-    }
-
-    .card-top {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      line-height: 1.1;
-      margin-bottom: 2px;
-    }
-
-    .level-badge {
-      background: #4CAF50;
-      color: white;
-      font-size: 12.5px;
-      font-weight: 900;
-      padding: 2px 6px;
-      border-radius: 6px;
-      flex-shrink: 0;
-    }
-
-    .pokemon-name {
-      font-size: 15.5px;
-      font-weight: 900;
-      color: #222;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .gender-symbol.male { color: #1976D2; font-weight: 900; }
-    .gender-symbol.female { color: #E91E63; font-weight: 900; }
-    .gender-symbol.none { color: #64748b; font-weight: 900; }
-
-    .type-nature-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin: -5px 0 -2px 0;
-      line-height: 1;
-    }
-
-    .type-icons-row {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .type-icon-img {
-      height: 26px;
-      width: auto;
-      max-width: 52px;
-      object-fit: contain;
-      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
-      display: block;
-      margin: 0; padding: 0;
-    }
-
-    .nature-tag {
-      background: #eceff1;
-      color: #455a64;
-      font-size: 10px;
-      font-weight: 800;
-      padding: 2px 6px;
-      border-radius: 6px;
-      border: 1px solid #cfd8dc;
-      white-space: nowrap;
-    }
-
-    .growth-tag {
-      background: #e0f2fe;
-      color: #0369a1;
-      font-size: 9.5px;
-      font-weight: 800;
-      padding: 1px 5px;
-      border-radius: 4px;
-    }
-
-    .xp-text {
-      font-size: 11.5px;
-      color: #555;
-      font-weight: 800;
-      display: flex;
-      justify-content: space-between;
-      margin-top: 3px;
-      margin-bottom: 3px;
-      line-height: 1.1;
-    }
-
-    .xp-bar-bg {
-      width: 100%;
-      height: 8px;
-      background: #E0E0E0;
-      border-radius: 5px;
-      overflow: hidden;
-    }
-
-    .xp-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #4CAF50, #8BC34A);
-      width: 0%;
-      transition: width 0.35s ease;
-    }
-
-    /* 🌟 상단 필수 퀘스트 뱃지 (메뉴바와 동일한 투명도 50% + 블러 16px 화이트 글래스모피즘) */
-    .quest-badge {
-      background: rgba(255, 255, 255, 0.5); /* 🌟 투명도 50% */
-      backdrop-filter: blur(16px);          /* 🌟 블러 16px */
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      color: #0f172a;
-      padding: 7px 13px;
-      border-radius: 18px;
-      font-size: 13px;
-      font-weight: 900;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: all 0.2s ease;
-    }
-    .quest-badge:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.7); }
-
-    /* 🌾 배경별 인터랙티브 파밍 레이어 (터치/클릭 최우선권 z-index: 18) */
-    .berry-harvest-layer {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      pointer-events: none;
-      z-index: 18;
-      overflow: hidden;
-    }
-
-    .berry-item {
-      position: absolute;
-      pointer-events: none !important; /* 클릭 판정 제거, 오직 포켓몬 직접 이동 먹이기 전용 */
-      filter: drop-shadow(0 6px 8px rgba(0,0,0,0.35));
-      width: 44px;
-      height: 44px;
-      padding: 3px;
-      box-sizing: border-box;
-      object-fit: contain;
-      user-select: none;
-      -webkit-user-drag: none;
-    }
-
-    /* 🌟 [경험치 2배] 대왕/골드 큰 열매 연출 */
-    .berry-item.big {
-      width: 58px;
-      height: 58px;
-      filter: drop-shadow(0 0 14px rgba(250, 204, 21, 0.95)) drop-shadow(0 6px 10px rgba(0,0,0,0.45));
-    }
-
-    /* 1) 🌳 숲/초원: 가지에 매달림 & 낙하 */
-    .berry-item.hanging {
-      transform-origin: top center;
-      animation: berryBranchSway 2.2s ease-in-out infinite alternate;
-    }
-    @keyframes berryBranchSway { 0% { transform: rotate(-8deg); } 100% { transform: rotate(8deg); } }
-
-    .berry-item.dropping {
-      animation: berryNaturalFall 1.1s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards !important;
-      pointer-events: none !important;
-    }
-    @keyframes berryNaturalFall {
-      0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
-      40% { opacity: 0.9; transform: translateY(45px) rotate(15deg) scale(0.95); }
-      100% { transform: translateY(115px) rotate(35deg) scale(0.7); opacity: 0; }
-    }
-
-    /* 2) 🪨 동굴 & 🏖️ 해변: 바닥 좌우 구르기 애니메이션 */
-    .berry-item.rolling-left-to-right {
-      animation: rollLeftToRight 5.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-    }
-    @keyframes rollLeftToRight {
-      0% { transform: translateX(0px) rotate(0deg); opacity: 0; }
-      10% { opacity: 1; }
-      80% { opacity: 1; }
-      100% { transform: translateX(420px) rotate(900deg); opacity: 0; }
-    }
-
-    .berry-item.rolling-right-to-left {
-      animation: rollRightToLeft 5.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-    }
-    @keyframes rollRightToLeft {
-      0% { transform: translateX(0px) rotate(0deg); opacity: 0; }
-      10% { opacity: 1; }
-      80% { opacity: 1; }
-      100% { transform: translateX(-420px) rotate(-900deg); opacity: 0; }
-    }
-
-    /* 3) 🕊️ 하늘: 깃털 고공 살랑살랑 지그재그 낙하 */
-    .berry-item.feather-falling {
-      animation: featherFloatFall 5.8s cubic-bezier(0.4, 0, 0.6, 1) forwards;
-    }
-    @keyframes featherFloatFall {
-      0% { transform: translateY(0px) translateX(0px) rotate(0deg); opacity: 0; }
-      10% { opacity: 1; }
-      25% { transform: translateY(130px) translateX(28px) rotate(22deg); }
-      50% { transform: translateY(280px) translateX(-24px) rotate(-18deg); }
-      75% { transform: translateY(440px) translateX(22px) rotate(20deg); opacity: 0.9; }
-      100% { transform: translateY(600px) translateX(-12px) rotate(-12deg); opacity: 0; }
-    }
-
-    /* 4) 🌊 바다: 심해 수중 살랑살랑 가라앉기 */
-    .berry-item.ocean-sinking {
-      animation: oceanFloatSink 6.2s ease-in-out forwards;
-    }
-    @keyframes oceanFloatSink {
-      0% { transform: translateY(0px) translateX(0px) rotate(0deg) scale(0.85); opacity: 0; }
-      12% { opacity: 1; }
-      30% { transform: translateY(120px) translateX(-20px) rotate(-14deg) scale(1); }
-      60% { transform: translateY(280px) translateX(22px) rotate(16deg) scale(1.05); }
-      85% { transform: translateY(450px) translateX(-14px) rotate(-10deg) scale(0.95); opacity: 0.85; }
-      100% { transform: translateY(590px) translateX(10px) rotate(8deg) scale(0.8); opacity: 0; }
-    }
-
-    /* 🍒 우측 하단 아이템 수확 위젯 (1.2배 확대) */
-    .berry-basket-widget {
-      position: absolute;
-      bottom: clamp(80px, 12vh, 100px);
-      right: 14px;
-      background: rgba(31, 36, 46, 0.95);
-      backdrop-filter: blur(10px);
-      border: 1.5px solid rgba(255,255,255,0.45);
-      border-radius: 22px;
-      padding: 5px 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.45);
-      z-index: 25;
-      transform: scale(0);
-      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .berry-basket-widget.show { transform: scale(1); }
-    .basket-xp { font-size: 13px; font-weight: 900; color: #FFEB3B; }
-
-    .btn-eat-berries {
-      background: linear-gradient(135deg, #FF9800, #F57C00);
-      color: white;
-      border: none;
-      padding: 6px 14px;
-      border-radius: 16px;
-      font-size: 13px;
-      font-weight: 900;
-      cursor: pointer;
-    }
-    .btn-eat-berries:active { transform: scale(0.95); }
-
-    /* 🌟 중앙 서식지 & 캐릭터 위치 영역 (DB 기반 고도 3단계: 하 / 중 / 상) */
-    .stage-area {
-      position: absolute;
-      left: 0; right: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 5;
-      transition: bottom 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-
-    /* 1) 🌿 [하] 지상 포켓몬 위치 (바닥 접지) */
-    .stage-area.ground-mode {
-      bottom: clamp(21%, 25vh, 28%);
-    }
-
-    /* 2) ☁️ [중] 중간 부유 / 호버링 포켓몬 위치 */
-    .stage-area.hover-mode {
-      bottom: clamp(34%, 39vh, 44%);
-    }
-
-    /* 3) 🕊️ [상] 하늘을 나는 비행 / 고공 부유 포켓몬 위치 */
-    .stage-area.sky-mode {
-      bottom: clamp(47%, 54vh, 61%);
-    }
-
-    .speech-bubble {
-      background: white;
-      padding: 6px 14px;
-      border-radius: 14px;
-      font-size: 12px;
-      font-weight: 800;
-      color: #333;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      margin-bottom: 8px;
-      opacity: 0;
-      transform: translateY(4px);
-      transition: all 0.25s ease;
-    }
-    .speech-bubble.active { opacity: 1; transform: translateY(0); }
-
-    /* 🌟 점프 애니메이션 래퍼 */
-    .sprite-hop-wrapper {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transform-origin: bottom center;
-    }
-    .sprite-hop-wrapper.hopping {
-      animation: smoothHopAction 0.55s cubic-bezier(0.25, 1, 0.5, 1);
-    }
-    @keyframes smoothHopAction {
-      0% { transform: translateY(0); }
-      30% { transform: translateY(-24px); }
-      55% { transform: translateY(2px); }
-      75% { transform: translateY(-6px); }
-      100% { transform: translateY(0); }
-    }
-
-    /* 🌟 스마트폰 자이로스코프 기울기 반응 래퍼 (설정된 한계 픽셀 내 실시간 모션) */
-    .idle-wander-ground,
-    .idle-wander-hover,
-    .idle-wander-sky {
-      will-change: transform;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition: none; /* requestAnimationFrame 루프로 직접 120Hz 부드러운 보간 */
-    }
-
-    /* 🌟 단정하고 큼직한 1.2배 스프라이트 컨테이너 (128px) */
-    .pokemon-sprite-container {
-      width: 128px;
-      height: 128px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      position: relative;
-      touch-action: none;
-      cursor: grab;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-    .pokemon-sprite-container.dragging {
-      cursor: grabbing;
-    }
-
-    .pokemon-sprite {
-      width: 100%;
-      height: 100%;
-      max-width: 128px;
-      max-height: 128px;
-      object-fit: contain;
-      image-rendering: pixelated;
-      filter: drop-shadow(0 12px 12px rgba(0,0,0,0.42));
-      transform-origin: bottom center;
-      transition: transform 0.2s ease;
-      pointer-events: none; /* 컨테이너가 드래그를 전담하여 브라우저 이미지 고스트 원천 차단 */
-      user-drag: none;
-      -webkit-user-drag: none;
-    }
-
-    /* 🧲 드래그 중인 포켓몬 */
-    .pokemon-sprite.mon-dragging {
-      transition: none !important;
-      filter: drop-shadow(0 16px 20px rgba(0,0,0,0.55)) brightness(1.08) !important;
-      z-index: 50;
-    }
-
-    /* 🚀 손을 놓았을 때 띠요옹~ 원래 자리로 통통 튕겨서 복귀하는 탄성 스프링 애니메이션 */
-    .pokemon-sprite.mon-spring-release {
-      transition: transform 0.52s cubic-bezier(0.175, 0.885, 0.32, 1.48) !important;
-    }
-
-    /* 😋 포켓몬 냠냠 섭취 시 반짝임 (transform을 건드리지 않아 드래그 튐 100% 방지!) */
-    .pokemon-sprite.mon-glow-eat {
-      filter: drop-shadow(0 16px 20px rgba(0,0,0,0.55)) brightness(1.4) drop-shadow(0 0 24px #fde047) !important;
-      transition: filter 0.15s ease !important;
-    }
-
-    /* 💥 하얀 빛 섬광 폭발 (White Flash Burst) */
-    .white-light-burst {
-      position: fixed;
-      pointer-events: none;
-      z-index: 9999;
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.95) 35%, rgba(255,255,255,0) 70%);
-      box-shadow: 0 0 25px rgba(255,255,255,1), 0 0 45px rgba(253,224,71,0.7);
-      transform: translate(-50%, -50%) scale(0.2);
-      animation: whiteBurstAnim 0.38s ease-out forwards;
-    }
-    @keyframes whiteBurstAnim {
-      0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; filter: brightness(2); }
-      50% { transform: translate(-50%, -50%) scale(1.6); opacity: 0.95; filter: brightness(1.5); }
-      100% { transform: translate(-50%, -50%) scale(2.3); opacity: 0; filter: brightness(1); }
-    }
-
-    /* ⭐ 먹이 섭취 시 포켓몬에게서 뿜어져 나오는 순수 별 이모지 파티클 */
-    .feed-star-particle {
-      position: fixed;
-      pointer-events: none;
-      z-index: 9999;
-      font-size: 22px;
-      animation: starFloatUp 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-      filter: drop-shadow(0 2px 10px rgba(250, 204, 21, 0.8));
-    }
-    @keyframes starFloatUp {
-      0% { transform: translate(0, 0) scale(0.4) rotate(0deg); opacity: 1; }
-      40% { transform: translate(var(--tx, 0px), var(--ty, -35px)) scale(1.3) rotate(45deg); opacity: 1; }
-      100% { transform: translate(var(--tx, 0px), var(--ty, -70px)) scale(0.7) rotate(90deg); opacity: 0; }
-    }
-
-    /* 🌟 열매 섭취 시 뿜어져 나오는 +5 XP 플로팅 텍스트 팝 효과 */
-    .floating-xp-gain {
-      position: fixed;
-      pointer-events: none;
-      z-index: 10000;
-      font-size: 16px;
-      font-weight: 900;
-      color: #fde047;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 0 14px rgba(250,204,21,0.85);
-      animation: floatUpXp 0.9s ease-out forwards;
-    }
-    @keyframes floatUpXp {
-      0% { transform: translate(-50%, 0px) scale(0.6); opacity: 0; }
-      25% { transform: translate(-50%, -12px) scale(1.3); opacity: 1; }
-      75% { transform: translate(-50%, -36px) scale(1.1); opacity: 1; }
-      100% { transform: translate(-50%, -58px) scale(0.85); opacity: 0; }
-    }
-
-    /* ✨ 미니게임 보상 획득 시 포켓몬에게 살짝 도는 은은하고 화사한 황금빛 오라 연출 */
-    .pokemon-sprite.game-reward-glow {
-      animation: pokemonRewardAura 1.6s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
-    }
-    @keyframes pokemonRewardAura {
-      0% {
-        filter: drop-shadow(0 10px 10px rgba(0,0,0,0.38)) brightness(1);
-        transform: scale(1);
-      }
-      35% {
-        filter: drop-shadow(0 0 24px #38bdf8) drop-shadow(0 0 12px #fbbf24) brightness(1.35);
-        transform: scale(1.12);
-      }
-      70% {
-        filter: drop-shadow(0 0 16px #60a5fa) drop-shadow(0 0 8px #f59e0b) brightness(1.18);
-        transform: scale(1.05);
-      }
-      100% {
-        filter: drop-shadow(0 10px 10px rgba(0,0,0,0.38)) brightness(1);
-        transform: scale(1);
-      }
-    }
-
-    /* ✨ 진화 축하 연출 팝업 */
-    .evolve-overlay {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(circle, rgba(30,58,138,0.95) 0%, rgba(10,15,30,0.98) 100%);
-      z-index: 300;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transition: all 0.4s ease;
-    }
-    .evolve-overlay.active {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-    }
-    .evolve-title {
-      font-size: 20px;
-      font-weight: 900;
-      color: #60a5fa;
-      margin-bottom: 16px;
-      text-shadow: 0 0 12px rgba(96,165,250,0.8);
-      text-align: center;
-    }
-    .evolve-sprite {
-      width: 130px;
-      height: 130px;
-      object-fit: contain;
-      image-rendering: pixelated;
-      animation: evolveGlow 1.2s infinite alternate;
-      margin-bottom: 16px;
-    }
-    @keyframes evolveGlow {
-      0% { filter: drop-shadow(0 0 8px #60a5fa) brightness(1); transform: scale(1); }
-      100% { filter: drop-shadow(0 0 24px #38bdf8) brightness(1.3); transform: scale(1.1); }
-    }
-    .evolve-desc {
-      font-size: 14px;
-      color: #e2e8f0;
-      font-weight: 800;
-      text-align: center;
-      line-height: 1.5;
-      margin-bottom: 20px;
-    }
-    .btn-evolve-confirm {
-      background: linear-gradient(135deg, #2563eb, #1d4ed8);
-      color: white;
-      border: none;
-      padding: 12px 28px;
-      border-radius: 14px;
-      font-size: 14px;
-      font-weight: 900;
-      cursor: pointer;
-      box-shadow: 0 6px 20px rgba(37,99,235,0.5);
-    }
-
-    /* 🏆 주간 졸업 & 등급 알 수령 시네마틱 오버레이 스타일 */
-    .graduation-overlay {
-      background: radial-gradient(circle, rgba(15, 23, 42, 0.98) 0%, rgba(2, 6, 23, 0.99) 100%) !important;
-    }
-    .graduation-overlay .grad-aura-box {
-      position: relative;
-      margin: 12px 0;
-      padding: 12px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .graduation-overlay .grad-aura-box.egg-glow img {
-      filter: drop-shadow(0 0 24px rgba(250, 204, 21, 0.95)) drop-shadow(0 0 45px rgba(56, 189, 248, 0.7));
-      animation: eggGlowFloat 2s ease-in-out infinite alternate;
-    }
-    @keyframes eggGlowFloat {
-      0% { transform: translateY(0) scale(1); }
-      100% { transform: translateY(-8px) scale(1.06); }
-    }
-
-    /* 하단 네비게이션 바 (투명도 50% + 블러 16px 글래스모피즘 & 1.2배 확대) */
-    .bottom-nav {
-      position: absolute;
-      bottom: max(14px, env(safe-area-inset-bottom));
-      left: max(14px, env(safe-area-inset-left));
-      right: max(14px, env(safe-area-inset-right));
-      background: rgba(255, 255, 255, 0.5); /* 🌟 투명도 50% */
-      backdrop-filter: blur(16px);          /* 🌟 블러 효과 */
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      border-radius: 26px;
-      padding: 10px 16px;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
-      z-index: 20;
-    }
-
-    .nav-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: none;
-      border: none;
-      color: #64748b;
-      font-size: 13px;
-      font-weight: 900;
-      cursor: pointer;
-      gap: 3px;
-      flex: 1;
-      padding: 4px 0;
-      transition: color 0.15s ease, transform 0.15s ease;
-    }
-    .nav-btn .icon { font-size: 24px; line-height: 1; }
-    .nav-btn.active { color: #0284c7; transform: scale(1.06); }
-
-    /* 📋 퀘스트 상단 툴바 */
-    .quest-toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .quest-toolbar-left { display: flex; gap: 6px; }
-    .quest-toolbar-right { display: flex; gap: 6px; }
-
-    /* 📋 퀘스트 카드 (화이트 글래스모피즘) */
-    .quest-card {
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.7);
-      border-radius: 14px;
-      padding: 12px 14px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-      transition: all 0.2s ease;
-    }
-    .quest-card-left { display: flex; align-items: center; gap: 10px; flex: 1; }
-    .quest-batch-cb { width: 20px; height: 20px; accent-color: #ef4444; cursor: pointer; display: none; }
-    .quest-info { flex: 1; }
-    .quest-title { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .req-tag { background: #FF9800; color: white; font-size: 10px; font-weight: 900; padding: 1px 6px; border-radius: 4px; }
-    .rec-tag { background: #3b82f6; color: white; font-size: 10px; font-weight: 900; padding: 1px 6px; border-radius: 4px; }
-    .quest-meta, .quest-top-meta { font-size: 11px; color: #64748b; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 2px; }
-    .quest-desc { font-size: 11px; color: #475569; line-height: 1.3; margin-top: 3px; }
-    
-    .quest-card-btns { display: flex; align-items: center; gap: 6px; }
-    .btn-quest-edit {
-      background: rgba(255, 255, 255, 0.85); color: #2563eb; border: 1px solid rgba(0, 0, 0, 0.08);
-      padding: 7px 10px; border-radius: 9px; font-size: 12px; font-weight: 800;
-      cursor: pointer; display: flex; align-items: center; gap: 3px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.04);
-    }
-    .btn-quest-edit:active { transform: scale(0.95); background: #e2e8f0; }
-    .btn-quest-done {
-      background: #4CAF50; color: white; border: none; padding: 8px 12px;
-      border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer;
-      box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
-    }
-    .btn-quest-done.disabled { background: #cbd5e1; color: #64748b; cursor: default; box-shadow: none; }
-    .btn-quest-add { background: #2196F3; color: white; border: none; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; }
-    .btn-quest-add:active { transform: scale(0.95); }
-    .btn-quest-batch-del { background: #e2e8f0; color: #ef4444; border: 1px solid #cbd5e1; padding: 8px 10px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; }
-    .btn-quest-batch-del:active { transform: scale(0.95); }
-    .btn-quest-batch-exec { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 900; cursor: pointer; display: none; }
-    .btn-quest-batch-cancel { background: #64748b; color: white; border: none; padding: 8px 10px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; display: none; }
-
-    /* 📊 퀘스트 연속 실천 기록 */
-    .streak-card {
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.7);
-      border-radius: 14px; padding: 14px 16px; margin-bottom: 12px;
-      border-left: 4px solid #FF9800;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-      color: #0f172a;
-    }
-    .streak-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .streak-badge { background: linear-gradient(135deg, #FF9800, #F57C00); color: white; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 900; }
-
-    /* 📖 도감 그리드 (가로 5개 고정 정렬 & 화이트 글래스모피즘) */
-    .pokedex-grid-container {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr) !important; /* 🌟 가로 5개 정렬 고정 */
-      gap: 8px;
-      padding: 2px;
-    }
-    .dex-card {
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-radius: 16px; padding: 6px 1px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.7); transition: all 0.2s ease;
-      position: relative;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-    }
-    .dex-card:active { transform: scale(0.95); border-color: #3b82f6; }
-    .dex-sprite { width: 72px; height: 72px; object-fit: contain; image-rendering: pixelated; }
-    .dex-sprite.locked { filter: brightness(0); opacity: 0.25; }
-    .dex-num { font-size: 10px; font-weight: 800; color: #64748b; margin-top: 2px; }
-    .dex-name { font-size: 11.5px; font-weight: 800; color: #0f172a; margin-top: 2px; text-align: center; word-break: keep-all; }
-    .dex-unlocked-dot {
-      width: 6px; height: 6px; border-radius: 50%; background: #4ade80;
-      position: absolute; top: 5px; right: 5px;
-    }
-
-    /* 📖 도감 상세 전문 팝업 모달 (화이트 글래스모피즘 테마 일체화) */
-    .dex-detail-modal-content {
-      background: rgba(255, 255, 255, 0.94);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      border-radius: 24px;
-      padding: 18px; width: 100%; max-width: 420px; max-height: 90vh;
-      overflow-y: auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-      color: #0f172a;
-    }
-    .dex-tab-header {
-      display: flex; background: rgba(0, 0, 0, 0.06); border-radius: 12px; padding: 3px;
-      margin-bottom: 14px; gap: 4px;
-    }
-    .dex-tab-btn {
-      flex: 1; background: none; border: none; color: #64748b; font-size: 12px;
-      font-weight: 800; padding: 8px 0; border-radius: 9px; cursor: pointer; transition: all 0.2s ease;
-    }
-    .dex-tab-btn.active {
-      background: #2563eb; color: white; box-shadow: 0 2px 8px rgba(37,99,235,0.35);
-    }
-
-    /* 3D 플립 카드 컨테이너 */
-    .flip-card-wrapper {
-      perspective: 1000px; width: 140px; height: 140px; margin: 0 auto 12px auto; cursor: pointer;
-    }
-    .flip-card-inner {
-      position: relative; width: 100%; height: 100%; text-align: center;
-      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d;
-    }
-    .flip-card-inner.flipped { transform: rotateY(180deg); }
-    .flip-card-front, .flip-card-back {
-      position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden;
-      backface-visibility: hidden; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; background: rgba(248, 250, 252, 0.9); border-radius: 20px; border: 2px solid rgba(0, 0, 0, 0.08); padding: 8px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
-    }
-    .flip-card-back { transform: rotateY(180deg); border-color: #f472b6; }
-    .flip-img { width: 95px; height: 95px; object-fit: contain; image-rendering: pixelated; }
-    .flip-img.locked { filter: brightness(0); opacity: 0.25; }
-    .flip-gender-tag {
-      position: absolute; top: 6px; left: 8px; font-size: 11px; font-weight: 900; padding: 2px 6px; border-radius: 6px;
-    }
-    .flip-gender-tag.male { background: #dbeafe; color: #1d4ed8; }
-    .flip-gender-tag.female { background: #fce7f3; color: #be185d; }
-    .flip-gender-tag.none { background: #f1f5f9; color: #475569; }
-    .flip-hint-badge { font-size: 10px; color: #64748b; font-weight: 600; margin-top: 4px; text-align: center; }
-
-    .dex-desc-box {
-      background: rgba(241, 245, 249, 0.85); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;
-      border-left: 4px solid #0284c7;
-    }
-    .dex-desc-genus { font-size: 12px; font-weight: 800; color: #0284c7; margin-bottom: 4px; }
-    .dex-desc-text { font-size: 12.5px; line-height: 1.5; color: #334155; word-break: keep-all; }
-
-    .dex-info-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;
-    }
-    .dex-info-item { background: rgba(241, 245, 249, 0.85); padding: 8px 10px; border-radius: 10px; font-size: 11.5px; }
-    .dex-info-item span:first-child { color: #64748b; font-weight: 700; display: block; margin-bottom: 2px; }
-    .dex-info-item span:last-child { color: #0f172a; font-weight: 800; }
-
-    /* 육성 히스토리 목록 */
-    .history-card-item {
-      background: rgba(241, 245, 249, 0.85); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px;
-      border-left: 4px solid #16a34a;
-    }
-    .history-card-item.evolved { border-left-color: #0284c7; }
-    .history-card-item.graduated { border-left-color: #ca8a04; }
-    .history-card-title { font-size: 13px; font-weight: 800; color: #0f172a; display: flex; justify-content: space-between; margin-bottom: 4px; }
-    .history-card-meta { font-size: 11px; color: #64748b; display: flex; justify-content: space-between; }
-
-    
-    /* 📋 퀘스트 등록 모달 2개 탭 스타일 (화이트 글래스모피즘) */
-    .quest-modal-tab-header {
-      display: flex;
-      gap: 6px;
-      margin: 10px 0 14px 0;
-      background: rgba(0, 0, 0, 0.06);
-      padding: 4px;
-      border-radius: 12px;
-      border: 1px solid rgba(0, 0, 0, 0.06);
-    }
-    .quest-modal-tab-btn {
-      flex: 1;
-      padding: 8px 6px;
-      font-size: 12.5px;
-      font-weight: 800;
-      color: #475569;
-      background: transparent;
-      border: none;
-      border-radius: 9px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-    }
-    .quest-modal-tab-btn.active {
-      background: #0284c7;
-      color: #ffffff;
-      font-weight: 900;
-      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
-    }
-
-    
     /* ========================================================
-       ✨ 심플 섭취(Feeding) & 레벨업(Level Up) & 성격 팝오버 CSS
+       📱💻 적응형 반응형 인터페이스 (Adaptive Responsive Queries)
        ======================================================== */
-    /* 경험치바: 평소엔 정적, 경험치 획득 순간만 1회 부드러운 하이라이트 */
-    .xp-bar-fill {
-      transition: width 0.45s cubic-bezier(0.25, 1, 0.5, 1) !important;
-    }
-    .xp-bar-gain-shine {
-      box-shadow: 0 0 10px #38bdf8 !important;
-      filter: brightness(1.3);
-      transition: filter 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    /* 섭취 시 날아가는 서식지 아이템 이미지 2개 */
-    .flying-habitat-item {
-      position: fixed;
-      pointer-events: none;
-      z-index: 9999;
-      width: 28px;
-      height: 28px;
-      object-fit: contain;
-      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
-      transition: transform 0.55s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.55s ease;
-    }
-
-    /* 🌟 레벨업 시 머리 위로 살짝 떴다 사라지는 단 하나의 별 */
-    .mini-levelup-star {
-      position: absolute;
-      left: 50%;
-      bottom: 80%;
-      transform: translateX(-50%);
-      font-size: 22px;
-      pointer-events: none;
-      z-index: 30;
-      animation: singleStarFloat 0.85s ease-out forwards;
-    }
-    @keyframes singleStarFloat {
-      0% { transform: translate(-50%, 10px) scale(0.4); opacity: 0; }
-      30% { transform: translate(-50%, -12px) scale(1.2); opacity: 1; filter: drop-shadow(0 0 8px #fbbf24); }
-      70% { transform: translate(-50%, -24px) scale(1); opacity: 0.9; }
-      100% { transform: translate(-50%, -36px) scale(0.6); opacity: 0; }
-    }
-
-    /* 상단 레벨 뱃지 심플 펄스 */
-    .badge-level-up-pulse {
-      animation: simpleBadgePulse 0.6s ease forwards !important;
-    }
-    @keyframes simpleBadgePulse {
-      0% { transform: scale(1); }
-      40% { transform: scale(1.3); background: #38bdf8 !important; color: #0f172a !important; }
-      100% { transform: scale(1); }
-    }
-
-    /* 🏷️ 성격 & 성장속도 안내 팝오버 말풍선 */
-    .nature-tag {
-      cursor: pointer;
-      background: #f1f5f9;
-      color: #334155;
-      font-weight: 700;
-      font-size: 11px;
-      padding: 2px 7px;
-      border-radius: 6px;
-      transition: all 0.15s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-    }
-    .nature-tag:active {
-      transform: scale(0.95);
-      background: #e2e8f0;
-    }
-    .nature-popover {
-      position: absolute;
-      top: calc(100% + 6px);
-      right: 0;
-      background: #1e293b;
-      color: #f1f5f9;
-      border: 1px solid #334155;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-size: 11.5px;
-      line-height: 1.5;
-      width: 220px;
-      z-index: 100;
-      display: none;
-    }
-    .nature-popover.show {
-      display: block;
-      animation: popoverFadeIn 0.15s ease-out;
-    }
-    @keyframes popoverFadeIn {
-      from { opacity: 0; transform: translateY(-4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .nature-popover-title {
-      font-weight: 800;
-      color: #38bdf8;
-      margin-bottom: 4px;
-      font-size: 12px;
-      display: flex;
-      justify-content: space-between;
-    }
-    .nature-popover-row {
-      margin-bottom: 3px;
-      color: #cbd5e1;
-    }
-    .nature-popover-row b {
-      color: #f8fafc;
-    }
-
     
-    /* ========================================================
-       📊 퀘스트 기록 2단 분리 (상단: 반복 연속 / 하단: 일회성) CSS
-       ======================================================== */
-    .streak-section {
-      margin-bottom: 20px;
-    }
-    .streak-section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      padding-bottom: 6px;
-      border-bottom: 1.5px solid rgba(255, 255, 255, 0.1);
-    }
-    .streak-section-title {
-      font-size: 14px;
-      font-weight: 800;
-      color: #f1f5f9;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .streak-section-count {
-      font-size: 11px;
-      font-weight: 700;
-      color: #38bdf8;
-      background: rgba(56, 189, 248, 0.12);
-      padding: 2px 7px;
-      border-radius: 10px;
-      border: 1px solid rgba(56, 189, 248, 0.25);
-    }
-    .streak-section-desc {
-      font-size: 11px;
-      color: #94a3b8;
-      margin-bottom: 10px;
-      line-height: 1.4;
+    /* 1. 태블릿 / 가로모드 (600px ~ 1023px) */
+    @media (min-width: 600px) and (max-width: 1023px) {
+      .app-screen {
+        max-width: 680px;
+        height: 94vh !important;
+        height: 94dvh !important;
+        border-radius: 24px !important;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.1) !important;
+      }
+      .habitat-pane, .tamagotchi-stage-container {
+        height: 200px !important;
+        min-height: 200px !important;
+        padding: 14px 16px !important;
+      }
+      .tamagotchi-screen-box .pokemon-sprite-container {
+        width: 90px;
+        height: 90px;
+      }
+      .tamagotchi-screen-box .pokemon-sprite {
+        max-width: 86px;
+        max-height: 86px;
+      }
     }
 
-    .streak-divider {
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
-      margin: 24px 0 20px 0;
+    /* 2. PC / 데스크톱 2단 분할 레이아웃 (1024px 이상) */
+    @media (min-width: 1024px) {
+      .app-screen {
+        max-width: 1120px !important;
+        height: 90vh !important;
+        height: 90dvh !important;
+        border-radius: 28px !important;
+        display: flex !important;
+        flex-direction: row !important; /* 🌟 좌우 2단 분할 구조 */
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.12) !important;
+      }
+
+      /* 👈 좌측: 다마고치 & 포켓몬 정보 & 타이머 사이드바 */
+      .habitat-pane, .tamagotchi-stage-container {
+        width: 370px !important;
+        height: 100% !important;
+        min-height: 100% !important;
+        max-height: 100% !important;
+        flex-direction: column !important;
+        padding: 20px 18px !important;
+        gap: 16px !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-bottom: none !important;
+        justify-content: flex-start !important;
+      }
+
+      .tamagotchi-screen-box {
+        width: 100% !important;
+        height: auto !important;
+        aspect-ratio: 3 / 2 !important;
+        border-radius: 18px !important;
+      }
+
+      .tamagotchi-screen-box .pokemon-sprite-container {
+        width: 110px;
+        height: 110px;
+      }
+      .tamagotchi-screen-box .pokemon-sprite {
+        max-width: 105px;
+        max-height: 105px;
+      }
+
+      .tamagotchi-info-panel {
+        width: 100% !important;
+        flex: 1 !important;
+        border-radius: 18px !important;
+        padding: 16px !important;
+      }
+
+      /* 👉 우측: 메인 워크스페이스 */
+      .workspace-pane {
+        flex: 1 !important;
+        height: 100% !important;
+        border-radius: 0 28px 28px 0 !important;
+      }
+
+      .pane-body {
+        padding: 20px 24px 85px 24px !important;
+      }
+
+      .bottom-nav {
+        border-radius: 0 0 28px 0;
+        padding: 10px 16px max(10px, env(safe-area-inset-bottom)) 16px;
+      }
+      .nav-btn {
+        font-size: 12px;
+      }
+      .nav-btn .icon {
+        font-size: 22px;
+      }
     }
 
-    /* 상단 반복 퀘스트 카드 */
-    .streak-card {
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 12px 14px;
-      margin-bottom: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-      transition: transform 0.15s ease, border-color 0.15s ease;
-    }
-    .streak-card:hover {
-      border-color: #475569;
-      transform: translateY(-1px);
-    }
-    .streak-card-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 8px;
-      gap: 8px;
-    }
-    .streak-card-title {
-      font-size: 14px;
-      font-weight: 800;
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .streak-badge {
-      background: linear-gradient(135deg, #f97316, #ea580c);
-      color: #ffffff;
-      font-size: 11px;
-      font-weight: 800;
-      padding: 3px 8px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(249, 115, 22, 0.35);
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-    .streak-card-stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 6px;
-      background: rgba(15, 23, 42, 0.6);
-      padding: 8px 10px;
-      border-radius: 8px;
-      font-size: 11.5px;
-      color: #94a3b8;
-    }
-    .streak-card-stats span b {
-      color: #38bdf8;
-    }
-
-    /* 하단 일회성 할일 카드 (화이트 글래스모피즘) */
-    .single-todo-card {
-      background: rgba(255, 255, 255, 0.6);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(0, 0, 0, 0.06);
-      border-radius: 10px;
-      padding: 10px 12px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      transition: background 0.15s ease;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-    }
-    .single-todo-left {
-      flex: 1;
-      min-width: 0;
-    }
-    .single-todo-title {
-      font-size: 13px;
-      font-weight: 800;
-      color: #0f172a;
-      margin-bottom: 3px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .single-todo-meta {
-      font-size: 11px;
-      color: #64748b;
-    }
-    .single-todo-status {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 6px;
-      white-space: nowrap;
-    }
-    .single-todo-status.done {
-      background: rgba(74, 222, 128, 0.18);
-      color: #15803d;
-      border: 1px solid rgba(74, 222, 128, 0.4);
-    }
-    .single-todo-status.pending {
-      background: rgba(148, 163, 184, 0.15);
-      color: #475569;
-      border: 1px solid rgba(148, 163, 184, 0.3);
-    }
-
-    
-    /* 🎮 정사각형 고정 미니게임 그리드 (화이트 글래스모피즘) */
-    .arcade-grid-3col {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-top: 8px;
-    }
-    .mini-game-card {
-      aspect-ratio: 1 / 1;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.7);
-      border-radius: 14px;
-      padding: 8px 4px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      box-sizing: border-box;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-    }
-    .mini-game-card:hover {
-      border-color: #38bdf8;
-      transform: translateY(-2px);
-    }
-    .mini-game-card.highlight {
-      border: 1.5px solid rgba(56, 189, 248, 0.8);
-      background: rgba(224, 242, 254, 0.8);
-      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2);
-    }
-    .mini-game-icon {
-      font-size: 28px;
-      line-height: 1;
-    }
-    .mini-game-title {
-      font-size: 11.5px;
-      font-weight: 800;
-      color: #0f172a;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 100%;
-    }
-    .mini-game-card.highlight .mini-game-title {
-      color: #0284c7;
-    }
-
-    /* 🎮 미니게임 아케이드 */
-    .arcade-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .game-launch-card {
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(14px);
-      border-radius: 16px; padding: 16px; display: flex;
-      flex-direction: column; align-items: center; cursor: pointer;
-      border: 1px solid rgba(255, 255, 255, 0.7);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-      transition: transform 0.2s ease, border-color 0.2s ease;
-    }
-    .game-launch-card:active { transform: scale(0.96); border-color: #2196F3; }
-    .game-icon { font-size: 36px; margin-bottom: 8px; }
-    .game-title { font-size: 14px; font-weight: 900; color: #0f172a; margin-bottom: 4px; }
-    .game-reward { font-size: 11px; font-weight: 800; color: #d97706; }
-
-    /* 🛠️ 치트 콘솔 트리거 버튼 (1.2배 확대) */
-    .dev-toggle-trigger {
-      position: absolute; bottom: clamp(80px, 12vh, 100px); left: 14px;
-      background: rgba(33, 150, 243, 0.95); color: white; border: 1.5px solid rgba(255,255,255,0.45);
-      font-size: 12.5px; font-weight: 900; padding: 7px 14px; border-radius: 22px; z-index: 25; cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    }
-    .dev-toggle-trigger:active { transform: scale(0.95); }
-
-    /* 🕹️ 5x5 치트 콘솔 팝업 모달 */
-    .cheat-modal-content {
-      background: #181f2a; border: 2px solid #3b82f6; border-radius: 20px;
-      padding: 16px; width: 100%; max-width: 440px; box-shadow: 0 16px 45px rgba(0,0,0,0.8);
-    }
-    .cheat-grid-5x5 {
-      display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 10px;
-    }
-    .cheat-btn {
-      background: #232c3d; border: 1px solid #3b485d; color: #e2e8f0; border-radius: 10px;
-      padding: 10px 2px; font-size: 11px; font-weight: 800; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 4px; cursor: pointer; text-align: center;
-      min-height: 54px; transition: all 0.15s ease;
-    }
-    .cheat-btn:active { transform: scale(0.92); background: #2563eb; color: white; border-color: #60a5fa; }
-    .cheat-btn.empty { background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.15); color: #64748b; cursor: default; }
-    .cheat-btn.empty:active { transform: none; background: rgba(255,255,255,0.03); }
-    .cheat-btn.highlight { background: #1e3a8a; border-color: #3b82f6; color: #93c5fd; }
-    .cheat-btn.highlight:active { background: #2563eb; color: white; }
-    .cheat-btn.danger { background: #3b181e; border-color: #ef4444; color: #fca5a5; }
-    .cheat-btn.danger:active { background: #ef4444; color: white; }
-    .cheat-btn.close { background: #374151; border-color: #6b7280; color: #ffffff; }
-    .cheat-btn.close:active { background: #4b5563; }
-    .cheat-btn-icon { font-size: 16px; line-height: 1; }
-    .cheat-btn-label { font-size: 9.5px; line-height: 1.15; word-break: keep-all; font-weight: 800; }
-
-    /* 📋 퀘스트 추가 & 수정 모달 (화이트 글래스모피즘) */
-    .modal-backdrop {
-      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-      z-index: 200; display: flex; justify-content: center; align-items: center; padding: 16px;
-      opacity: 0; visibility: hidden; pointer-events: none; transition: all 0.25s ease;
-    }
-    .modal-backdrop.open { opacity: 1; visibility: visible; pointer-events: auto; }
-    .modal-content {
-      background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 24px;
-      padding: 20px; width: 100%; max-width: 400px; max-height: 88vh; overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
-      color: #0f172a;
-    }
-    .modal-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-    .modal-title { font-size: 16px; font-weight: 900; color: #0f172a; }
-    .form-group { margin-bottom: 12px; }
-    .form-label { font-size: 12px; font-weight: 800; color: #334155; margin-bottom: 5px; display: block; }
-    .form-input {
-      width: 100%; background: rgba(241, 245, 249, 0.9); border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 12px;
-      padding: 9px 12px; color: #0f172a; font-size: 13px; font-weight: 700; outline: none; transition: all 0.15s ease;
-    }
-    .form-input:focus { border-color: #0284c7; background: #ffffff; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
-    .form-textarea {
-      width: 100%; background: rgba(241, 245, 249, 0.9); border: 1px solid rgba(0, 0, 0, 0.12); border-radius: 12px;
-      padding: 8px 12px; color: #0f172a; font-size: 12.5px; font-weight: 600; outline: none; resize: vertical; min-height: 50px;
-    }
-    .form-textarea:focus { border-color: #0284c7; background: #ffffff; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
-    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .day-selector-bar { display: flex; justify-content: space-between; gap: 4px; margin-top: 6px; }
-    .day-btn {
-      flex: 1; background: rgba(241, 245, 249, 0.9); border: 1px solid rgba(0, 0, 0, 0.1); color: #64748b;
-      border-radius: 9px; padding: 6px 0; font-size: 11px; font-weight: 800; cursor: pointer; text-align: center;
-      transition: all 0.2s ease;
-    }
-    .day-btn.active { background: #0284c7; color: white; border-color: #0284c7; }
-    .form-checkbox-row { display: flex; align-items: center; gap: 8px; background: rgba(241, 245, 249, 0.85); padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(0, 0, 0, 0.06); }
-    .modal-btn-row { display: flex; gap: 8px; margin-top: 8px; }
-    .btn-submit-quest {
-      flex: 1; background: #0284c7; color: white;
-      border: none; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: 900; cursor: pointer;
-      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35); transition: all 0.15s ease;
-    }
-    .btn-submit-quest:active { transform: scale(0.97); }
-    .btn-delete-quest {
-      background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 12px 14px;
-      border-radius: 12px; font-size: 14px; font-weight: 900; cursor: pointer; display: none;
-    }
-    .btn-delete-quest:active { transform: scale(0.95); }
-
-    /* 📟 실시간 진단 콘솔 */
-    .debug-console-card {
-      background: #0f141c; border: 1px solid #334155; border-radius: 14px;
-      padding: 12px; margin-top: 14px; font-family: 'Consolas', 'Menlo', monospace;
-    }
-    .debug-console-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #1e293b; gap: 4px; flex-wrap: wrap;
-    }
-    .debug-console-title { font-size: 12px; font-weight: 900; color: #38bdf8; display: flex; align-items: center; gap: 6px; }
-    .debug-console-btns { display: flex; gap: 4px; }
-    .debug-btn-tool {
-      background: #1e293b; color: #38bdf8; border: 1px solid #334155;
-      padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;
-    }
-    .debug-btn-tool:active { transform: scale(0.95); background: #334155; }
-    .debug-console-body {
-      background: #05080c; border-radius: 8px; padding: 8px 10px; max-height: 280px;
-      overflow-y: auto; font-size: 11px; line-height: 1.5; color: #94a3b8; word-break: break-all;
-    }
-    .log-line { margin-bottom: 4px; }
-    .log-time { color: #64748b; font-size: 10px; margin-right: 4px; }
-    .log-info { color: #e2e8f0; }
-    .log-success { color: #4ade80; font-weight: 800; }
-    .log-warn { color: #facc15; }
-    .log-error { color: #f87171; font-weight: 800; }
-  
-    /* 🌟 지연 경험치 큐잉 미니 토스트 UI */
-    .pending-xp-toast {
-      position: fixed;
-      top: 14px;
-      left: 50%;
-      transform: translateX(-50%) translateY(0);
-      background: rgba(15, 23, 42, 0.88);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      color: #f8fafc;
-      border: 1.5px solid rgba(56, 189, 248, 0.6);
-      border-radius: 24px;
-      padding: 9px 18px;
-      font-size: 12px;
-      font-weight: 900;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55), 0 0 16px rgba(56, 189, 248, 0.4);
-      z-index: 999999;
-      animation: toastPulseGlow 1.8s infinite alternate ease-in-out;
-      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    @keyframes toastPulseGlow {
-      0% { transform: translateX(-50%) scale(1); }
-      100% { transform: translateX(-50%) scale(1.04); box-shadow: 0 12px 30px rgba(0,0,0,0.65), 0 0 22px rgba(56, 189, 248, 0.7); }
-    }
 
     /* 📱 View Transitions API & 네이티브 앱 모달 전환 애니메이션 */
     ::view-transition-old(root),
