@@ -5493,9 +5493,18 @@
         }
       }
 
-      // ⏱️ [다중 기기 실시간 공부 시간 및 통계 동기화]
+      function getKstTodayStr() {
+      const now = new Date();
+      const kst = new Date(now.getTime() + (9 * 60 + now.getTimezoneOffset()) * 60000);
+      const y = kst.getFullYear();
+      const m = String(kst.getMonth() + 1).padStart(2, '0');
+      const d = String(kst.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    // ⏱️ [다중 기기 실시간 공부 시간 및 통계 동기화]
       if (data.studyStats) {
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = getKstTodayStr();
         const backendToday = (data.studyStats.dateStr === todayStr) ? Number(data.studyStats.todaySeconds || 0) : 0;
         const backendAllTime = Number(data.studyStats.allTimeSeconds || 0);
         const backendSolved = Number(data.studyStats.solvedCount || 0);
@@ -5524,6 +5533,28 @@
           if (localToday > backendToday || localAllTime > backendAllTime) {
             StudyTimerManager.saveAndSyncBackend();
           }
+        }
+      }
+
+      // 📚 [다중 기기 실시간 시험/플래시카드 진도 동기화]
+      if (data.studyProgress && typeof data.studyProgress === 'object') {
+        const localMap = (typeof StudyProgressManager !== 'undefined') ? StudyProgressManager.getProgressMap() : {};
+        const mergedMap = { ...localMap };
+        for (const [examId, backProg] of Object.entries(data.studyProgress)) {
+          const loc = mergedMap[examId] || {};
+          const maxSolved = Math.max(Number(loc.solvedCount || 0), Number(loc.flashcardMastered || 0), Number(backProg.solvedCount || 0));
+          const maxMastered = Math.max(Number(loc.flashcardMastered || 0), Number(backProg.flashcardMastered || 0));
+          mergedMap[examId] = {
+            ...backProg,
+            ...loc,
+            solvedCount: maxSolved,
+            flashcardMastered: maxMastered,
+            rate: Math.max(Number(loc.rate || 0), Number(backProg.rate || 0))
+          };
+        }
+        localStorage.setItem('study_progress_map', JSON.stringify(mergedMap));
+        if (studyExamListCache) {
+          renderStudyExamList(studyExamListCache);
         }
       }
     }
@@ -8993,9 +9024,10 @@
 
       saveAndSyncBackend() {
         this.saveStorage();
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = (typeof getKstTodayStr === 'function') ? getKstTodayStr() : new Date().toISOString().split('T')[0];
         const totalSolved = Number(localStorage.getItem('study_solved_count') || 0);
         const correctCount = Number(localStorage.getItem('study_correct_count') || 0);
+        const progressMap = (typeof StudyProgressManager !== 'undefined') ? StudyProgressManager.getProgressMap() : {};
 
         try {
           fetch(GAS_API_URL, {
@@ -9007,8 +9039,15 @@
               todaySeconds: this.todaySeconds,
               allTimeSeconds: this.allTimeSeconds,
               solvedCount: totalSolved,
-              correctCount: correctCount
+              correctCount: correctCount,
+              studyProgress: progressMap
             })
+          }).then(res => res.json()).then(resJson => {
+            if (resJson && resJson.studyProgress && typeof StudyProgressManager !== 'undefined') {
+              const currentMap = StudyProgressManager.getProgressMap();
+              const merged = { ...currentMap, ...resJson.studyProgress };
+              localStorage.setItem('study_progress_map', JSON.stringify(merged));
+            }
           }).catch(() => {});
         } catch(e) {}
       },
@@ -9086,7 +9125,7 @@
       }
     }
 
-    function renderStudyExamList(exams, progressMap = {}) {
+    function renderStudyExamList(exams, backendProgress = {}) {
       const container = document.getElementById('studyExamListContainer');
       if (!container) return;
       container.innerHTML = '';
@@ -9096,30 +9135,44 @@
         return;
       }
 
+      const localMap = (typeof StudyProgressManager !== 'undefined') ? StudyProgressManager.getProgressMap() : {};
+
       exams.forEach(ex => {
-        const prog = progressMap[ex.id] || {};
-        const solved = prog.solvedCount || 0;
-        const total = ex.questionCount || 0;
-        const rate = total > 0 ? Math.round((solved / total) * 100) : 0;
+        const idKey = ex.id || ex.examId || ex.title;
+        const localProg = localMap[idKey] || localMap[ex.id] || localMap[ex.title] || {};
+        const backProg = (backendProgress && (backendProgress[idKey] || backendProgress[ex.id])) || {};
+        const solved = Math.max(Number(localProg.solvedCount || 0), Number(localProg.flashcardMastered || 0), Number(backProg.solvedCount || 0));
+        const total = ex.questionCount || localProg.totalCount || backProg.totalCount || 0;
+        const rate = total > 0 ? Math.min(100, Math.round((solved / total) * 100)) : 0;
+        const isCompleted = (rate >= 100);
 
         const card = document.createElement('div');
         card.className = 'exam-part-card';
-        card.style.cssText = "background:white; border:1px solid rgba(0,0,0,0.08); border-radius:14px; padding:12px 14px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:10px; box-shadow:0 2px 6px rgba(0,0,0,0.03);";
+        card.style.cssText = "background:white; border:1px solid rgba(0,0,0,0.08); border-radius:14px; padding:12px 14px; margin-bottom:10px; display:flex; flex-direction:column; gap:8px; box-shadow:0 2px 6px rgba(0,0,0,0.03);";
         card.innerHTML = `
-          <div class="exam-part-left" style="flex:1; min-width:0;">
-            <div class="exam-part-title" style="font-size:13.5px; font-weight:900; color:#0f172a; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.title}</div>
-            <div class="exam-part-meta" style="font-size:11.5px; color:#64748b; font-weight:700;">
-              <span>📝 ${total}문항</span> • 
-              <span style="color:#0284c7;">진도: ${rate}% (${solved}/${total})</span>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+            <div class="exam-part-left" style="flex:1; min-width:0;">
+              <div class="exam-part-title" style="font-size:13.5px; font-weight:900; color:#0f172a; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                ${isCompleted ? '✅ ' : ''}${ex.title}
+              </div>
+              <div class="exam-part-meta" style="font-size:11.5px; color:#64748b; font-weight:700; display:flex; align-items:center; gap:6px;">
+                <span>📝 ${total}문항</span> • 
+                <span style="color:${isCompleted ? '#10b981' : (rate > 0 ? '#0284c7' : '#64748b')}; font-weight:800;">
+                  진도: ${rate}% (${solved}/${total})
+                </span>
+              </div>
+            </div>
+            <div style="display:flex; gap:6px; flex-shrink:0;">
+              <button onclick="startExamSession('${encodeURIComponent(ex.id)}', 'FLASHCARD')" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; padding:7px 11px; border-radius:8px; font-size:11.5px; font-weight:800; cursor:pointer;">
+                📇 플래시카드
+              </button>
+              <button onclick="startExamSession('${encodeURIComponent(ex.id)}', 'EXAM')" style="background:linear-gradient(135deg, #0284c7, #0369a1); color:white; border:none; padding:7px 12px; border-radius:8px; font-size:11.5px; font-weight:800; cursor:pointer;">
+                ✍️ ${rate > 0 && !isCompleted ? '이어서 풀기' : '시험풀기'}
+              </button>
             </div>
           </div>
-          <div style="display:flex; gap:6px; flex-shrink:0;">
-            <button onclick="startExamSession('${encodeURIComponent(ex.id)}', 'FLASHCARD')" style="background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; padding:7px 11px; border-radius:8px; font-size:11.5px; font-weight:800; cursor:pointer;">
-              📇 플래시카드
-            </button>
-            <button onclick="startExamSession('${encodeURIComponent(ex.id)}', 'EXAM')" style="background:linear-gradient(135deg, #0284c7, #0369a1); color:white; border:none; padding:7px 12px; border-radius:8px; font-size:11.5px; font-weight:800; cursor:pointer;">
-              ✍️ 시험풀기
-            </button>
+          <div style="width:100%; height:5px; background:#e2e8f0; border-radius:5px; overflow:hidden;">
+            <div style="width:${rate}%; height:100%; background:${isCompleted ? 'linear-gradient(90deg, #10b981, #059669)' : 'linear-gradient(90deg, #0284c7, #38bdf8)'}; border-radius:5px; transition:width 0.3s ease;"></div>
           </div>
         `;
         container.appendChild(card);
@@ -9180,7 +9233,6 @@
 
     function backToStudyList() {
       haptic.tick();
-      // ⏱️ 문제 풀이 종료 후 목록으로 복귀 시 타이머 일시정지 및 백엔드 즉시 동기화!
       StudyTimerManager.pause();
       StudyTimerManager.saveAndSyncBackend();
 
@@ -9189,6 +9241,10 @@
       if (solverView) solverView.style.display = 'none';
       if (listView) listView.style.display = 'block';
       currentExamData = null;
+
+      if (studyExamListCache) {
+        renderStudyExamList(studyExamListCache);
+      }
     }
 
     // ========================================================
@@ -9300,13 +9356,13 @@
       if (!solverView) return;
 
       const progText = document.getElementById('solverProgressText');
-      if (progText) progText.innerText = `정복 ${flashcardMastered} / 남은 카드 ${flashcardQueue.length}`;
+      if (progText) progText.innerText = `Clear ${flashcardMastered} / 남은 카드 ${flashcardQueue.length}`;
 
       if (flashcardQueue.length === 0) {
         solverView.innerHTML = `
           <div style="background:white; border-radius:18px; padding:30px 20px; text-align:center; box-shadow:0 4px 16px rgba(0,0,0,0.06); border:1px solid #e2e8f0; margin-bottom:100px;">
             <div style="font-size:40px; margin-bottom:10px;">🎉</div>
-            <h3 style="font-size:17px; font-weight:900; color:#0f172a; margin-bottom:6px;">모든 문제를 정복했습니다!</h3>
+            <h3 style="font-size:17px; font-weight:900; color:#0f172a; margin-bottom:6px;">모든 카드를 완료했습니다!</h3>
             <p style="color:#64748b; font-size:12px; margin-bottom:20px;">이 파트의 모든 플래시카드를 Clear 완료했습니다.</p>
             <div style="display:flex; flex-direction:column; gap:10px;">
               <button onclick="startExamSession('${encodeURIComponent(currentExamData.examId)}', 'FLASHCARD')" style="background:linear-gradient(135deg, #8b5cf6, #7c3aed); color:white; border:none; padding:11px; border-radius:10px; font-weight:900; cursor:pointer;">처음부터 다시 학습하기</button>
@@ -9360,10 +9416,10 @@
 
             <div class="flashcard-actions">
               <button class="btn-card-clear" onclick="triggerCardSwipeAction('left')">
-                👈 정복 (Clear)
+                ← Clear
               </button>
               <button class="btn-card-repeat" onclick="triggerCardSwipeAction('right')">
-                👉 다시풀기 (Repeat)
+                Repeat →
               </button>
             </div>
           </div>
@@ -9385,8 +9441,8 @@
 
         <div class="flashcard-wrapper" style="padding-bottom:100px;">
           <div class="swipe-hint-bar">
-            <span style="color:#10b981; font-weight:800;">👈 왼쪽: 정복 (Clear)</span>
-            <span style="color:#f97316; font-weight:800;">오른쪽: 다시풀기 (Repeat) 👉</span>
+            <span style="color:#10b981; font-weight:800;">← Clear</span>
+            <span style="color:#f97316; font-weight:800;">Repeat →</span>
           </div>
 
           <div class="flashcard card-enter" id="activeFlashcard">
@@ -9432,6 +9488,18 @@
       localStorage.setItem('study_correct_count', correctCount);
       StudyTimerManager.updateUiDisplay();
 
+      // 📚 실시간 진도율 기록 및 즉시 백엔드 DB 동기화
+      if (typeof StudyProgressManager !== 'undefined' && currentExamData) {
+        StudyProgressManager.recordExamAnswer(
+          currentExamData.examId || currentExamData.id,
+          q.number || 0,
+          idx,
+          isCorrect,
+          flashcardTotal
+        );
+      }
+      StudyTimerManager.saveAndSyncBackend();
+
       renderFlashcardMode();
     }
 
@@ -9441,21 +9509,32 @@
 
       haptic.tick();
       if (direction === 'left') {
-        // 👈 왼쪽 스와이프: 정복 (Clear) - 큐에서 완전 제거
+        // ← Clear: 큐에서 완전 제거 및 정복 기록
         card.classList.add('swipe-out-left');
         setTimeout(() => {
           flashcardQueue.shift();
           flashcardMastered++;
           flashcardCurrentState = { selectedIdx: null, isAnswered: false };
+
+          if (typeof StudyProgressManager !== 'undefined' && currentExamData) {
+            StudyProgressManager.recordFlashcardMastered(
+              currentExamData.examId || currentExamData.id,
+              flashcardMastered,
+              flashcardTotal
+            );
+          }
+          StudyTimerManager.saveAndSyncBackend();
+
           renderFlashcardMode();
         }, 220);
       } else if (direction === 'right') {
-        // 👉 오른쪽 스와이프: 다시풀기 (Repeat) - 큐 맨 뒤로 회전
+        // Repeat →: 큐 맨 뒤로 회전
         card.classList.add('swipe-out-right');
         setTimeout(() => {
           const repeatQ = flashcardQueue.shift();
           flashcardQueue.push(repeatQ);
           flashcardCurrentState = { selectedIdx: null, isAnswered: false };
+          StudyTimerManager.saveAndSyncBackend();
           renderFlashcardMode();
         }, 220);
       }
