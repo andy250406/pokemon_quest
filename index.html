@@ -528,7 +528,7 @@
       transition: width 0.35s ease;
     }
 
-    /* 🌟 상단 필수 퀘스트 뱃지 (메뉴바와 동일한 투명도 50% + 블러 16px 화이트 글래스모피즘) */
+    /* 🌟 상단 필수 To-Do 뱃지 (메뉴바와 동일한 투명도 50% + 블러 16px 화이트 글래스모피즘) */
     .quest-badge {
       background: rgba(255, 255, 255, 0.5); /* 🌟 투명도 50% */
       backdrop-filter: blur(16px);          /* 🌟 블러 16px */
@@ -1312,7 +1312,7 @@
 
     
     /* ========================================================
-       📊 퀘스트 기록 2단 분리 (상단: 반복 연속 / 하단: 일회성) CSS
+       📊 To-Do 기록 2단 분리 (상단: 반복 연속 / 하단: 일회성) CSS
        ======================================================== */
     .streak-section {
       margin-bottom: 20px;
@@ -1355,7 +1355,7 @@
       margin: 24px 0 20px 0;
     }
 
-    /* 상단 반복 퀘스트 카드 */
+    /* 상단 반복 To-Do 카드 */
     .streak-card {
       background: #1e293b;
       border: 1px solid #334155;
@@ -1568,7 +1568,7 @@
     .cheat-btn-icon { font-size: 16px; line-height: 1; }
     .cheat-btn-label { font-size: 9.5px; line-height: 1.15; word-break: keep-all; font-weight: 800; }
 
-    /* 📋 퀘스트 추가 & 수정 모달 (화이트 글래스모피즘) */
+    /* 📋 To-Do 추가 & 수정 모달 (화이트 글래스모피즘) */
     .modal-backdrop {
       position: absolute; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
@@ -2266,7 +2266,7 @@
           <div class="evolve-desc" id="gradEggDesc" style="color:#f8fafc; font-size:13.5px; line-height:1.5; margin-bottom:18px;">
             <b id="gradEggTitle" style="color:#fde047; font-size:16px;">[🥉 브론즈 알 (Tier 2)]</b><br>
             <span style="color:#cbd5e1; font-size:12px;" id="gradEggRateInfo">스타팅 25% • 희귀 15% • 전설 5%</span><br>
-            <span style="color:#94a3b8; font-size:11.5px; margin-top:4px; display:inline-block;">퀘스트를 완료하여 경험치를 모으고 새로운 포켓몬을 부화시켜 보세요!</span>
+            <span style="color:#94a3b8; font-size:11.5px; margin-top:4px; display:inline-block;">To-Do를 완료하여 경험치를 모으고 새로운 포켓몬을 부화시켜 보세요!</span>
           </div>
           <button class="btn-evolve-confirm" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); box-shadow:0 4px 15px rgba(37,99,235,0.4);" onclick="finishGraduationAndStartNewEgg()">
             새로운 알과 함께 출발! 🐣
@@ -2280,14 +2280,14 @@
     <div class="workspace-pane" id="workspacePane">
       <div class="pane-body">
         
-        <!-- 1. 📋 퀘스트 목록 (기본 뷰) -->
+        <!-- 1. 📋 To-Do List (기본 뷰) -->
         <div id="paneQuestView">
           <div class="quest-toolbar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <div class="quest-toolbar-left">
-              <button class="btn-quest-add" id="btnAddQuest" style="background:rgba(255,255,255,0.9); color:#0284c7; border:1px solid rgba(0,0,0,0.12); width:34px; height:34px; min-width:34px; padding:0; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.05); font-weight:900; font-size:18px; border-radius:10px; cursor:pointer;" onclick="openAddQuestModal()" title="퀘스트 추가">+</button>
+              <button class="btn-quest-add" id="btnAddQuest" style="background:rgba(255,255,255,0.9); color:#0284c7; border:1px solid rgba(0,0,0,0.12); width:34px; height:34px; min-width:34px; padding:0; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.05); font-weight:900; font-size:18px; border-radius:10px; cursor:pointer;" onclick="openAddQuestModal()" title="To-Do 추가">+</button>
             </div>
             <div class="quest-toolbar-right" style="display:flex; align-items:center; gap:8px;">
-              <!-- 🌟 퀘스트 기록(📊) 상단 툴바 버튼 & 삭제 버튼 (화이트 카드 통일 디자인) -->
+              <!-- 🌟 To-Do 기록(📊) 상단 툴바 버튼 & 삭제 버튼 (화이트 카드 통일 디자인) -->
               <button class="btn-quest-history" id="btnQuestHistory" style="background:rgba(255,255,255,0.9); color:#0284c7; border:1px solid rgba(0,0,0,0.12); box-shadow:0 2px 5px rgba(0,0,0,0.05); height:34px; min-width:56px; padding:0 11px; font-size:12px; font-weight:800; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;" onclick="toggleQuestHistoryView()">📊 기록</button>
               <button class="btn-quest-batch-del" id="btnToggleBatchDelete" style="background:rgba(255,255,255,0.9); color:#ef4444; border:1px solid rgba(0,0,0,0.12); box-shadow:0 2px 5px rgba(0,0,0,0.05); height:34px; min-width:56px; padding:0 11px; font-size:12px; font-weight:800; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center;" onclick="toggleBatchDeleteMode()">삭제</button>
               <button class="btn-quest-batch-exec" id="btnExecBatchDelete" style="display:none; background:#ef4444; color:white; border:none; height:34px; padding:0 12px; font-size:12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="executeBatchDelete()">❌ 삭제 실행 (0)</button>
@@ -2297,13 +2297,13 @@
           <div id="questListContainer"></div>
         </div>
 
-        <!-- 1-2. 📊 퀘스트 기록 및 연속 실천 (Streak) 뷰 -->
+        <!-- 1-2. 📊 To-Do 기록 및 연속 실천 (Streak) 뷰 -->
         <div id="paneStreakView" style="display:none;">
           <div class="quest-toolbar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <div style="font-size:14px; font-weight:900; color:#0f172a; display:flex; align-items:center; gap:6px;">
-              <span>📊</span> <span>퀘스트 달성 기록 및 Streak</span>
+              <span>📊</span> <span>To-Do 달성 기록 및 Streak</span>
             </div>
-            <button style="background:rgba(255,255,255,0.85); color:#0284c7; border:1px solid rgba(2,132,199,0.25); padding:7px 12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="toggleQuestHistoryView()">📋 퀘스트 목록 복귀</button>
+            <button style="background:rgba(255,255,255,0.85); color:#0284c7; border:1px solid rgba(2,132,199,0.25); padding:7px 12px; font-weight:800; border-radius:10px; cursor:pointer;" onclick="toggleQuestHistoryView()">📋 To-Do List 복귀</button>
           </div>
           <div id="streakListContainer"></div>
         </div>
@@ -2476,7 +2476,7 @@
           <!-- ⚡ 알림 테스트 -->
           <div style="background:#252b36; border-radius:14px; padding:14px; margin-bottom:14px; border:1px solid #22c55e;">
             <div style="font-size:14px; font-weight:800; color:white; margin-bottom:6px;">⚡ 알림 & 인터랙티브 액션 테스트</div>
-            <p style="font-size:11px; color:#8892a0; margin-bottom:10px;">상단바 알림에서 [✓ 완료]를 누르면 앱을 켜지 않고도 퀘스트가 처리됩니다.</p>
+            <p style="font-size:11px; color:#8892a0; margin-bottom:10px;">상단바 알림에서 [✓ 완료]를 누르면 앱을 켜지 않고도 To-Do가 처리됩니다.</p>
             <button id="btnTestPush" onclick="LocalNotificationManager.testImmediateNotification()" style="width:100%; background:#22c55e; color:#0f172a; border:none; padding:10px; border-radius:8px; font-size:13px; font-weight:900; cursor:pointer;">
               ⚡ 자체 몬스터볼 알림 즉시 테스트
             </button>
@@ -2489,7 +2489,7 @@
       <div class="bottom-nav">
         <button class="nav-btn active" data-tab="QUEST" onclick="switchWorkspaceTab('QUEST')">
           <span class="icon">📋</span>
-          <span>퀘스트</span>
+          <span>To-Do List</span>
         </button>
         <button class="nav-btn" data-tab="STUDY" onclick="switchWorkspaceTab('STUDY')">
           <span class="icon">📝</span>
@@ -2623,11 +2623,11 @@
     </div>
   </div>
 
-  <!-- 📋 퀘스트 추가 & 수정 모달 (2개 탭 분리: 빠른할일 / 반복습관) -->
+  <!-- 📋 To-Do 추가 & 수정 모달 (2개 탭 분리: 빠른할일 / 반복습관) -->
   <div class="modal-backdrop" id="addQuestModal">
     <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
       <div class="modal-header-row">
-        <div class="modal-title" id="modalTitleText">🌱 새로운 퀘스트 추가</div>
+        <div class="modal-title" id="modalTitleText">✨ 새로운 To-Do 추가</div>
         <button class="icon-btn" onclick="closeAddQuestModal()">✕</button>
       </div>
 
@@ -2708,7 +2708,7 @@
           </div>
         </div>
         <p style="font-size:11px; color:#94a3b8; margin:-4px 0 10px 2px;">
-          💡 알림 시간은 필수가 아닙니다. 비워두시면 해당 날짜 종일 수행 퀘스트로 등록됩니다.
+          💡 알림 시간은 필수가 아닙니다. 비워두시면 해당 날짜 종일 수행 To-Do로 등록됩니다.
         </p>
       </div>
 
@@ -2722,14 +2722,14 @@
         <div class="form-checkbox-row">
           <input type="checkbox" id="inputQuestRequired" style="width:18px; height:18px; cursor:pointer;">
           <label for="inputQuestRequired" style="font-size:13.5px; font-weight:900; color:#0f172a; cursor:pointer;">
-            🔥 필수 퀘스트로 설정
+            🔥 필수 To-Do로 설정
           </label>
         </div>
       </div>
 
       <div class="modal-btn-row">
         <button class="btn-delete-quest" id="btnDeleteQuest" onclick="submitDeleteQuest()">🗑️ 삭제</button>
-        <button class="btn-submit-quest" id="btnSubmitQuest" onclick="submitQuestForm()">포켓Tasks 퀘스트 등록</button>
+        <button class="btn-submit-quest" id="btnSubmitQuest" onclick="submitQuestForm()">포켓Tasks To-Do 등록</button>
       </div>
     </div>
   </div>
@@ -5237,7 +5237,7 @@
       const dateInput = document.getElementById('inputQuestDateTab1');
       if (dateInput) dateInput.value = todayIso;
 
-      // 🌟 배경, 캐릭터, 퀘스트 목록 즉시 렌더링!
+      // 🌟 배경, 캐릭터, To-Do List 즉시 렌더링!
       initUI(appState);
           LocalNotificationManager.scheduleAllQuestNotifications();
       StudyTimerManager.init();
@@ -5722,7 +5722,7 @@
       pushModalHistory('addQuestModal');
       const modal = document.getElementById('addQuestModal');
       if (!modal) return;
-      document.getElementById('modalTitleText').innerText = "🌱 새로운 퀘스트 추가";
+      document.getElementById('modalTitleText').innerText = "✨ 새로운 To-Do 추가";
       document.getElementById('editingQuestId').value = "";
       document.getElementById('inputQuestName').value = "";
       document.getElementById('inputQuestDesc').value = "";
@@ -5741,7 +5741,7 @@
       document.getElementById('inputQuestXp').value = "20";
       document.getElementById('inputQuestRequired').checked = false;
       document.getElementById('btnDeleteQuest').style.display = "none";
-      document.getElementById('btnSubmitQuest').innerText = "포켓Tasks 퀘스트 등록";
+      document.getElementById('btnSubmitQuest').innerText = "포켓Tasks To-Do 등록";
       
       switchQuestModalTab(1);
       modal.classList.add('open');
@@ -5796,14 +5796,14 @@
       const modal = document.getElementById('addQuestModal');
       if (!modal) return;
       
-      document.getElementById('modalTitleText').innerText = "✏️ 퀘스트 수정";
+      document.getElementById('modalTitleText').innerText = "✏️ To-Do 수정";
       document.getElementById('editingQuestId').value = q.id;
       document.getElementById('inputQuestName').value = q.name || "";
       document.getElementById('inputQuestDesc').value = q.description || "";
       document.getElementById('inputQuestXp').value = q.rewardXp || 20;
       document.getElementById('inputQuestRequired').checked = isQuestRequired(q);
       document.getElementById('btnDeleteQuest').style.display = "inline-block";
-      document.getElementById('btnSubmitQuest').innerText = "퀘스트 수정 저장";
+      document.getElementById('btnSubmitQuest').innerText = "To-Do 수정 완료";
       
       const rec = (q.recurrence || "").toUpperCase().trim();
       const isRecurring = rec && rec !== "NONE" && rec !== "일회성";
@@ -5852,7 +5852,7 @@
     function submitQuestForm() {
       const name = document.getElementById('inputQuestName').value.trim();
       if (!name) {
-        alert("퀘스트 제목을 입력해주세요!");
+        alert("To-Do 제목을 입력해주세요!");
         return;
       }
       
@@ -5922,20 +5922,41 @@
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify({
-            action: editingId ? "editQuest" : "addQuest",
+            action: editingId ? "updateQuest" : "addQuest",
+            questId: editingId,
+            name: name,
+            description: desc,
+            dueDate: dueDate,
+            notifyTime: notifyTime,
+            recurrence: recurrence,
+            rewardXp: xp,
+            isRequired: isReq,
             quest: {
-              id: editingId || ("Q_" + Date.now()),
+              id: editingId || ("H_" + Date.now()),
               name, description: desc, dueDate, notifyTime, recurrence, rewardXp: xp, isRequired: isReq
             }
           })
-        }).catch(() => {});
+        })
+        .then(res => res.json())
+        .then(res => {
+          if (res && res.success && res.data && res.data.quests) {
+            appState.quests = res.data.quests;
+            saveLocalFullCache();
+            renderQuestList(appState.quests);
+            renderStreakList(appState.quests);
+            LocalNotificationManager.scheduleAllQuestNotifications();
+          }
+        })
+        .catch(err => {
+          console.error("To-Do sync error:", err);
+        });
       } catch(e) {}
     }
 
     function submitDeleteQuest() {
       const editingId = document.getElementById('editingQuestId').value;
       if (!editingId) return;
-      if (!confirm("정말로 이 퀘스트를 삭제하시겠습니까?")) return;
+      if (!confirm("정말로 이 To-Do를 삭제하시겠습니까?")) return;
       
       haptic.complete();
       appState.quests = appState.quests.filter(q => String(q.id).trim() !== String(editingId).trim());
@@ -5952,12 +5973,25 @@
             action: "deleteQuest",
             questId: editingId
           })
-        }).catch(() => {});
+        })
+        .then(res => res.json())
+        .then(res => {
+          if (res && res.success && res.data && res.data.quests) {
+            appState.quests = res.data.quests;
+            saveLocalFullCache();
+            renderQuestList(appState.quests);
+            renderStreakList(appState.quests);
+            LocalNotificationManager.scheduleAllQuestNotifications();
+          }
+        })
+        .catch(err => {
+          console.error("To-Do delete error:", err);
+        });
       } catch(e) {}
     }
 
     // ========================================================
-    // 🗑️ 퀘스트 일괄 삭제 (Batch Delete) 엔진
+    // 🗑️ To-Do 일괄 삭제 (Batch Delete) 엔진
     // ========================================================
     function toggleBatchDeleteMode() {
       haptic.tick();
@@ -6011,10 +6045,10 @@
       const checkedBoxes = Array.from(document.querySelectorAll('.quest-batch-cb:checked'));
       const idsToDelete = checkedBoxes.map(cb => cb.dataset.id).filter(Boolean);
       if (idsToDelete.length === 0) {
-        alert("삭제할 퀘스트를 선택해주세요.");
+        alert("삭제할 To-Do를 선택해주세요.");
         return;
       }
-      if (!confirm(`선택한 ${idsToDelete.length}개의 퀘스트를 정말 삭제하시겠습니까?`)) {
+      if (!confirm(`선택한 ${idsToDelete.length}개의 To-Do를 정말 삭제하시겠습니까?`)) {
         return;
       }
       haptic.complete();
@@ -6031,7 +6065,20 @@
             action: "batchDeleteQuests",
             questIds: idsToDelete
           })
-        }).catch(() => {});
+        })
+        .then(res => res.json())
+        .then(res => {
+          if (res && res.success && res.data && res.data.quests) {
+            appState.quests = res.data.quests;
+            saveLocalFullCache();
+            renderQuestList(appState.quests);
+            renderStreakList(appState.quests);
+            LocalNotificationManager.scheduleAllQuestNotifications();
+          }
+        })
+        .catch(err => {
+          console.error("To-Do batch delete error:", err);
+        });
       } catch(e) {}
     }
 
@@ -6086,7 +6133,7 @@
         return;
       }
 
-      // 2) 퀘스트 추가/수정 모달 닫기
+      // 2) To-Do 추가/수정 모달 닫기
       const addQuestModal = document.getElementById('addQuestModal');
       if (addQuestModal && addQuestModal.classList.contains('open')) {
         closeAddQuestModal();
@@ -6417,7 +6464,7 @@
       return false;
     }
 
-    // 🌟 우측 상단 퀘스트 뱃지 계산 & UI 갱신 (현재 반복 퀘스트 전체 개수 중 완료된 개수 표기)
+    // 🌟 우측 상단 퀘스트 뱃지 계산 & UI 갱신 (현재 반복 To-Do 전체 개수 중 완료된 개수 표기)
     function updateQuestBadge(quests) {
       const badgeText = document.getElementById('questText');
       if (!badgeText) return;
@@ -6427,7 +6474,7 @@
         return;
       }
 
-      // 🔁 현재 존재하는 모든 반복 퀘스트 항목
+      // 🔁 현재 존재하는 모든 반복 To-Do 항목
       const recurringQuests = quests.filter(q => {
         const rec = (q.recurrence || '').toUpperCase().trim();
         return rec && rec !== 'NONE' && rec !== '일회성';
@@ -6448,7 +6495,7 @@
         container.innerHTML = `
           <div style="text-align:center; padding:30px 10px; color:#8892a0;">
             <div style="font-size:32px; margin-bottom:8px;">📝</div>
-            <div style="font-size:14px; font-weight:800; color:white; margin-bottom:4px;">등록된 퀘스트가 없습니다</div>
+            <div style="font-size:14px; font-weight:800; color:white; margin-bottom:4px;">등록된 To-Do가 없습니다</div>
             <div style="font-size:12px;">상단 [➕]를 눌러 첫 할 일을 등록해 보세요!</div>
           </div>
         `;
@@ -6456,13 +6503,13 @@
         return;
       }
 
-      // 1) 🔁 반복 퀘스트 분리
+      // 1) 🔁 반복 To-Do 분리
       const recurringQuests = quests.filter(q => {
         const rec = (q.recurrence || '').toUpperCase().trim();
         return rec && rec !== 'NONE' && rec !== '일회성';
       });
 
-      // 🔁 반복 퀘스트 정렬: 실시간 가까운 알림 시간순 (시간 미지정은 뒤로)
+      // 🔁 반복 To-Do 정렬: 실시간 가까운 알림 시간순 (시간 미지정은 뒤로)
       recurringQuests.sort((a, b) => {
         const timeA = a.notifyTime || '99:99';
         const timeB = b.notifyTime || '99:99';
@@ -6470,7 +6517,7 @@
         return (a.id || '').localeCompare(b.id || '');
       });
 
-      // 2) ⚡ 일회성 퀘스트 분리 (완료된 일회성 퀘스트는 목록에서 100% 영구 제외!)
+      // 2) ⚡ 일반 To-Do 분리 (완료된 일회성 To-Do는 목록에서 100% 영구 제외!)
       const singleQuests = quests.filter(q => {
         const rec = (q.recurrence || '').toUpperCase().trim();
         const isSingle = (!rec || rec === 'NONE' || rec === '일회성');
@@ -6478,7 +6525,7 @@
         return isSingle && !isDone;
       });
 
-      // ⚡ 일회성 퀘스트 정렬: 날짜 설정된 것은 가까운 시간순, 미설정은 예전에 만들어둔 순(ID/생성순)
+      // ⚡ 일반 To-Do 정렬: 날짜 설정된 것은 가까운 시간순, 미설정은 예전에 만들어둔 순(ID/생성순)
       singleQuests.sort((a, b) => {
         const dateA = a.dueDate || '9999-99-99';
         const dateB = b.dueDate || '9999-99-99';
@@ -6488,7 +6535,7 @@
         return timeA.localeCompare(timeB);
       });
 
-      // 🌟 필수 퀘스트 카운트 정확한 계산 & 뱃지 갱신
+      // 🌟 필수 To-Do 카운트 정확한 계산 & 뱃지 갱신
       updateQuestBadge(quests);
 
       // --- [1단: 상단 반복성 퀘스트] ---
@@ -6496,12 +6543,12 @@
       recSection.className = 'quest-group-section';
       recSection.innerHTML = `
         <div style="font-size:12.5px; font-weight:900; color:#334155; margin:4px 0 8px 2px; display:flex; justify-content:space-between;">
-          <span>🔁 반복 퀘스트</span>
+          <span>🔁 반복 To-Do</span>
         </div>
       `;
 
       if (recurringQuests.length === 0) {
-        recSection.innerHTML += `<div style="font-size:11.5px; color:#64748b; font-weight:600; padding:12px; background:rgba(255,255,255,0.5); border:1px dashed rgba(0,0,0,0.12); border-radius:10px; margin-bottom:8px; text-align:center;">등록된 반복 퀘스트가 없습니다.</div>`;
+        recSection.innerHTML += `<div style="font-size:11.5px; color:#64748b; font-weight:600; padding:12px; background:rgba(255,255,255,0.5); border:1px dashed rgba(0,0,0,0.12); border-radius:10px; margin-bottom:8px; text-align:center;">등록된 반복 To-Do가 없습니다.</div>`;
       } else {
         recurringQuests.forEach(q => {
           const card = createQuestCardElement(q);
@@ -6515,17 +6562,17 @@
       divLine.style.cssText = "height:1px; background:rgba(0,0,0,0.06); margin:14px 0 10px 0;";
       container.appendChild(divLine);
 
-      // --- [2단: 하단 일회성 퀘스트] ---
+      // --- [2단: 하단 일반 To-Do] ---
       const singleSection = document.createElement('div');
       singleSection.className = 'quest-group-section';
       singleSection.innerHTML = `
         <div style="font-size:12.5px; font-weight:900; color:#334155; margin:4px 0 8px 2px; display:flex; justify-content:space-between;">
-          <span>⚡ 일회성 퀘스트</span>
+          <span>⚡ 일반 To-Do</span>
         </div>
       `;
 
       if (singleQuests.length === 0) {
-        singleSection.innerHTML += `<div style="font-size:11.5px; color:#64748b; font-weight:600; padding:12px; background:rgba(255,255,255,0.5); border:1px dashed rgba(0,0,0,0.12); border-radius:10px; margin-bottom:8px; text-align:center;">진행 중인 일회성 퀘스트가 없습니다.</div>`;
+        singleSection.innerHTML += `<div style="font-size:11.5px; color:#64748b; font-weight:600; padding:12px; background:rgba(255,255,255,0.5); border:1px dashed rgba(0,0,0,0.12); border-radius:10px; margin-bottom:8px; text-align:center;">진행 중인 일회성 To-Do가 없습니다.</div>`;
       } else {
         singleQuests.forEach(q => {
           const card = createQuestCardElement(q);
@@ -6536,7 +6583,7 @@
     }
 
     // ========================================================
-    // 🔁 반복 퀘스트 일정 계산 & 활성화 상태 머신 & 연속 기록 판정
+    // 🔁 반복 To-Do 일정 계산 & 활성화 상태 머신 & 연속 기록 판정
     // ========================================================
     function calculateNextDueDateClient(recurrence, currentDueDateStr) {
       const now = new Date();
@@ -6576,7 +6623,7 @@
       return currentDueDateStr || now.toISOString().split('T')[0];
     }
 
-    // 🕒 퀘스트의 실시간 수행 가능 여부 및 연속 기록(Streak) 정밀 상태 머신
+    // 🕒 To-Do의 실시간 수행 가능 여부 및 연속 기록(Streak) 정밀 상태 머신
     function evaluateQuestTimingState(q) {
       const now = new Date();
       const todayStr = now.toISOString().split('T')[0];
@@ -6587,7 +6634,7 @@
       const rec = (q.recurrence || '').toUpperCase().trim();
       const isRecurring = rec && rec !== 'NONE' && rec !== '일회성';
 
-      // 🌟 [1. 일회성 퀘스트]: 한 번이라도 완료일이 있거나 완료 플래그가 있으면 영구 완료!
+      // 🌟 [1. 일반 To-Do]: 한 번이라도 완료일이 있거나 완료 플래그가 있으면 영구 완료!
       if (!isRecurring) {
         const isDone = Boolean(q.isCompletedToday || q.isSingleCompleted || q.lastCompletedDate);
         return {
@@ -6599,7 +6646,7 @@
         };
       }
 
-      // 🌟 [2. 반복 퀘스트]:
+      // 🌟 [2. 반복 To-Do]:
       // 오늘 이미 완료했는가?
       const isDoneToday = (q.lastCompletedDate === todayStr) || Boolean(q.isCompletedToday);
 
@@ -6718,7 +6765,7 @@
       const todayStr = new Date().toISOString().split('T')[0];
       const isRecurring = q.recurrence && q.recurrence !== "NONE" && q.recurrence !== "일회성";
 
-      // 🌟 [무한 클릭 원천 차단]: 이미 완료된 퀘스트는 즉시 리턴
+      // 🌟 [무한 클릭 원천 차단]: 이미 완료된 To-Do는 즉시 리턴
       if (q.isCompletedToday || q.lastCompletedDate === todayStr || q.isSingleCompleted) {
         return;
       }
@@ -6744,10 +6791,10 @@
       renderStreakList(appState.quests);
       saveLocalFullCache();
 
-      // 🔔 알림 스케줄러 즉시 재가동: 반복 퀘스트 완료 시 다음 회차 알림을 OS 및 서비스워커에 즉시 등록!
+      // 🔔 알림 스케줄러 즉시 재가동: 반복 To-Do 완료 시 다음 회차 알림을 OS 및 서비스워커에 즉시 등록!
       LocalNotificationManager.scheduleAllQuestNotifications();
 
-      logDebug(`퀘스트 완료 처리: "${q.name}" (+${q.rewardXp || 20}XP)`, "info");
+      logDebug(`To-Do 완료 처리: "${q.name}" (+${q.rewardXp || 20}XP)`, "info");
 
       // 4) 구글 시트 백엔드로 완료 비동기 동기화
       try {
@@ -6773,7 +6820,7 @@
       q.lastCompletedDate = todayStr;
       q.consecutiveDays = (q.consecutiveDays || 0) + 1;
 
-      // 🌟 일회성 퀘스트는 완료 태그 부여 (목록에서 즉시 영구 제외)
+      // 🌟 일회성 To-Do는 완료 태그 부여 (목록에서 즉시 영구 제외)
       if (!isRecurring) {
         q.isSingleCompleted = true;
       }
@@ -6783,7 +6830,7 @@
       renderQuestList(appState.quests);
       renderStreakList(appState.quests);
 
-      // 🔔 알림 스케줄러 즉시 재가동: 반복 퀘스트 완료 시 다음 회차 알림을 OS 및 서비스워커에 즉시 등록!
+      // 🔔 알림 스케줄러 즉시 재가동: 반복 To-Do 완료 시 다음 회차 알림을 OS 및 서비스워커에 즉시 등록!
       LocalNotificationManager.scheduleAllQuestNotifications();
     }
 
@@ -6796,14 +6843,14 @@
         container.innerHTML = `
           <div style="text-align:center; padding:30px 10px; color:#8892a0;">
             <div style="font-size:32px; margin-bottom:8px;">📊</div>
-            <div style="font-size:14px; font-weight:800; color:white; margin-bottom:4px;">기록된 퀘스트가 없습니다</div>
-            <div style="font-size:12px;">퀘스트를 등록하고 완료하여 연속 실천 기록을 쌓아보세요!</div>
+            <div style="font-size:14px; font-weight:800; color:white; margin-bottom:4px;">기록된 To-Do가 없습니다</div>
+            <div style="font-size:12px;">To-Do를 등록하고 완료하여 연속 실천 기록을 쌓아보세요!</div>
           </div>
         `;
         return;
       }
 
-      // 1) 🔁 반복 퀘스트 분리
+      // 1) 🔁 반복 To-Do 분리
       const recurringQuests = quests.filter(q => {
         const rec = (q.recurrence || '').toUpperCase().trim();
         return rec && rec !== 'NONE' && rec !== '일회성';
@@ -6817,7 +6864,7 @@
       });
 
       // ----------------------------------------------------
-      // [1단 - 상단] 반복 퀘스트 기록
+      // [1단 - 상단] 반복 To-Do 기록
       // ----------------------------------------------------
       const topSection = document.createElement('div');
       topSection.className = 'streak-section';
@@ -6825,18 +6872,18 @@
       let topHtml = `
         <div class="streak-section-header">
           <div class="streak-section-title">
-            <span>반복 퀘스트 기록</span>
+            <span>반복 To-Do 기록</span>
           </div>
         </div>
         <div class="streak-section-desc">
-          지속적으로 실천 중인 습관 퀘스트들의 연속 달성 기록입니다.
+          지속적으로 실천 중인 습관 To-Do들의 연속 달성 기록입니다.
         </div>
       `;
 
       if (recurringQuests.length === 0) {
         topHtml += `
           <div style="background:#1e293b; border:1px dashed #334155; border-radius:10px; padding:16px; text-align:center; color:#94a3b8; font-size:12px;">
-            등록된 반복 퀘스트가 없습니다.
+            등록된 반복 To-Do가 없습니다.
           </div>
         `;
       } else {
@@ -6880,7 +6927,7 @@
       container.appendChild(divider);
 
       // ----------------------------------------------------
-      // [2단 - 하단] 일회성 퀘스트 기록 (완료된 기록만 표시)
+      // [2단 - 하단] 일회성 To-Do 기록 (완료된 기록만 표시)
       // ----------------------------------------------------
       const bottomSection = document.createElement('div');
       bottomSection.className = 'streak-section';
@@ -6888,7 +6935,7 @@
       let bottomHtml = `
         <div class="streak-section-header">
           <div class="streak-section-title">
-            <span style="color:#cbd5e1;">일회성 퀘스트 기록</span>
+            <span style="color:#cbd5e1;">일회성 To-Do 기록</span>
           </div>
         </div>
         <div class="streak-section-desc">
@@ -7070,7 +7117,7 @@
       if (genusEl) genusEl.innerText = isUnlocked ? `${pInfo.genus} 포켓몬` : '미지의 포켓몬';
 
       const flavorEl = document.getElementById('dexFlavorText');
-      if (flavorEl) flavorEl.innerText = isUnlocked ? pInfo.description : '아직 키워보지 않아 도감 정보가 기록되지 않았습니다. 퀘스트를 달성하여 새로운 알이나 진화로 만나보세요!';
+      if (flavorEl) flavorEl.innerText = isUnlocked ? pInfo.description : '아직 키워보지 않아 도감 정보가 기록되지 않았습니다. To-Do를 달성하여 새로운 알이나 진화로 만나보세요!';
 
       const typeEl = document.getElementById('dexTypeText');
       if (typeEl) typeEl.innerText = pInfo.type;
@@ -7958,7 +8005,7 @@
           appState.userStats.requiredXp = calculateRequiredXpForLevel(1, "MEDIUM_SLOW");
           initUI(appState);
           syncCheatToGasBackend(0, true, 1, 0, false, " ", "브론즈 알");
-          alert("🥚 새로운 포켓몬 알(Tier 2 브론즈)을 받았습니다! 퀘스트를 완료하여 부화시켜 보세요!");
+          alert("🥚 새로운 포켓몬 알(Tier 2 브론즈)을 받았습니다! To-Do를 완료하여 부화시켜 보세요!");
           break;
 
         case 2: // 2. 알 즉시 부화 (등급 확률 적용)
@@ -8157,7 +8204,7 @@
             saveLocalPokemonCache();
             initUI(appState);
             syncCheatToGasBackend(currMon.id || 1, false, 1, 0, true, currMon.gender || "♂", currMon.nature || "고집");
-            alert(`🧹 퀘스트와 현재 포켓몬 [${currMon.name}]은 그대로 유지되었으며, 도감 기록 초기화 및 Lv.1 (0 XP)부터 새롭게 육성을 시작합니다! ✨`);
+            alert(`🧹 To-Do와 현재 포켓몬 [${currMon.name}]은 그대로 유지되었으며, 도감 기록 초기화 및 Lv.1 (0 XP)부터 새롭게 육성을 시작합니다! ✨`);
           }
           break;
 
@@ -8238,7 +8285,7 @@
         });
       },
 
-      queueOrApply(xp, sourceName = "퀘스트") {
+      queueOrApply(xp, sourceName = "To-Do") {
         if (!xp || isNaN(xp) || xp <= 0) return;
         const numXp = Number(xp);
 
@@ -8264,7 +8311,7 @@
         if (this.isAnyModalOpen()) return;
 
         const totalXp = this.pendingXp;
-        const srcText = this.sources.join(", ") || "퀘스트/게임";
+        const srcText = this.sources.join(", ") || "To-Do/게임";
         this.pendingXp = 0;
         this.sources = [];
         this.hideToast();
@@ -8331,7 +8378,7 @@
         }
       },
 
-      // 🌟 [핵심 개선]: 서비스 워커와 포그라운드 양방향 정밀 알림 스케줄링 (반복 퀘스트 완료 시 다음 일정 자동 예약)
+      // 🌟 [핵심 개선]: 서비스 워커와 포그라운드 양방향 정밀 알림 스케줄링 (반복 To-Do 완료 시 다음 일정 자동 예약)
       scheduleAllQuestNotifications() {
         if (!("Notification" in window) || Notification.permission !== 'granted') return;
 
@@ -8349,12 +8396,12 @@
           const isRecurring = (rec !== 'NONE' && rec !== '일회성');
           const isCompletedToday = Boolean(q.isCompletedToday || q.lastCompletedDate === todayStr);
 
-          // 일회성 퀘스트: 이미 완료되었으면 제외
+          // 일반 To-Do: 이미 완료되었으면 제외
           if (!isRecurring && (q.isSingleCompleted || isCompletedToday)) {
             return;
           }
 
-          // SW 목록에 포함 (반복 퀘스트는 오늘 완료되었더라도 내일 자정이 지나면 계속 동작해야 하므로 전달)
+          // SW 목록에 포함 (반복 To-Do는 오늘 완료되었더라도 내일 자정이 지나면 계속 동작해야 하므로 전달)
           activeQuests.push(q);
 
           // ⏰ 다음 알림 시각 정밀 산출
@@ -8386,7 +8433,7 @@
             }
             scheduledTriggers.push({ quest: q, targetTime: target.getTime() });
           } else {
-            // 일회성 퀘스트: 아직 미완료이고 알림 시간이 아직 안 지난 경우에만 오늘 해당 시간 예약
+            // 일반 To-Do: 아직 미완료이고 알림 시간이 아직 안 지난 경우에만 오늘 해당 시간 예약
             if (!isCompletedToday && target.getTime() > now.getTime()) {
               scheduledTriggers.push({ quest: q, targetTime: target.getTime() });
             }
