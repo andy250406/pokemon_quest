@@ -15,6 +15,7 @@
   <meta name="apple-mobile-web-app-title" content="포켓Tasks">
 
   <!-- OneSignal Web SDK v16 -->
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   
 
   <style>
@@ -2489,9 +2490,14 @@
           <div style="background:#252b36; border-radius:14px; padding:14px; margin-bottom:14px; border:1px solid #22c55e;">
             <div style="font-size:14px; font-weight:800; color:white; margin-bottom:6px;">⚡ 알림 & 인터랙티브 액션 테스트</div>
             <p style="font-size:11px; color:#8892a0; margin-bottom:10px;">상단바 알림에서 [✓ 완료]를 누르면 앱을 켜지 않고도 To-Do가 처리됩니다.</p>
-            <button id="btnTestPush" onclick="LocalNotificationManager.testImmediateNotification()" style="width:100%; background:#22c55e; color:#0f172a; border:none; padding:10px; border-radius:8px; font-size:13px; font-weight:900; cursor:pointer;">
-              ⚡ 자체 몬스터볼 알림 즉시 테스트
-            </button>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <button id="btnTestPush" onclick="triggerTestPushNow()" style="width:100%; background:linear-gradient(135deg, #0284c7, #0369a1); color:white; border:none; padding:11px; border-radius:10px; font-size:13px; font-weight:900; cursor:pointer;">
+                ⚡ 스마트폰 원격 푸시 테스트 (앱 꺼져있을 때 알림)
+              </button>
+              <button onclick="LocalNotificationManager.testImmediateNotification()" style="width:100%; background:#f1f5f9; color:#334155; border:1px solid #cbd5e1; padding:9px; border-radius:10px; font-size:12px; font-weight:800; cursor:pointer;">
+                🔔 인앱 로컬 알림 즉시 테스트
+              </button>
+            </div>
           </div>
         </div>
 
@@ -8382,17 +8388,38 @@
       foregroundTimer: null,
 
       async requestPermission() {
-        if (!("Notification" in window)) {
-          alert("이 브라우저는 알림 기능을 지원하지 않습니다.");
-          return false;
+        let granted = false;
+        if (window.OneSignal) {
+          try {
+            await OneSignal.Notifications.requestPermission();
+            granted = (Notification.permission === 'granted');
+            const subId = OneSignal.User?.PushSubscription?.id;
+            const token = OneSignal.User?.PushSubscription?.token;
+            if (subId || token) {
+              fetch(GAS_API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({
+                  action: "savePushToken",
+                  token: token || "",
+                  playerId: subId || "",
+                  platform: navigator.userAgent.includes("Android") ? "Android_WebAPK" : "Web_Browser"
+                })
+              }).catch(() => {});
+            }
+          } catch(e) {}
+        } else if ("Notification" in window) {
+          const perm = await Notification.requestPermission();
+          granted = (perm === 'granted');
         }
-        haptic.tick();
-        const perm = await Notification.requestPermission();
+
         this.updateBadge();
-        if (perm === 'granted') {
+        if (granted) {
           this.scheduleAllQuestNotifications();
-          alert("🔔 스마트폰 자체 알림이 활성화되었습니다!\n\n오프라인 상태에서도 설정한 시간에 몬스터볼 알림이 정확히 울립니다.");
+          alert("🎉 스마트폰 알림이 활성화되었습니다!\n\n앱이 꺼져있을 때도 설정한 퀘스트 시간에 몬스터볼 푸시 알림이 자동으로 전송됩니다.");
         }
+        return granted;
+      }
         return perm === 'granted';
       },
 
@@ -8426,6 +8453,25 @@
         if (!("Notification" in window) || Notification.permission !== 'granted') return;
 
         const quests = appState.quests || [];
+
+        // 0) 📱 안드로이드 네이티브 앱 (AndroidBridge) 탑재 시 OS AlarmManager 실시간 등록
+        if (window.AndroidBridge && typeof window.AndroidBridge.syncQuestAlarms === 'function') {
+          try {
+            const bridgeQuests = quests.map(q => ({
+              id: q.id,
+              name: q.name,
+              notifyTime: q.notifyTime,
+              rewardXp: Number(q.rewardXp || 20),
+              isActive: Boolean(q.isActive),
+              isRequired: Boolean(q.isRequired),
+              isCompletedToday: Boolean(q.isCompletedToday)
+            }));
+            window.AndroidBridge.syncQuestAlarms(JSON.stringify(bridgeQuests));
+            logDebug("📱 안드로이드 네이티브 AlarmManager 정밀 알람 예약 완료", "success");
+          } catch(e) {
+            console.warn("AndroidBridge syncQuestAlarms error:", e);
+          }
+        }
         const activeQuests = [];
         const scheduledTriggers = [];
 

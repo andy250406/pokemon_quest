@@ -1,11 +1,20 @@
 // =======================================================
+// 🔔 OneSignal Web Push SDK 통합 (백그라운드 & 앱 종료 시 시스템 푸시 수신)
+// =======================================================
+try {
+  importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
+} catch (e) {
+  console.warn("[SW] OneSignal SDK import failed or offline:", e);
+}
+
+// =======================================================
 // 🚀 포켓Tasks PWA 통합 서비스 워커 (v2026.08.27-v2)
 // - App Shell 초고속 오프라인 캐싱 (0ms 실행)
 // - 자체 백그라운드 퀘스트 정밀 알림 스케줄러 (SW Alarm Engine)
 // - 인터랙티브 알림 액션 ([✓ 완료], [✕ 10분 뒤]) 백그라운드 처리
 // =======================================================
 
-const CACHE_NAME = 'pokettasks-app-shell-v20260903-stable-v12';
+const CACHE_NAME = 'pokettasks-app-shell-v20260903-stable-v13';
 const APP_SHELL_ASSETS = [
   './',
   './index.html',
