@@ -14,7 +14,7 @@ try {
 // - 인터랙티브 알림 액션 ([✓ 완료], [✕ 10분 뒤]) 백그라운드 처리
 // =======================================================
 
-const CACHE_NAME = 'pokettasks-app-shell-v20260903-stable-v13';
+const CACHE_NAME = 'pokettasks-app-shell-v20260903-stable-v14';
 const APP_SHELL_ASSETS = [
   './',
   './index.html',

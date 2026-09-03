@@ -8569,38 +8569,91 @@
       },
 
       checkForegroundNotifications() {
-        if (!("Notification" in window) || Notification.permission !== 'granted') return;
+        if (!("Notification" in window)) return;
+        if (Notification.permission !== 'granted') {
+          // 권한이 아직 요청되지 않은 기본 상태(default)라면 앱 실행 중 자연스럽게 권한 요청 유도
+          return;
+        }
+
         const now = new Date();
-        const kstHours = String(now.getHours()).padStart(2, '0');
-        const kstMinutes = String(now.getMinutes()).padStart(2, '0');
-        const currentTime = `${kstHours}:${kstMinutes}`;
+        // KST 기준 현재 시간 및 분
+        const nowHours = now.getHours();
+        const nowMins = now.getMinutes();
+        const currentTotalMins = nowHours * 60 + nowMins;
         const todayStr = now.toISOString().split('T')[0];
 
         const quests = appState.quests || [];
         quests.forEach(q => {
-          if (!q.notifyTime || q.isCompletedToday || q.isSingleCompleted) return;
+          if (!q.notifyTime || !q.notifyTime.includes(':')) return;
+          if (q.isCompletedToday || q.isSingleCompleted) return;
 
+          const [qh, qm] = q.notifyTime.split(':').map(Number);
+          const questTotalMins = qh * 60 + qm;
+          const diff = currentTotalMins - questTotalMins;
+
+          // 정시부터 5분 이내이고, 오늘 아직 알림을 띄우지 않은 경우 즉시 발동!
           const key = `NOTIFIED_${q.id}_${todayStr}_${q.notifyTime}`;
-          if (currentTime === q.notifyTime && !sessionStorage.getItem(key)) {
-            sessionStorage.setItem(key, 'true');
-
-            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-              navigator.serviceWorker.controller.postMessage({
-                type: 'SHOW_NOTIFICATION',
-                title: `⏰ [포켓Tasks] ${q.name}`,
-                body: `'${q.name}' 실천할 시간입니다! 완료하고 포켓몬에게 XP를 선물하세요! 🎁`,
-                tag: `quest_${q.id}`,
-                questId: q.id,
-                rewardXp: q.rewardXp
-              });
-            } else {
-              new Notification(`⏰ [포켓Tasks] ${q.name}`, {
-                body: `'${q.name}' 실천할 시간입니다! 완료하고 포켓몬에게 XP를 선물하세요! 🎁`,
-                icon: './icon-192.png'
-              });
-            }
+          if (diff >= 0 && diff <= 5 && !localStorage.getItem(key)) {
+            localStorage.setItem(key, 'true');
+            this.fireBulletproofNotification(
+              `⏰ [포켓Tasks] ${q.name}`,
+              `'${q.name}' 실천할 시간입니다! 완료하고 포켓몬에게 XP를 선물하세요! 🎁`,
+              `quest_${q.id}`,
+              q.id,
+              q.rewardXp || 20
+            );
           }
         });
+      },
+
+      async fireBulletproofNotification(title, body, tag, questId, rewardXp) {
+        // 1) 햅틱 진동
+        if (typeof haptic !== 'undefined' && haptic.feed) {
+          haptic.feed();
+        }
+        if (navigator.vibrate) {
+          navigator.vibrate([250, 100, 250, 100, 350]);
+        }
+
+        // 2) 서비스 워커 등록 객체를 통한 안전한 시스템 알림 (안드로이드 WebAPK/Chrome 호환 100%)
+        if ('serviceWorker' in navigator) {
+          try {
+            const reg = await navigator.serviceWorker.ready;
+            if (reg && reg.showNotification) {
+              await reg.showNotification(title, {
+                body: body,
+                icon: './icon-192.png',
+                badge: './icon-192.png',
+                tag: tag || ('quest_' + (questId || Date.now())),
+                renotify: true,
+                requireInteraction: true,
+                vibrate: [250, 100, 250, 100, 350],
+                data: {
+                  questId: questId,
+                  rewardXp: rewardXp || 20,
+                  url: './index.html'
+                },
+                actions: [
+                  { action: 'complete', title: '✓ 완료 (+XP)' },
+                  { action: 'later', title: '✕ 10분 뒤' }
+                ]
+              });
+              return;
+            }
+          } catch (swErr) {
+            console.warn('[Notification] SW showNotification fallback:', swErr);
+          }
+        }
+
+        // 3) PC 브라우저 데스크톱 Notification 폴백
+        try {
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification(title, {
+              body: body,
+              icon: './icon-192.png'
+            });
+          }
+        } catch (e) {}
       },
 
       async testImmediateNotification() {
