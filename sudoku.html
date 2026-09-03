@@ -9,72 +9,38 @@
       box-sizing: border-box;
       margin: 0; padding: 0;
       user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
       -webkit-tap-highlight-color: transparent;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background-color: #060913; /* 🌌 아주 어두운 프리미엄 다크 네이비 */
-      background-image: radial-gradient(circle at 50% 50%, #0d1527 0%, #060913 100%);
-      color: #f1f5f9;
-      min-height: 100vh;
-      min-height: 100dvh;
-      overflow: hidden;
-      padding: 0;
-      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
-    /* 🎮 메인 게임 프레임 (화이트 글래스모피즘 테마) */
-    .game-screen {
-      position: relative;
+    html, body {
       width: 100%;
-      height: 100vh;
-      height: 100dvh;
-      max-width: 500px;
-      max-height: 840px;
-      background: rgba(248, 250, 252, 0.88); /* 🌟 화이트 글래스 */
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #0f172a;
       color: #0f172a;
-      overflow-y: auto;
-      overflow-x: hidden;
+    }
+
+    .game-screen {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: #f8fafc;
+      background-image: 
+        radial-gradient(at 10% 10%, rgba(224, 242, 254, 0.7) 0px, transparent 50%),
+        radial-gradient(at 90% 90%, rgba(254, 243, 199, 0.6) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(241, 245, 249, 0.8) 0px, transparent 50%);
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 10px 10px;
-      border-radius: 28px;
-      box-shadow: 0 25px 65px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.4);
-      transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    /* 💻 PC / 태블릿 가로 화면 (단독 480px 한도 프레임 & 다크 배경 액자형 UI) */
-    @media (min-width: 840px) {
-      .game-screen {
-        max-width: 480px !important;
-        height: 820px !important;
-        max-height: 90vh !important;
-        max-height: 90dvh !important;
-        border-radius: 28px !important;
-        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.5) !important;
-      }
-    }
-
-    /* 📱 스마트폰 모바일 화면 (좌우 여백 없이 100% 꽉 찬 풀스크린) */
-    @media (max-width: 839px) {
-      body {
-        background: rgba(248, 250, 252, 0.95);
-      }
-      .game-screen {
-        width: 100vw !important;
-        max-width: 100vw !important;
-        max-height: 100dvh !important;
-        height: 100dvh !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-        padding: 6px 6px;
-      }
+      justify-content: space-between;
+      padding: 10px 12px env(safe-area-inset-bottom, 10px) 12px;
+      box-sizing: border-box;
+      overflow: hidden;
     }
 
     /* 🏷️ 상단 네비게이션 & 헤더 (가로 너비 일체화) */
@@ -1630,21 +1596,24 @@
     // 🚪 포켓Tasks로 복귀 (모아둔 경험치 한 번에 전달!)
     // ========================================================
     function closeGameAndReturn() {
-      saveCurrentFullStage(false); // 나가기 직전 자동 저장
+      try {
+        if (typeof saveCurrentFullStage === "function") saveCurrentFullStage(false);
+      } catch(e) {}
 
-      if (window.parent && window.parent !== window) {
-        window.parent.postMessage({
-          type: 'GAME_FINISHED_RETURN',
-          gameType: 'sudoku',
-          gameName: 'Sudoku',
-          totalXp: sessionTotalEarnedXp
-        }, '*');
-      } else {
-        if (window.history.length > 1) {
-          window.history.back();
-        } else {
-          window.location.href = './index.html?rewardXp=' + sessionTotalEarnedXp;
+      const xp = (typeof sessionTotalEarnedXp !== "undefined") ? sessionTotalEarnedXp : 0;
+      try {
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: "CLOSE_ARCADE_GAME", gameType: "sudoku", gameName: "Sudoku", totalXp: xp }, "*");
         }
+      } catch(e) {}
+      try {
+        if (window.top && window.top !== window) {
+          window.top.postMessage({ type: "CLOSE_ARCADE_GAME", gameType: "sudoku", gameName: "Sudoku", totalXp: xp }, "*");
+        }
+      } catch(e) {}
+
+      if (window.parent === window && window.top === window) {
+        window.location.replace("./index.html?rewardXp=" + xp);
       }
     }
 

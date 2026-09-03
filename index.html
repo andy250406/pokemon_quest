@@ -54,6 +54,18 @@
       box-shadow: none;
     }
 
+    /* 📱 모바일 환경에서 아케이드 모달 프레임 100% 꽉 찬 전체화면 */
+    @media (max-width: 649px), (display-mode: standalone), (display-mode: fullscreen) {
+      .arcade-app-frame {
+        max-width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+      }
+    }
+
     /* 📱 모바일 PWA / WebAPK / 전체화면 단독 실행 시 100% 꽉 찬 전체화면 */
     @media (display-mode: standalone), (display-mode: fullscreen), (max-width: 649px) {
       html, body {
@@ -2392,7 +2404,7 @@
             </div>
             <div class="mini-game-card highlight" onclick="openArcadeGame('bus_parking')">
               <div class="mini-game-icon">🚌</div>
-              <div class="mini-game-title">버스 주차 탈출</div>
+              <div class="mini-game-title">Bus Parking</div>
             </div>
             <div class="mini-game-card highlight" onclick="openArcadeGame('minesweeper')">
               <div class="mini-game-icon">💣</div>
@@ -8632,27 +8644,32 @@
         return;
       }
 
+      pushModalHistory('arcadeGameModal');
+      modal.style.display = 'flex';
+
       if (gameType === 'bus_parking' || gameType === 'snake_untangle') {
         iframe.src = './bus_parking.html?v=' + Date.now();
-        modal.style.display = 'flex';
       } else if (gameType === 'sudoku') {
         iframe.src = './sudoku.html?v=' + Date.now();
-        modal.style.display = 'flex';
       } else if (gameType === 'minesweeper') {
         iframe.src = './minesweeper.html?v=' + Date.now();
-        modal.style.display = 'flex';
       } else if (gameType === 'game_2048' || gameType === '2048') {
         iframe.src = './game_2048.html?v=' + Date.now();
-        modal.style.display = 'flex';
       }
     }
 
     function closeArcadeGame() {
-      setTimeout(() => DeferredXpQueue.flushIfReady(), 150);
       const modal = document.getElementById('arcadeGameModal');
       const iframe = document.getElementById('arcadeGameIframe');
-      if (modal) modal.style.display = 'none';
-      if (iframe) iframe.src = '';
+      if (modal) {
+        modal.style.display = 'none';
+      }
+      if (iframe) {
+        iframe.src = 'about:blank';
+      }
+      setTimeout(() => {
+        if (typeof DeferredXpQueue !== 'undefined') DeferredXpQueue.flushIfReady();
+      }, 50);
     }
 
     // 🌟 메인 화면 복귀 시 모아둔 미니게임 경험치 일괄 지급 및 황금빛 오라 연출
@@ -8726,17 +8743,20 @@
 
     window.addEventListener('message', function(event) {
       if (!event.data) return;
+      const t = event.data.type || event.data.action || '';
 
-      // 게임 완료 후 닫기 시 누적 경험치 전달받음
-      if (event.data.type === 'GAME_SESSION_CLEAR' || event.data.type === 'GAME_FINISHED_RETURN') {
-        const totalXp = Number(event.data.totalXp) || 0;
-        const gameName = event.data.gameName || "버스 주차 탈출";
+      if (
+        t === 'GAME_SESSION_CLEAR' || 
+        t === 'GAME_FINISHED_RETURN' || 
+        t === 'CLOSE_ARCADE_GAME' || 
+        t === 'CLOSE_GAME' || 
+        t === 'CLOSE_ARCADE_MODAL'
+      ) {
+        const totalXp = Number(event.data.totalXp || event.data.rewardXp) || 0;
+        const gameName = event.data.gameName || "미니게임";
         if (totalXp > 0) {
-          setTimeout(() => {
-            applyGameSessionReward(totalXp, gameName);
-          }, 200);
+          applyGameSessionReward(totalXp, gameName);
         }
-      } else if (event.data.type === 'CLOSE_GAME' || event.data.type === 'CLOSE_ARCADE_GAME') {
         closeArcadeGame();
       }
     });
@@ -9620,10 +9640,7 @@
     }
 </script>
 
-  <!-- 🎮 미니게임 풀스크린 Iframe 모달 -->
-  <div id="arcadeGameModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; height:100dvh; background:#0b0f19; z-index:99999; flex-direction:column;">
-    <iframe id="arcadeGameIframe" src="" style="width:100%; height:100%; border:none;" allow="autoplay"></iframe>
-  </div>
+  
 
 
   
@@ -9661,6 +9678,14 @@
         <button id="btnExamSubmit" onclick="checkExamAnswer()" style="background:linear-gradient(135deg, #10b981, #059669); color:white; border:none; padding:9px 16px; border-radius:8px; font-size:13px; font-weight:900; cursor:pointer; flex:1;">정답 확인 ✓</button>
         <button id="btnExamNext" onclick="navigateExamQuestion(1)" style="background:#0284c7; color:white; border:none; padding:8px 14px; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">다음 ▶</button>
       </div>
+    </div>
+  </div>
+
+
+  <!-- 🎮 미니게임 풀스크린 Iframe 모달 (PC 기준 메인앱과 100% 동일한 480px 프레임 & 모바일 전체화면) -->
+  <div id="arcadeGameModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; height:100dvh; background:rgba(6,9,19,0.92); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:999999; justify-content:center; align-items:center;">
+    <div class="arcade-app-frame" style="width:100%; height:100%; max-width:480px; height:880px; max-height:94vh; max-height:94dvh; position:relative; overflow:hidden; border-radius:28px; box-shadow:0 30px 80px rgba(0,0,0,0.85); background:#0f172a;">
+      <iframe id="arcadeGameIframe" src="" style="width:100%; height:100%; border:none; display:block;" allow="autoplay"></iframe>
     </div>
   </div>
 

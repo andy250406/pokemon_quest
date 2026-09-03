@@ -2,597 +2,591 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>🚌 버스 주차 탈출 (Bus Parking Jam) - 포켓Tasks</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Bus Parking - 포켓Tasks</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="icon" type="image/png" href="./icon-192.png">
-  <meta name="theme-color" content="#090d16">
+  <meta name="theme-color" content="#060913">
 
   <style>
     * {
       box-sizing: border-box;
       margin: 0; padding: 0;
       user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
       -webkit-tap-highlight-color: transparent;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
-    body {
-      background: #090d16;
-      color: #f8fafc;
-      min-height: 100vh;
-      min-height: 100dvh;
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #0f172a;
+      color: #0f172a;
+    }
+
+    .game-screen {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      background: #f8fafc;
+      background-image: 
+        radial-gradient(at 10% 10%, rgba(224, 242, 254, 0.7) 0px, transparent 50%),
+        radial-gradient(at 90% 90%, rgba(254, 243, 199, 0.6) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(241, 245, 249, 0.8) 0px, transparent 50%);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
+      padding: 10px 12px env(safe-area-inset-bottom, 10px) 12px;
+      box-sizing: border-box;
       overflow: hidden;
-      padding: env(safe-area-inset-top, 6px) 10px env(safe-area-inset-bottom, 10px) 10px;
     }
 
-    /* 🧭 상단 네비 & 타이틀 */
-    .game-header {
+    /* 🏷️ 1행: 최상단 네비게이션 */
+    .top-nav {
       width: 100%;
-      max-width: 480px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 4px 4px 6px 4px;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      padding: 0 2px;
+      box-sizing: border-box;
     }
-
-    .btn-back {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: #e2e8f0;
-      font-size: 13px;
-      font-weight: 800;
+    .btn-nav {
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      color: #334155;
       padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 800;
       border-radius: 10px;
       cursor: pointer;
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 4px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      transition: all 0.15s ease;
     }
-    .btn-back:active { background: rgba(255, 255, 255, 0.25); }
+    .btn-nav:active {
+      transform: scale(0.95);
+      background: rgba(226, 232, 240, 0.8);
+    }
+    .btn-nav.icon-only {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border-radius: 10px;
+      font-size: 15px;
+    }
 
-    .game-title {
-      font-size: 16px;
+    .header-title {
+      font-size: 17px;
       font-weight: 900;
-      color: #fde047;
-      text-shadow: 0 0 10px rgba(253, 224, 71, 0.4);
+      letter-spacing: -0.3px;
+      color: #0f172a;
       display: flex;
       align-items: center;
       gap: 6px;
     }
 
-    /* 🎛️ 난이도 선택 탭 바 */
-    .diff-selector {
+    /* 🕹️ 2행: 스도쿠 패밀리룩 글래스모피즘 정보 바구니 */
+    .game-info-bar {
       width: 100%;
-      max-width: 480px;
-      display: flex;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 12px;
-      padding: 3px;
-      margin-bottom: 6px;
-    }
-
-    .diff-btn {
-      flex: 1;
-      padding: 8px 4px;
-      border: none;
-      background: transparent;
-      color: #94a3b8;
-      font-size: 12px;
-      font-weight: 800;
-      border-radius: 9px;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 4px;
-    }
-    .diff-btn.active {
-      background: linear-gradient(135deg, #0284c7, #0369a1);
-      color: #ffffff;
-      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.45);
-    }
-    .diff-btn.diff-hard.active {
-      background: linear-gradient(135deg, #d97706, #b45309);
-      box-shadow: 0 2px 8px rgba(217, 119, 6, 0.45);
-    }
-    .diff-btn.diff-hell.active {
-      background: linear-gradient(135deg, #dc2626, #991b1b);
-      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.45);
-    }
-
-    /* 📊 실시간 스탯 바 */
-    .stats-bar {
-      width: 100%;
-      max-width: 480px;
-      display: flex;
       justify-content: space-between;
-      align-items: center;
-      background: rgba(30, 41, 59, 0.7);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 7px 14px;
+      gap: 5px;
       margin-bottom: 6px;
+      padding: 5px 8px;
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 14px;
+      box-sizing: border-box;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
-
-    .stat-item {
+    .info-stat-pill {
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 10px;
+      padding: 5px 8px;
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #0f172a;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 2px;
-    }
-    .stat-label {
-      font-size: 10px;
-      font-weight: 700;
-      color: #94a3b8;
-    }
-    .stat-val {
-      font-size: 14px;
-      font-weight: 900;
-      color: #f8fafc;
-    }
-    .stat-val.highlight {
-      color: #38bdf8;
+      gap: 4px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
     }
 
-    .star-grade {
+    select {
+      flex: 0 1 auto;
+      width: auto;
+      max-width: 130px;
+      padding: 5px 6px;
+      font-size: 11.5px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.85);
+      color: #0f172a;
+      cursor: pointer;
+      font-weight: 800;
+      outline: none;
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+    }
+
+    .btn-action.btn-refresh-only {
+      width: 32px;
+      height: 32px;
+      padding: 0;
       display: flex;
-      gap: 2px;
-      font-size: 13px;
-      color: #fde047;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      color: #334155;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-action.btn-refresh-only:active {
+      transform: scale(0.92);
+      background: rgba(226, 232, 240, 0.8);
     }
 
-    /* 🅿️ 큼직하고 시원한 주차장 메인 보드 */
+    /* 🅿️ 3행: 주차장 메인 보드 (쾌적한 스케일과 여백) */
     .board-stage {
-      position: relative;
-      width: 96vw;
-      max-width: min(94vw, 470px, calc(100dvh - 195px));
+      width: 86vw;
+      max-width: min(80vw, 340px, calc(100dvh - 250px));
       aspect-ratio: 1 / 1;
+      margin: 4px auto;
       display: flex;
       justify-content: center;
       align-items: center;
-      margin: auto 0;
+      position: relative;
     }
 
     .board-outer {
-      position: relative;
       width: 100%;
       height: 100%;
-      background: #111827;
-      border: 4px solid #334155;
+      background: #cbd5e1;
+      border: 3px solid #94a3b8;
       border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 0 25px rgba(0, 0, 0, 0.9);
-      padding: 8px;
-      touch-action: none;
-      overflow: visible;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.06);
+      position: relative;
+      padding: 5px;
     }
 
-    /* 🚧 우측 출구 게이트 (EXIT) */
+    /* 🚪 출구 게이트 (우측 2행 출구 안내) */
     .exit-gate {
       position: absolute;
-      right: -22px;
-      width: 24px;
-      background: linear-gradient(135deg, #22c55e, #15803d);
-      border: 2px solid #86efac;
+      right: -28px;
+      top: 33.333%;
+      height: 16.666%;
+      width: 28px;
+      background: linear-gradient(90deg, #10b981, #059669);
       border-radius: 0 8px 8px 0;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 0 16px rgba(34, 197, 94, 0.7);
-      animation: pulse-exit 1.4s infinite alternate;
-      z-index: 15;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
+      z-index: 5;
+      animation: pulse-exit 1.6s infinite ease-in-out;
     }
     @keyframes pulse-exit {
-      from { box-shadow: 0 0 8px rgba(34, 197, 94, 0.5); transform: scale(1); }
-      to { box-shadow: 0 0 20px rgba(34, 197, 94, 0.95); transform: scale(1.05); }
+      0%, 100% { transform: scaleX(1); filter: brightness(1); }
+      50% { transform: scaleX(1.08); filter: brightness(1.2); }
     }
     .exit-gate-text {
-      writing-mode: vertical-rl;
-      font-size: 8.5px;
-      font-weight: 900;
       color: white;
-      letter-spacing: 1px;
+      font-size: 9px;
+      font-weight: 900;
+      transform: rotate(90deg);
+      letter-spacing: 0.5px;
+      white-space: nowrap;
     }
 
-    /* 🏁 그리드 바닥판 */
+    /* 🏁 보드 내부 그리드 */
     .board-grid {
-      position: relative;
       width: 100%;
       height: 100%;
-      background: #0b1120;
+      background: #f1f5f9;
       background-image: 
-        linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-      border-radius: 10px;
-      overflow: visible;
+        linear-gradient(to right, rgba(148, 163, 184, 0.25) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(148, 163, 184, 0.25) 1px, transparent 1px);
+      background-size: 16.666% 16.666%;
+      border-radius: 12px;
+      position: relative;
+      touch-action: none;
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
     }
 
-    /* 🚗 현실감 넘치는 탑뷰 차량 공통 스타일 */
+    /* 🚗 개별 차량 요소 (6px 내부 여백 반영) */
     .vehicle {
       position: absolute;
       border-radius: 10px;
       cursor: grab;
       touch-action: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px;
+      transition: transform 0.08s ease, box-shadow 0.15s ease;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      border: 1.5px solid rgba(0, 0, 0, 0.12);
+      box-sizing: border-box;
       z-index: 10;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.35);
-      transition: transform 0.08s ease-out, box-shadow 0.15s;
-      padding: 2px;
-      display: flex;
     }
-    .vehicle:active, .vehicle.dragging {
+    .vehicle.dragging {
       cursor: grabbing;
-      z-index: 25;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 15px rgba(255, 255, 255, 0.4);
-      filter: brightness(1.12);
+      z-index: 50;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      transform: scale(1.02);
+    }
+    .vehicle.bus-len {
+      border-radius: 12px;
     }
 
-    /* 🚌 주인공 탈출 버스 특별 스타일 */
-    .vehicle.target-vehicle {
-      background: linear-gradient(135deg, #facc15, #eab308) !important;
-      border: 2px solid #fef08a !important;
-      box-shadow: 0 4px 16px rgba(250, 204, 21, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.7) !important;
-      z-index: 12;
+    /* ⭐ 주인공 탈출 차량 (Hero Gold & Crimson Flame 독보적 스타일) */
+    .vehicle.vehicle-target {
+      background: linear-gradient(135deg, #f59e0b, #ea580c) !important;
+      border: 2px solid #fed7aa !important;
+      box-shadow: 0 4px 14px rgba(234, 88, 12, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+      z-index: 15;
+    }
+    .vehicle.vehicle-target.dragging {
+      box-shadow: 0 10px 25px rgba(234, 88, 12, 0.6) !important;
     }
 
-    /* 🚗 2D 탑뷰 차량 그래픽 디테일 (헤드라이트, 유리창, 루프, 후미등) */
-    .vehicle-body {
-      position: relative;
+    .car-front {
       width: 100%;
-      height: 100%;
-      border-radius: 8px;
-      overflow: hidden;
       display: flex;
-    }
-
-    /* 가로 차량 (수평: 좌=후미등, 우=헤드라이트/전면) */
-    .vehicle.horiz .vehicle-body {
-      flex-direction: row;
+      justify-content: space-between;
       align-items: center;
-      justify-content: space-between;
+      padding: 1px 3px;
     }
-
-    /* 세로 차량 (수직: 상=후미등, 하=헤드라이트/전면) */
-    .vehicle.vert .vehicle-body {
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
+    .headlight {
+      width: 5px;
+      height: 5px;
+      background: #fef08a;
+      border-radius: 50%;
+      box-shadow: 0 0 5px #fef08a;
     }
-
-    /* 💡 헤드라이트 (전면부) */
-    .headlights-box {
-      display: flex;
-      z-index: 3;
-    }
-    .vehicle.horiz .headlights-box {
-      flex-direction: column;
-      justify-content: space-between;
-      height: 75%;
-      margin-right: 2px;
-    }
-    .vehicle.vert .headlights-box {
-      flex-direction: row;
-      justify-content: space-between;
-      width: 75%;
-      margin-bottom: 2px;
-    }
-
-    .headlight-lamp {
+    .vehicle-target .headlight {
+      width: 6px;
+      height: 6px;
       background: #ffffff;
-      border-radius: 50%;
-      box-shadow: 0 0 8px #fef08a, 0 0 12px rgba(254, 240, 138, 0.9);
+      box-shadow: 0 0 8px #67e8f9;
     }
-    .vehicle.horiz .headlight-lamp { width: 4px; height: 6px; }
-    .vehicle.vert .headlight-lamp { width: 6px; height: 4px; }
 
-    /* 🔴 테일램프 / 후미등 (후면부) */
-    .taillights-box {
+    .car-cabin {
+      flex: 1;
+      width: 82%;
+      background: rgba(15, 23, 42, 0.35);
+      border-radius: 6px;
+      margin: 1px 0;
       display: flex;
-      z-index: 3;
-    }
-    .vehicle.horiz .taillights-box {
       flex-direction: column;
-      justify-content: space-between;
-      height: 75%;
-      margin-left: 2px;
-    }
-    .vehicle.vert .taillights-box {
-      flex-direction: row;
-      justify-content: space-between;
-      width: 75%;
-      margin-top: 2px;
-    }
-
-    .taillight-lamp {
-      background: #ef4444;
-      border-radius: 50%;
-      box-shadow: 0 0 6px rgba(239, 68, 68, 0.8);
-    }
-    .vehicle.horiz .taillight-lamp { width: 3px; height: 5px; }
-    .vehicle.vert .taillight-lamp { width: 5px; height: 3px; }
-
-    /* 🪟 앞유리 & 뒷유리 & 선루프 */
-    .cabin-area {
-      position: absolute;
-      inset: 4px;
-      background: rgba(15, 23, 42, 0.6);
-      border-radius: 5px;
-      display: flex;
       align-items: center;
       justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      position: relative;
+      overflow: hidden;
     }
-    .vehicle.horiz .cabin-area {
-      left: 14%;
-      right: 14%;
-    }
-    .vehicle.vert .cabin-area {
-      top: 14%;
-      bottom: 14%;
+    .vehicle-target .car-cabin {
+      background: rgba(15, 23, 42, 0.45);
+      border: 1px solid rgba(254, 215, 170, 0.6);
     }
 
-    .windshield {
+    .roof-stripe {
       position: absolute;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.45), rgba(56, 189, 248, 0.25));
-      border-radius: 3px;
+      top: 0; bottom: 0;
+      left: calc(50% - 1.5px);
+      width: 3px;
+      background: rgba(255, 255, 255, 0.4);
     }
-    /* 가로 차량 앞유리 (우측) */
-    .vehicle.horiz .windshield.front {
-      right: 2px;
-      top: 2px;
-      bottom: 2px;
-      width: 25%;
-    }
-    /* 가로 차량 뒷유리 (좌측) */
-    .vehicle.horiz .windshield.rear {
-      left: 2px;
-      top: 2px;
-      bottom: 2px;
-      width: 18%;
-    }
-    /* 세로 차량 앞유리 (하단) */
-    .vehicle.vert .windshield.front {
-      bottom: 2px;
-      left: 2px;
-      right: 2px;
-      height: 25%;
-    }
-    /* 세로 차량 뒷유리 (상단) */
-    .vehicle.vert .windshield.rear {
-      top: 2px;
-      left: 2px;
-      right: 2px;
-      height: 18%;
-    }
-
-    .roof-top {
-      width: 45%;
-      height: 45%;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 3px;
-      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.3);
-    }
-
-    /* 🎮 하단 컨트롤 버튼 바 */
-    .bottom-controls {
+    .vehicle.horizontal .roof-stripe {
+      left: 0; right: 0;
+      top: calc(50% - 1.5px);
       width: 100%;
-      max-width: 480px;
+      height: 3px;
+    }
+    .target-badge {
+      font-size: 9px;
+      font-weight: 900;
+      color: #fef08a;
+      text-shadow: 0 0 4px rgba(0,0,0,0.8);
+      z-index: 2;
+    }
+
+    .car-rear {
+      width: 100%;
       display: flex;
       justify-content: space-between;
-      gap: 6px;
-      margin-top: 6px;
+      align-items: center;
+      padding: 1px 3px;
+    }
+    .taillight {
+      width: 5px;
+      height: 4px;
+      background: #ef4444;
+      border-radius: 2px;
+      box-shadow: 0 0 4px #ef4444;
     }
 
-    .ctrl-btn {
-      flex: 1;
-      padding: 10px 0;
-      border: 1px solid rgba(255, 255, 255, 0.15);
+    .vehicle.horizontal {
+      flex-direction: row;
+      padding: 3px 1px;
+    }
+    .vehicle.horizontal .car-front {
+      width: auto;
+      height: 100%;
+      flex-direction: column;
+      padding: 3px 1px;
+      order: 3;
+    }
+    .vehicle.horizontal .car-cabin {
+      height: 82%;
+      width: auto;
+      margin: 0 1px;
+      order: 2;
+    }
+    .vehicle.horizontal .car-rear {
+      width: auto;
+      height: 100%;
+      flex-direction: column;
+      padding: 3px 1px;
+      order: 1;
+    }
+
+    .vehicle.hint-highlight {
+      animation: hint-glow 0.8s infinite alternate !important;
+      border: 2px solid #8b5cf6 !important;
+    }
+    @keyframes hint-glow {
+      from { box-shadow: 0 0 8px #8b5cf6; transform: scale(1); }
+      to { box-shadow: 0 0 20px #a855f7; transform: scale(1.05); }
+    }
+
+    /* 🕹️ 4행: 하단 컨트롤 버튼 바 (스도쿠 4열 스타일) */
+    .controls-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .btn-action {
+      padding: 9px 4px;
+      font-size: 12px;
       border-radius: 12px;
-      background: rgba(30, 41, 59, 0.85);
-      color: #f1f5f9;
-      font-size: 12.5px;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.85);
+      color: #334155;
       font-weight: 800;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 4px;
-      transition: all 0.15s;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+      transition: all 0.15s ease;
+      touch-action: manipulation;
     }
-    .ctrl-btn:active {
-      transform: scale(0.96);
-      background: rgba(51, 65, 85, 0.95);
+    .btn-action:active {
+      transform: scale(0.95);
+      background: rgba(226, 232, 240, 0.8);
     }
-    .ctrl-btn.btn-hint {
-      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-      border-color: #a78bfa;
+    .btn-action.btn-hint-style {
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
       color: white;
+      border: none;
+      box-shadow: 0 3px 8px rgba(139, 92, 246, 0.3);
     }
-    .ctrl-btn.btn-new {
+    .btn-action.btn-primary-style {
       background: linear-gradient(135deg, #0284c7, #0369a1);
-      border-color: #38bdf8;
       color: white;
+      border: none;
+      box-shadow: 0 3px 8px rgba(2, 132, 199, 0.3);
     }
 
-    /* 🏆 게임 클리어 축하 모달 */
-    .clear-modal {
+    /* 🎉 클리어 모달 */
+    .modal-backdrop {
       position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(8px);
-      display: none;
-      flex-direction: column;
-      align-items: center;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(11, 16, 27, 0.7);
+      backdrop-filter: blur(6px);
+      display: flex;
       justify-content: center;
-      z-index: 100;
-      padding: 20px;
+      align-items: center;
+      z-index: 9999;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
     }
-
-    .clear-card {
-      width: 100%;
-      max-width: 350px;
-      background: #0f172a;
-      border: 2px solid #38bdf8;
-      border-radius: 24px;
-      padding: 22px 18px;
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-box {
+      background: white;
+      width: 90%;
+      max-width: 380px;
+      border-radius: 20px;
+      padding: 24px 20px;
       text-align: center;
-      box-shadow: 0 20px 50px rgba(2, 132, 199, 0.4);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+      transform: scale(0.9);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
-
-    .clear-stars {
-      font-size: 36px;
-      margin-bottom: 6px;
-      letter-spacing: 4px;
-      color: #fde047;
+    .modal-backdrop.open .modal-box {
+      transform: scale(1);
     }
-    .clear-title {
-      font-size: 20px;
-      font-weight: 900;
-      color: #fde047;
-      margin-bottom: 6px;
+    .modal-emoji { font-size: 44px; margin-bottom: 8px; }
+    .modal-title { font-size: 20px; font-weight: 900; color: #0f172a; margin-bottom: 4px; }
+    .modal-subtitle { font-size: 13px; color: #64748b; margin-bottom: 16px; }
+    .modal-stats-grid {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 18px;
     }
-    .clear-stats {
-      background: #1e293b;
-      border-radius: 12px;
-      padding: 10px;
-      margin: 12px 0;
-      font-size: 13px;
-      color: #cbd5e1;
+    .modal-stat-col {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      align-items: center;
     }
-    .clear-reward {
-      font-size: 16px;
-      font-weight: 900;
-      color: #38bdf8;
-      margin-bottom: 16px;
-      background: rgba(56, 189, 248, 0.15);
-      border: 1px dashed #38bdf8;
-      padding: 9px;
-      border-radius: 12px;
-    }
-
-    .clear-btn-group {
+    .modal-stat-label { font-size: 11px; font-weight: 800; color: #64748b; }
+    .modal-stat-val { font-size: 15px; font-weight: 900; color: #0284c7; margin-top: 2px; }
+    .modal-btn-row {
       display: flex;
       gap: 8px;
     }
-    .clear-btn {
+    .modal-btn {
       flex: 1;
-      padding: 11px 0;
-      border: none;
-      border-radius: 12px;
-      font-size: 13.5px;
+      padding: 12px;
+      font-size: 14px;
       font-weight: 900;
+      border-radius: 12px;
+      border: none;
       cursor: pointer;
     }
-    .clear-btn.next {
-      background: linear-gradient(135deg, #22c55e, #16a34a);
-      color: white;
-      box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
-    }
-    .clear-btn.restart {
-      background: #334155;
-      color: #f1f5f9;
-    }
-
-    /* 💡 힌트 연출 */
-    .vehicle.hint-highlight {
-      animation: hint-glow 0.8s infinite alternate !important;
-      border: 2px solid #c084fc !important;
-    }
-    @keyframes hint-glow {
-      from { box-shadow: 0 0 8px #a855f7; transform: scale(1); }
-      to { box-shadow: 0 0 20px #c084fc; transform: scale(1.06); }
-    }
+    .modal-btn.btn-sec { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+    .modal-btn.btn-pri { background: linear-gradient(135deg, #0284c7, #0369a1); color: white; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35); }
   </style>
 </head>
 <body>
 
-  <!-- 🧭 헤더 -->
-  <div class="game-header">
-    <button class="btn-back" onclick="exitToArcade()">⬅ 목록</button>
-    <div class="game-title"><span>🚌</span> <span>버스 주차 탈출</span></div>
-    <div style="width: 55px;"></div>
-  </div>
+  <div class="game-screen">
 
-  <!-- 🎛️ 난이도 선택 -->
-  <div class="diff-selector">
-    <button class="diff-btn active" id="btnDiffNormal" onclick="selectDifficulty('NORMAL')">🟢 보통 (6x6)</button>
-    <button class="diff-btn diff-hard" id="btnDiffHard" onclick="selectDifficulty('HARD')">🟡 어려움 (6x6)</button>
-    <button class="diff-btn diff-hell" id="btnDiffHell" onclick="selectDifficulty('HELL')">🔴 지옥 (6x6)</button>
-  </div>
-
-  <!-- 📊 실시간 스탯 바 -->
-  <div class="stats-bar">
-    <div class="stat-item">
-      <span class="stat-label">현재 이동</span>
-      <span class="stat-val highlight" id="statMoves">0회</span>
-    </div>
-    <div class="stat-item">
-      <span class="stat-label">최단 목표</span>
-      <span class="stat-val" id="statOptMoves">-회</span>
-    </div>
-    <div class="stat-item">
-      <span class="stat-label">현재 평가</span>
-      <div class="star-grade" id="statStars">★★★</div>
-    </div>
-    <div class="stat-item">
-      <span class="stat-label">집중 시간</span>
-      <span class="stat-val" id="statTime">00:00</span>
-    </div>
-  </div>
-
-  <!-- 🅿️ 큼직한 주차장 메인 보드 -->
-  <div class="board-stage">
-    <div class="board-outer" id="boardOuter">
-      <div class="exit-gate" id="exitGate">
-        <span class="exit-gate-text">EXIT ➔</span>
-      </div>
-      <div class="board-grid" id="boardGrid">
-        <!-- 차량들이 백분율 좌표로 100% 정밀 렌더링됩니다 -->
+    <!-- 🏷️ 1행: 최상단 네비게이션 바 -->
+    <div class="top-nav">
+      <button class="btn-nav icon-only" onclick="closeGameAndReturn()" title="포켓Tasks로 복귀">⬅</button>
+      <div class="header-title"><span>🚌</span> <span>Bus Parking</span></div>
+      <div class="top-nav-right">
+        <button class="btn-nav icon-only" id="btnSound" onclick="toggleSound()">🔊</button>
       </div>
     </div>
+
+    <!-- 🕹️ 2행: 스도쿠 패밀리룩 일체형 정보 바구니 -->
+    <div class="game-info-bar">
+      <div class="info-stat-pill">
+        <span>이동:</span>
+        <b id="statMoves" style="color:#0284c7;">0</b>/<span id="statOptMoves" style="color:#64748b;">8</span>
+      </div>
+
+      <div class="info-stat-pill">
+        <span id="statStars" style="color:#f59e0b; letter-spacing:1px;">★★★</span>
+      </div>
+
+      <div class="info-stat-pill">
+        <span id="statTime">00:00</span>
+      </div>
+
+      <select id="diffSelect" onchange="selectDifficulty(this.value)">
+        <option value="NORMAL">🟢 보통</option>
+        <option value="HARD">🟡 어려움</option>
+        <option value="HELL">🔴 지옥</option>
+      </select>
+
+      <button class="btn-action btn-refresh-only" onclick="restartLevel()" title="다시하기">🔄</button>
+    </div>
+
+    <!-- 🅿️ 3행: 주차장 메인 보드 (여백이 살아있는 6x6 그리드) -->
+    <div class="board-stage">
+      <div class="board-outer" id="boardOuter">
+        <div class="exit-gate" id="exitGate">
+          <span class="exit-gate-text">EXIT ➔</span>
+        </div>
+        <div class="board-grid" id="boardGrid">
+          <!-- 차량 렌더링 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 🕹️ 4행: 하단 컨트롤 버튼 바 (스도쿠 규격과 일치) -->
+    <div class="controls-grid">
+      <button class="btn-action" onclick="undoMove()">↩️ 실행취소</button>
+      <button class="btn-action btn-hint-style" onclick="giveHint()">💡 힌트</button>
+      <button class="btn-action" onclick="restartLevel()">🔄 초기화</button>
+      <button class="btn-action btn-primary-style" onclick="loadNewLevel()">🎲 새 게임</button>
+    </div>
+
   </div>
 
-  <!-- 🎮 하단 컨트롤 버튼 바 -->
-  <div class="bottom-controls">
-    <button class="ctrl-btn" onclick="undoMove()">↩️ 되돌리기</button>
-    <button class="ctrl-btn btn-hint" onclick="giveHint()">💡 힌트</button>
-    <button class="ctrl-btn" onclick="restartLevel()">🔄 다시하기</button>
-    <button class="ctrl-btn btn-new" onclick="loadNewLevel()">🎲 새 맵</button>
-  </div>
+  <!-- 🎉 클리어 모달 -->
+  <div class="modal-backdrop" id="clearModal">
+    <div class="modal-box">
+      <div class="modal-emoji">🎉</div>
+      <div class="modal-title">주차 탈출 성공!</div>
+      <div class="modal-subtitle" id="modalSubTitle">완벽한 두뇌 플레이로 길을 열었습니다!</div>
 
-  <!-- 🏆 클리어 모달 -->
-  <div class="clear-modal" id="clearModal">
-    <div class="clear-card">
-      <div class="clear-stars" id="modalStars">★★★</div>
-      <div class="clear-title">주차 탈출 성공! 🎉</div>
-      <div class="clear-stats">
-        <div>내 이동 수: <b id="modalUserMoves" style="color:#fde047;">0</b>회</div>
-        <div>최단 이동 수: <b id="modalOptMoves" style="color:#38bdf8;">0</b>회</div>
-        <div>소요 시간: <b id="modalTime" style="color:#e2e8f0;">00:00</b></div>
+      <div class="modal-stats-grid">
+        <div class="modal-stat-col">
+          <span class="modal-stat-label">이동 횟수</span>
+          <span class="modal-stat-val" id="modalMoves">8회</span>
+        </div>
+        <div class="modal-stat-col">
+          <span class="modal-stat-label">최단 기록</span>
+          <span class="modal-stat-val" id="modalOptMoves">8회</span>
+        </div>
+        <div class="modal-stat-col">
+          <span class="modal-stat-label">획득 경험치</span>
+          <span class="modal-stat-val" id="modalXp" style="color:#10b981;">+30 XP</span>
+        </div>
       </div>
-      <div class="clear-reward" id="modalRewardText">
-        🎁 포켓몬 경험치 +40 XP 획득!
-      </div>
-      <div class="clear-btn-group">
-        <button class="clear-btn restart" onclick="restartLevel()">다시 도전 🔄</button>
-        <button class="clear-btn next" onclick="loadNewLevel()">다음 스테이지 ➡️</button>
+
+      <div class="modal-btn-row">
+        <button class="modal-btn btn-sec" onclick="closeGameAndReturn()">메인으로</button>
+        <button class="modal-btn btn-pri" onclick="nextLevel()">다음 맵 ➔</button>
       </div>
     </div>
   </div>
 
   <script>
     // ========================================================
-    // 🎵 Web Audio API 효과음 생성기
+    // 🔊 사운드 & 햅틱 피드백 엔진
     // ========================================================
-    const SoundFX = {
+    let isSoundOn = true;
+    let sessionTotalEarnedXp = 0;
+
+    const SoundEngine = {
       ctx: null,
       init() {
         if (!this.ctx) {
@@ -601,6 +595,7 @@
         }
       },
       playMove() {
+        if (!isSoundOn) return;
         this.init();
         if (!this.ctx) return;
         const osc = this.ctx.createOscillator();
@@ -608,7 +603,7 @@
         osc.type = 'sine';
         osc.frequency.setValueAtTime(320, this.ctx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(180, this.ctx.currentTime + 0.08);
-        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
         gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
@@ -616,6 +611,7 @@
         osc.stop(this.ctx.currentTime + 0.08);
       },
       playHorn() {
+        if (!isSoundOn) return;
         this.init();
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
@@ -624,15 +620,16 @@
           const gain = this.ctx.createGain();
           osc.type = 'sawtooth';
           osc.frequency.setValueAtTime(freq, now);
-          gain.gain.setValueAtTime(0.18, now);
-          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+          gain.gain.setValueAtTime(0.16, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
           osc.start(now);
-          osc.stop(now + 0.45);
+          osc.stop(now + 0.4);
         });
       },
       playVictory() {
+        if (!isSoundOn) return;
         this.init();
         if (!this.ctx) return;
         const notes = [261.63, 329.63, 392.00, 523.25];
@@ -642,7 +639,7 @@
           const t = this.ctx.currentTime + idx * 0.1;
           osc.type = 'triangle';
           osc.frequency.setValueAtTime(freq, t);
-          gain.gain.setValueAtTime(0.25, t);
+          gain.gain.setValueAtTime(0.22, t);
           gain.gain.exponentialRampToValueAtTime(0.01, t + 0.35);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
@@ -651,6 +648,12 @@
         });
       }
     };
+
+    function toggleSound() {
+      isSoundOn = !isSoundOn;
+      const btn = document.getElementById('btnSound');
+      if (btn) btn.innerText = isSoundOn ? "🔊" : "🔇";
+    }
 
     function triggerHaptic(ms = 20) {
       if (navigator.vibrate) {
@@ -680,7 +683,7 @@
           const currVehicles = current.state;
           const currTarget = currVehicles.find(v => v.type === 'target');
 
-          // 탈출 조건: 탈출 버스가 출구 벽에 완전히 도달
+          // 탈출 조건: 탈출 버스가 출구 벽에 도달
           if (currTarget.isHorizontal && currTarget.x + currTarget.len === this.size && currTarget.y === this.exitRow) {
             return {
               solvable: true,
@@ -1754,393 +1757,385 @@
 };
 
     // ========================================================
-    // 🕹️ 게임 상태 관리
+    // 🎮 게임 상태 및 렌더링 엔진
     // ========================================================
     let currentDifficulty = 'NORMAL';
+    let currentLevelIndex = 0;
     let currentLevelData = null;
-    let initialVehicles = [];
-    let activeVehicles = [];
+    let vehicles = [];
     let moveHistory = [];
-    let userMoveCount = 0;
-    let optimalMoves = 10;
-    let gameTimerId = null;
-    let elapsedSeconds = 0;
-    let isClear = false;
+    let moveCount = 0;
+    let minMoves = 8;
+    let isGameCleared = false;
+    let timerInterval = null;
+    let secondsElapsed = 0;
 
-    // 드래그 상태
-    let draggingVehicle = null;
-    let dragStartPointer = { x: 0, y: 0 };
-    let dragStartPos = { x: 0, y: 0 };
-    let minAllowedCoord = 0;
-    let maxAllowedCoord = 0;
+    const solver = new BusParkingSolver(6, 2);
+
+    function initGame() {
+      selectDifficulty('NORMAL');
+    }
 
     function selectDifficulty(diff) {
       currentDifficulty = diff;
-      document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
-      if (diff === 'NORMAL') document.getElementById('btnDiffNormal').classList.add('active');
-      else if (diff === 'HARD') document.getElementById('btnDiffHard').classList.add('active');
-      else if (diff === 'HELL') document.getElementById('btnDiffHell').classList.add('active');
-      loadNewLevel();
+      const sel = document.getElementById('diffSelect');
+      if (sel) sel.value = diff;
+
+      currentLevelIndex = 0;
+      loadLevel();
     }
 
-    function loadNewLevel() {
-      document.getElementById('clearModal').style.display = 'none';
-      isClear = false;
-      userMoveCount = 0;
-      moveHistory = [];
+    function loadLevel() {
+      const pool = VERIFIED_LEVEL_POOLS[currentDifficulty] || VERIFIED_LEVEL_POOLS.NORMAL;
+      currentLevelData = pool[currentLevelIndex % pool.length];
 
-      if (gameTimerId) clearInterval(gameTimerId);
-      elapsedSeconds = 0;
+      vehicles = JSON.parse(JSON.stringify(currentLevelData.vehicles));
+      moveHistory = [];
+      moveCount = 0;
+      isGameCleared = false;
+      minMoves = currentLevelData.minMoves || 8;
+
+      if (timerInterval) clearInterval(timerInterval);
+      secondsElapsed = 0;
       updateTimerDisplay();
-      gameTimerId = setInterval(() => {
-        if (!isClear) {
-          elapsedSeconds++;
-          updateTimerDisplay();
-        }
+      timerInterval = setInterval(() => {
+        secondsElapsed++;
+        updateTimerDisplay();
       }, 1000);
 
-      const pool = VERIFIED_LEVEL_POOLS[currentDifficulty] || VERIFIED_LEVEL_POOLS.NORMAL;
-      const rawLevel = pool[Math.floor(Math.random() * pool.length)];
-
-      currentLevelData = JSON.parse(JSON.stringify(rawLevel));
-      initialVehicles = JSON.parse(JSON.stringify(currentLevelData.vehicles));
-      activeVehicles = JSON.parse(JSON.stringify(currentLevelData.vehicles));
-      optimalMoves = currentLevelData.minMoves || 10;
-
-      document.getElementById('statOptMoves').innerText = `${optimalMoves}회`;
-      updateStatsDisplay();
+      updateStatsUI();
       renderBoard();
-      SoundFX.playMove();
-    }
 
-    function restartLevel() {
-      document.getElementById('clearModal').style.display = 'none';
-      isClear = false;
-      userMoveCount = 0;
-      moveHistory = [];
-      activeVehicles = JSON.parse(JSON.stringify(initialVehicles));
-      updateStatsDisplay();
-      renderBoard();
-      SoundFX.playMove();
+      document.getElementById('clearModal').classList.remove('open');
     }
 
     function updateTimerDisplay() {
-      const m = String(Math.floor(elapsedSeconds / 60)).padStart(2, '0');
-      const s = String(elapsedSeconds % 60).padStart(2, '0');
-      document.getElementById('statTime').innerText = `${m}:${s}`;
+      const m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+      const s = String(secondsElapsed % 60).padStart(2, '0');
+      const el = document.getElementById('statTime');
+      if (el) el.innerText = `${m}:${s}`;
     }
 
-    function updateStatsDisplay() {
-      document.getElementById('statMoves').innerText = `${userMoveCount}회`;
-
+    function updateStatsUI() {
+      const movesEl = document.getElementById('statMoves');
+      const optEl = document.getElementById('statOptMoves');
       const starsEl = document.getElementById('statStars');
-      if (userMoveCount <= optimalMoves + 2) {
-        starsEl.innerText = '★★★';
-        starsEl.style.color = '#fde047';
-      } else if (userMoveCount <= optimalMoves + 6) {
-        starsEl.innerText = '★★☆';
-        starsEl.style.color = '#f59e0b';
-      } else {
-        starsEl.innerText = '★☆☆';
-        starsEl.style.color = '#94a3b8';
-      }
+
+      if (movesEl) movesEl.innerText = String(moveCount);
+      if (optEl) optEl.innerText = String(minMoves);
+
+      let stars = '★★★';
+      if (moveCount > minMoves + 5) stars = '★☆☆';
+      else if (moveCount > minMoves + 2) stars = '★★☆';
+
+      if (starsEl) starsEl.innerText = stars;
     }
 
-    // ========================================================
-    // 🎨 정밀 백분율 보드 & 고품질 2D 탑뷰 차량 렌더링
-    // ========================================================
     function renderBoard() {
-      const gridEl = document.getElementById('boardGrid');
-      const exitGate = document.getElementById('exitGate');
-      if (!gridEl || !currentLevelData) return;
+      const grid = document.getElementById('boardGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
 
       const size = currentLevelData.size || 6;
-      const exitRow = currentLevelData.exitRow || 2;
 
-      gridEl.innerHTML = '';
+      vehicles.forEach(v => {
+        const el = document.createElement('div');
+        el.className = `vehicle ${v.isHorizontal ? 'horizontal' : 'vertical'} ${v.len === 3 ? 'bus-len' : ''} ${v.type === 'target' ? 'vehicle-target' : ''}`;
+        el.dataset.id = v.id;
 
-      // 출구 게이트 위치 맞춤 (백분율 기반)
-      const gateTopPercent = (exitRow / size) * 100;
-      const gateHeightPercent = (1 / size) * 100 * 0.8;
-      exitGate.style.top = `calc(${gateTopPercent}% + 4px)`;
-      exitGate.style.height = `${gateHeightPercent}%`;
-
-      // 그리드 분할 라인 배경
-      const pctStep = 100 / size;
-      gridEl.style.backgroundSize = `${pctStep}% ${pctStep}%`;
-
-      // 차량 렌더링 (텍스트 없이 헤드라이트 + 유리창 + 후미등)
-      activeVehicles.forEach(v => {
-        const vEl = document.createElement('div');
-        vEl.id = `veh_${v.id}`;
-        vEl.className = `vehicle ${v.isHorizontal ? 'horiz' : 'vert'} ${v.type === 'target' ? 'target-vehicle' : ''}`;
-        vEl.style.background = v.color;
-
-        // 백분율 포지셔닝으로 1px의 오차 없이 완벽 정렬
+        // 6px 내부 여백(Gutter) 반영하여 쾌적한 배치
         const leftPct = (v.x / size) * 100;
         const topPct = (v.y / size) * 100;
-        const widthPct = ((v.isHorizontal ? v.len : 1) / size) * 100;
-        const heightPct = ((v.isHorizontal ? 1 : v.len) / size) * 100;
+        const widthPct = (v.isHorizontal ? (v.len / size) : (1 / size)) * 100;
+        const heightPct = (v.isHorizontal ? (1 / size) : (v.len / size)) * 100;
 
-        vEl.style.left = `calc(${leftPct}% + 2px)`;
-        vEl.style.top = `calc(${topPct}% + 2px)`;
-        vEl.style.width = `calc(${widthPct}% - 4px)`;
-        vEl.style.height = `calc(${heightPct}% - 4px)`;
+        el.style.left = `calc(${leftPct}% + 3px)`;
+        el.style.top = `calc(${topPct}% + 3px)`;
+        el.style.width = `calc(${widthPct}% - 6px)`;
+        el.style.height = `calc(${heightPct}% - 6px)`;
 
-        vEl.innerHTML = `
-          <div class="vehicle-body">
-            <div class="taillights-box">
-              <div class="taillight-lamp"></div>
-              <div class="taillight-lamp"></div>
-            </div>
-            <div class="cabin-area">
-              <div class="windshield rear"></div>
-              <div class="roof-top"></div>
-              <div class="windshield front"></div>
-            </div>
-            <div class="headlights-box">
-              <div class="headlight-lamp"></div>
-              <div class="headlight-lamp"></div>
-            </div>
+        if (v.type !== 'target') {
+          el.style.backgroundColor = v.color || '#38bdf8';
+        }
+
+        el.innerHTML = `
+          <div class="car-front">
+            <div class="headlight"></div>
+            <div class="headlight"></div>
+          </div>
+          <div class="car-cabin">
+            <div class="roof-stripe"></div>
+            ${v.type === 'target' ? '<span class="target-badge">⭐ ESCAPE</span>' : ''}
+          </div>
+          <div class="car-rear">
+            <div class="taillight"></div>
+            <div class="taillight"></div>
           </div>
         `;
 
-        vEl.addEventListener('pointerdown', (e) => onPointerDown(e, v, vEl));
-        gridEl.appendChild(vEl);
+        attachDragEvents(el, v);
+        grid.appendChild(el);
       });
     }
 
     // ========================================================
-    // 🖐️ 터치 & 마우스 드래그 물리 엔진
+    // 👆 터치 & 마우스 드래그 물리 엔진
     // ========================================================
-    function onPointerDown(e, v, el) {
-      if (isClear) return;
-      e.preventDefault();
-      SoundFX.init();
+    function attachDragEvents(element, vehicle) {
+      let startX = 0, startY = 0;
+      let initialVehiclePos = 0;
+      let maxForward = 0, maxBackward = 0;
+      let isDragging = false;
+      let hasMoved = false;
 
-      draggingVehicle = v;
-      dragStartPointer = { x: e.clientX, y: e.clientY };
-      dragStartPos = { x: v.x, y: v.y };
+      const onStart = (clientX, clientY) => {
+        if (isGameCleared) return;
+        isDragging = true;
+        hasMoved = false;
+        startX = clientX;
+        startY = clientY;
+        initialVehiclePos = vehicle.isHorizontal ? vehicle.x : vehicle.y;
 
-      el.classList.add('dragging');
-      el.setPointerCapture(e.pointerId);
+        calculateMoveBounds(vehicle);
 
-      const gridEl = document.getElementById('boardGrid');
-      const gridRect = gridEl.getBoundingClientRect();
-      const size = currentLevelData.size;
-      const cellPx = gridRect.width / size;
+        element.classList.add('dragging');
+        SoundEngine.playMove();
+        triggerHaptic(15);
+      };
 
-      // 충돌 검사용 그리드 맵
-      const grid = Array(size).fill(0).map(() => Array(size).fill(null));
-      activeVehicles.forEach(item => {
-        if (item.id === v.id) return;
-        for (let i = 0; i < item.len; i++) {
-          const cx = item.isHorizontal ? item.x + i : item.x;
-          const cy = item.isHorizontal ? item.y : item.y + i;
-          if (cy >= 0 && cy < size && cx >= 0 && cx < size) {
-            grid[cy][cx] = item.id;
+      const onMove = (clientX, clientY) => {
+        if (!isDragging) return;
+        const grid = document.getElementById('boardGrid');
+        const rect = grid.getBoundingClientRect();
+        const cellSize = rect.width / 6;
+
+        const deltaPx = vehicle.isHorizontal ? (clientX - startX) : (clientY - startY);
+        let deltaSteps = deltaPx / cellSize;
+
+        if (deltaSteps > maxForward) deltaSteps = maxForward;
+        if (deltaSteps < -maxBackward) deltaSteps = -maxBackward;
+
+        if (Math.abs(deltaSteps) > 0.05) hasMoved = true;
+
+        const offsetPx = deltaSteps * cellSize;
+        if (vehicle.isHorizontal) {
+          element.style.transform = `translateX(${offsetPx}px)`;
+        } else {
+          element.style.transform = `translateY(${offsetPx}px)`;
+        }
+      };
+
+      const onEnd = (clientX, clientY) => {
+        if (!isDragging) return;
+        isDragging = false;
+        element.classList.remove('dragging');
+        element.style.transform = '';
+
+        const grid = document.getElementById('boardGrid');
+        const rect = grid.getBoundingClientRect();
+        const cellSize = rect.width / 6;
+
+        const deltaPx = vehicle.isHorizontal ? (clientX - startX) : (clientY - startY);
+        let deltaSteps = Math.round(deltaPx / cellSize);
+
+        if (deltaSteps > maxForward) deltaSteps = maxForward;
+        if (deltaSteps < -maxBackward) deltaSteps = -maxBackward;
+
+        if (deltaSteps !== 0) {
+          moveHistory.push({
+            id: vehicle.id,
+            fromX: vehicle.x,
+            fromY: vehicle.y,
+            toX: vehicle.isHorizontal ? vehicle.x + deltaSteps : vehicle.x,
+            toY: vehicle.isHorizontal ? vehicle.y : vehicle.y + deltaSteps
+          });
+
+          if (vehicle.isHorizontal) {
+            vehicle.x += deltaSteps;
+          } else {
+            vehicle.y += deltaSteps;
+          }
+
+          moveCount++;
+          SoundEngine.playMove();
+          triggerHaptic(20);
+          updateStatsUI();
+          renderBoard();
+
+          checkVictoryCondition();
+        }
+      };
+
+      function calculateMoveBounds(currV) {
+        const grid = Array(6).fill(0).map(() => Array(6).fill(null));
+        vehicles.forEach(v => {
+          if (v.id === currV.id) return;
+          for (let i = 0; i < v.len; i++) {
+            const vx = v.isHorizontal ? v.x + i : v.x;
+            const vy = v.isHorizontal ? v.y : v.y + i;
+            if (vy >= 0 && vy < 6 && vx >= 0 && vx < 6) grid[vy][vx] = v.id;
+          }
+        });
+
+        maxForward = 0;
+        maxBackward = 0;
+
+        if (currV.isHorizontal) {
+          for (let x = currV.x - 1; x >= 0; x--) {
+            if (grid[currV.y][x] === null) maxBackward++;
+            else break;
+          }
+          for (let x = currV.x + currV.len; x < 6; x++) {
+            if (grid[currV.y][x] === null) maxForward++;
+            else break;
+          }
+        } else {
+          for (let y = currV.y - 1; y >= 0; y--) {
+            if (grid[y][currV.x] === null) maxBackward++;
+            else break;
+          }
+          for (let y = currV.y + currV.len; y < 6; y++) {
+            if (grid[y][currV.x] === null) maxForward++;
+            else break;
           }
         }
-      });
-
-      if (v.isHorizontal) {
-        let minX = v.x;
-        while (minX > 0 && grid[v.y][minX - 1] === null) minX--;
-        let maxX = v.x;
-        while (maxX + v.len < size && grid[v.y][maxX + v.len] === null) maxX++;
-        
-        // 탈출 버스는 출구로 1칸 더 나갈 수 있게 허용
-        if (v.type === 'target' && v.y === currentLevelData.exitRow && maxX + v.len === size) {
-          maxX += 1;
-        }
-
-        minAllowedCoord = minX;
-        maxAllowedCoord = maxX;
-      } else {
-        let minY = v.y;
-        while (minY > 0 && grid[minY - 1][v.x] === null) minY--;
-        let maxY = v.y;
-        while (maxY + v.len < size && grid[maxY + v.len][v.x] === null) maxY++;
-
-        minAllowedCoord = minY;
-        maxAllowedCoord = maxY;
       }
 
-      const onPointerMove = (moveEvt) => {
-        if (!draggingVehicle || draggingVehicle.id !== v.id) return;
-        const deltaX = moveEvt.clientX - dragStartPointer.x;
-        const deltaY = moveEvt.clientY - dragStartPointer.y;
+      element.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        onStart(e.clientX, e.clientY);
 
-        if (v.isHorizontal) {
-          const deltaCells = deltaX / cellPx;
-          let targetCellX = dragStartPos.x + deltaCells;
-          targetCellX = Math.max(minAllowedCoord, Math.min(maxAllowedCoord, targetCellX));
-          const leftPct = (targetCellX / size) * 100;
-          el.style.left = `calc(${leftPct}% + 2px)`;
-        } else {
-          const deltaCells = deltaY / cellPx;
-          let targetCellY = dragStartPos.y + deltaCells;
-          targetCellY = Math.max(minAllowedCoord, Math.min(maxAllowedCoord, targetCellY));
-          const topPct = (targetCellY / size) * 100;
-          el.style.top = `calc(${topPct}% + 2px)`;
-        }
-      };
+        const onPointerMove = (moveEvent) => {
+          onMove(moveEvent.clientX, moveEvent.clientY);
+        };
+        const onPointerUp = (upEvent) => {
+          onEnd(upEvent.clientX, upEvent.clientY);
+          window.removeEventListener('pointermove', onPointerMove);
+          window.removeEventListener('pointerup', onPointerUp);
+        };
 
-      const onPointerUp = (upEvt) => {
-        el.removeEventListener('pointermove', onPointerMove);
-        el.removeEventListener('pointerup', onPointerUp);
-        el.classList.remove('dragging');
-
-        const deltaX = upEvt.clientX - dragStartPointer.x;
-        const deltaY = upEvt.clientY - dragStartPointer.y;
-
-        let finalGridX = v.x;
-        let finalGridY = v.y;
-
-        if (v.isHorizontal) {
-          const deltaCells = deltaX / cellPx;
-          finalGridX = Math.round(dragStartPos.x + deltaCells);
-          finalGridX = Math.max(minAllowedCoord, Math.min(maxAllowedCoord, finalGridX));
-        } else {
-          const deltaCells = deltaY / cellPx;
-          finalGridY = Math.round(dragStartPos.y + deltaCells);
-          finalGridY = Math.max(minAllowedCoord, Math.min(maxAllowedCoord, finalGridY));
-        }
-
-        if (finalGridX !== dragStartPos.x || finalGridY !== dragStartPos.y) {
-          moveHistory.push({
-            id: v.id,
-            fromX: dragStartPos.x,
-            fromY: dragStartPos.y,
-            toX: finalGridX,
-            toY: finalGridY
-          });
-          v.x = finalGridX;
-          v.y = finalGridY;
-          userMoveCount++;
-          SoundFX.playMove();
-          triggerHaptic(18);
-          updateStatsDisplay();
-        }
-
-        renderBoard();
-
-        // 🏆 승리 판정
-        if (v.type === 'target' && v.x + v.len >= currentLevelData.size && v.y === currentLevelData.exitRow) {
-          handleGameClear();
-        }
-
-        draggingVehicle = null;
-      };
-
-      el.addEventListener('pointermove', onPointerMove);
-      el.addEventListener('pointerup', onPointerUp);
+        window.addEventListener('pointermove', onPointerMove);
+        window.addEventListener('pointerup', onPointerUp);
+      });
     }
 
     // ========================================================
-    // ↩️ 되돌리기 & 💡 힌트
+    // 🏆 승리 판정 및 보상 지급
+    // ========================================================
+    function checkVictoryCondition() {
+      const target = vehicles.find(v => v.type === 'target');
+      if (target && target.isHorizontal && target.x + target.len === 6 && target.y === 2) {
+        isGameCleared = true;
+        if (timerInterval) clearInterval(timerInterval);
+
+        SoundEngine.playHorn();
+        setTimeout(() => SoundEngine.playVictory(), 200);
+        triggerHaptic(50);
+
+        let rewardXp = 30;
+        if (moveCount > minMoves + 5) rewardXp = 15;
+        else if (moveCount > minMoves + 2) rewardXp = 20;
+
+        sessionTotalEarnedXp += rewardXp;
+
+        try {
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({
+              type: 'GAME_SESSION_CLEAR',
+              gameType: 'bus_parking',
+              gameName: 'Bus Parking',
+              rewardXp: rewardXp,
+              totalXp: sessionTotalEarnedXp,
+              moves: moveCount,
+              difficulty: currentDifficulty
+            }, '*');
+          }
+          localStorage.setItem('BUS_PARKING_PENDING_XP', String(sessionTotalEarnedXp));
+        } catch(e) {}
+
+        setTimeout(() => {
+          document.getElementById('modalMoves').innerText = `${moveCount}회`;
+          document.getElementById('modalOptMoves').innerText = `${minMoves}회`;
+          document.getElementById('modalXp').innerText = `+${rewardXp} XP`;
+          document.getElementById('clearModal').classList.add('open');
+        }, 400);
+      }
+    }
+
+    // ========================================================
+    // 💡 힌트 & 조작 액션
     // ========================================================
     function undoMove() {
-      if (moveHistory.length === 0 || isClear) return;
-      const lastMove = moveHistory.pop();
-      const v = activeVehicles.find(item => item.id === lastMove.id);
+      if (moveHistory.length === 0 || isGameCleared) return;
+      const last = moveHistory.pop();
+      const v = vehicles.find(item => item.id === last.id);
       if (v) {
-        v.x = lastMove.fromX;
-        v.y = lastMove.fromY;
-        userMoveCount = Math.max(0, userMoveCount - 1);
-        updateStatsDisplay();
+        v.x = last.fromX;
+        v.y = last.fromY;
+        moveCount = Math.max(0, moveCount - 1);
+        updateStatsUI();
         renderBoard();
-        SoundFX.playMove();
+        SoundEngine.playMove();
         triggerHaptic(15);
       }
     }
 
     function giveHint() {
-      if (isClear) return;
-      const solver = new BusParkingSolver(currentLevelData.size, currentLevelData.exitRow);
-      const res = solver.solve(activeVehicles);
-
-      if (res && res.solvable && res.path.length > 0) {
-        const nextStep = res.path[0];
-        const vEl = document.getElementById(`veh_${nextStep.id}`);
-        if (vEl) {
-          vEl.classList.add('hint-highlight');
-          SoundFX.playHorn();
-          triggerHaptic(40);
-          setTimeout(() => {
-            vEl.classList.remove('hint-highlight');
-          }, 1600);
+      if (isGameCleared) return;
+      const res = solver.solve(vehicles);
+      if (res.solvable && res.path && res.path.length > 0) {
+        const nextAction = res.path[0];
+        const el = document.querySelector(`.vehicle[data-id="${nextAction.id}"]`);
+        if (el) {
+          el.classList.add('hint-highlight');
+          triggerHaptic(30);
+          setTimeout(() => el.classList.remove('hint-highlight'), 1800);
         }
-      } else {
-        alert("💡 현재 상태에서는 출구가 막혀 있습니다. 되돌리기(↩️)를 사용해 보세요!");
       }
     }
 
+    function restartLevel() {
+      loadLevel();
+    }
+
+    function loadNewLevel() {
+      currentLevelIndex++;
+      loadLevel();
+    }
+
+    function nextLevel() {
+      currentLevelIndex++;
+      loadLevel();
+    }
+
     // ========================================================
-    // 🏆 게임 클리어 & 포켓몬 경험치
+    // 🚪 포켓Tasks로 복귀
     // ========================================================
-    function handleGameClear() {
-      if (isClear) return;
-      isClear = true;
-      if (gameTimerId) clearInterval(gameTimerId);
+    function closeGameAndReturn() {
+      try {
+        if (typeof saveCurrentGame === 'function') saveCurrentGame(false);
+        if (typeof saveCurrentStage === 'function') saveCurrentStage(false);
+        if (typeof saveCurrentFullStage === 'function') saveCurrentFullStage(false);
+      } catch(e) {}
 
-      SoundFX.playHorn();
-      setTimeout(() => SoundFX.playVictory(), 250);
-      triggerHaptic(100);
-
-      let stars = '★☆☆';
-      let earnedXp = 20;
-
-      if (currentDifficulty === 'NORMAL') {
-        if (userMoveCount <= optimalMoves + 2) { stars = '★★★'; earnedXp = 40; }
-        else if (userMoveCount <= optimalMoves + 6) { stars = '★★☆'; earnedXp = 25; }
-        else { stars = '★☆☆'; earnedXp = 15; }
-      } else if (currentDifficulty === 'HARD') {
-        if (userMoveCount <= optimalMoves + 2) { stars = '★★★'; earnedXp = 65; }
-        else if (userMoveCount <= optimalMoves + 6) { stars = '★★☆'; earnedXp = 40; }
-        else { stars = '★☆☆'; earnedXp = 25; }
-      } else { // HELL
-        if (userMoveCount <= optimalMoves + 3) { stars = '★★★'; earnedXp = 100; }
-        else if (userMoveCount <= optimalMoves + 8) { stars = '★★☆'; earnedXp = 70; }
-        else { stars = '★☆☆'; earnedXp = 45; }
-      }
-
-      document.getElementById('modalStars').innerText = stars;
-      document.getElementById('modalUserMoves').innerText = userMoveCount;
-      document.getElementById('modalOptMoves').innerText = optimalMoves;
-      document.getElementById('modalTime').innerText = document.getElementById('statTime').innerText;
-      document.getElementById('modalRewardText').innerText = `🎁 포켓몬 경험치 +${earnedXp} XP 획득! ✨`;
-      document.getElementById('clearModal').style.display = 'flex';
-
+      const xp = (typeof sessionTotalEarnedXp !== 'undefined') ? sessionTotalEarnedXp : 0;
       try {
         if (window.parent && window.parent !== window) {
-          window.parent.postMessage({
-            type: 'GAME_SESSION_CLEAR',
-            gameType: 'bus_parking',
-            gameName: '버스 주차 탈출',
-            totalXp: earnedXp
-          }, '*');
+          window.parent.postMessage({ type: 'CLOSE_ARCADE_GAME', gameType: 'bus_parking', gameName: 'Bus Parking', totalXp: xp }, '*');
         }
-        localStorage.setItem('BUS_PARKING_PENDING_XP', earnedXp);
-      } catch (e) {}
-    }
+      } catch(e) {}
+      try {
+        if (window.top && window.top !== window) {
+          window.top.postMessage({ type: 'CLOSE_ARCADE_GAME', gameType: 'bus_parking', gameName: 'Bus Parking', totalXp: xp }, '*');
+        }
+      } catch(e) {}
 
-    function exitToArcade() {
-      if (window.parent && window.parent !== window) {
-        window.parent.postMessage({ type: 'CLOSE_ARCADE_GAME' }, '*');
-      } else {
-        if (window.history.length > 1) window.history.back();
-        else window.location.href = './index.html';
+      if (window.parent === window && window.top === window) {
+        window.location.replace('./index.html?rewardXp=' + xp);
       }
     }
 
-    window.addEventListener('resize', () => {
-      renderBoard();
-    });
-
-    window.addEventListener('DOMContentLoaded', () => {
-      loadNewLevel();
-    });
+    window.onload = initGame;
   </script>
 </body>
 </html>
