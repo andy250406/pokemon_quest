@@ -2637,10 +2637,10 @@
       <!-- 📋 상단 2개 탭 바 -->
       <div class="quest-modal-tab-header">
         <button type="button" class="quest-modal-tab-btn active" id="btnQuestTab1" onclick="switchQuestModalTab(1)">
-          ⚡ 1. 빠른 할일 / 메모
+          1. 일반 To-Do List
         </button>
         <button type="button" class="quest-modal-tab-btn" id="btnQuestTab2" onclick="switchQuestModalTab(2)">
-          🔁 2. 반복 습관 / 일정
+          2. 반복 To-Do List
         </button>
       </div>
 
@@ -2729,7 +2729,7 @@
 
       <div class="modal-btn-row">
         <button class="btn-delete-quest" id="btnDeleteQuest" onclick="submitDeleteQuest()">🗑️ 삭제</button>
-        <button class="btn-submit-quest" id="btnSubmitQuest" onclick="submitQuestForm()">포켓Tasks To-Do 등록</button>
+        <button class="btn-submit-quest" id="btnSubmitQuest" onclick="submitQuestForm()">To-Do 등록</button>
       </div>
     </div>
   </div>
@@ -5741,7 +5741,7 @@
       document.getElementById('inputQuestXp').value = "20";
       document.getElementById('inputQuestRequired').checked = false;
       document.getElementById('btnDeleteQuest').style.display = "none";
-      document.getElementById('btnSubmitQuest').innerText = "포켓Tasks To-Do 등록";
+      document.getElementById('btnSubmitQuest').innerText = "To-Do 등록";
       
       switchQuestModalTab(1);
       modal.classList.add('open');
@@ -5803,7 +5803,7 @@
       document.getElementById('inputQuestXp').value = q.rewardXp || 20;
       document.getElementById('inputQuestRequired').checked = isQuestRequired(q);
       document.getElementById('btnDeleteQuest').style.display = "inline-block";
-      document.getElementById('btnSubmitQuest').innerText = "To-Do 수정 완료";
+      document.getElementById('btnSubmitQuest').innerText = "To-Do 수정";
       
       const rec = (q.recurrence || "").toUpperCase().trim();
       const isRecurring = rec && rec !== "NONE" && rec !== "일회성";
@@ -6543,7 +6543,7 @@
       recSection.className = 'quest-group-section';
       recSection.innerHTML = `
         <div style="font-size:12.5px; font-weight:900; color:#334155; margin:4px 0 8px 2px; display:flex; justify-content:space-between;">
-          <span>🔁 반복 To-Do</span>
+          <span>반복 To-Do List</span>
         </div>
       `;
 
@@ -6567,7 +6567,7 @@
       singleSection.className = 'quest-group-section';
       singleSection.innerHTML = `
         <div style="font-size:12.5px; font-weight:900; color:#334155; margin:4px 0 8px 2px; display:flex; justify-content:space-between;">
-          <span>⚡ 일반 To-Do</span>
+          <span>일반 To-Do List</span>
         </div>
       `;
 
@@ -6872,7 +6872,7 @@
       let topHtml = `
         <div class="streak-section-header">
           <div class="streak-section-title">
-            <span>반복 To-Do 기록</span>
+            <span>반복 To-Do List 기록</span>
           </div>
         </div>
         <div class="streak-section-desc">
@@ -8800,6 +8800,87 @@
     let flashcardMastered = 0;
     let flashcardTotal = 0;
     let flashcardCurrentState = null;
+
+    
+    // ========================================================
+    // 📚 정보보안기사 학습 진도율 & 진행 상태 영구 관리자 (StudyProgressManager)
+    // ========================================================
+    const StudyProgressManager = {
+      getProgressMap() {
+        try {
+          return JSON.parse(localStorage.getItem('study_progress_map') || '{}');
+        } catch(e) {
+          return {};
+        }
+      },
+
+      saveProgressMap(map) {
+        try {
+          localStorage.setItem('study_progress_map', JSON.stringify(map));
+        } catch(e) {}
+        StudyTimerManager.saveAndSyncBackend();
+      },
+
+      getExamProgress(examId) {
+        const map = this.getProgressMap();
+        return map[examId] || {
+          examId: examId,
+          solvedCount: 0,
+          totalCount: 0,
+          lastQuestionIdx: 0,
+          answeredMap: {},
+          flashcardMastered: 0,
+          rate: 0,
+          updatedAt: Date.now()
+        };
+      },
+
+      recordExamAnswer(examId, qIdx, selectedIdx, isCorrect, totalCount) {
+        if (!examId) return;
+        const map = this.getProgressMap();
+        const prog = map[examId] || {
+          examId: examId,
+          solvedCount: 0,
+          totalCount: totalCount || 0,
+          lastQuestionIdx: 0,
+          answeredMap: {},
+          flashcardMastered: 0,
+          rate: 0
+        };
+        prog.totalCount = totalCount || prog.totalCount || 0;
+        prog.answeredMap = prog.answeredMap || {};
+        prog.answeredMap[qIdx] = { selectedIdx, isCorrect };
+        prog.solvedCount = Object.keys(prog.answeredMap).length;
+        prog.lastQuestionIdx = Math.min(qIdx + 1, (prog.totalCount || 1) - 1);
+        prog.rate = prog.totalCount > 0 ? Math.round((prog.solvedCount / prog.totalCount) * 100) : 0;
+        prog.updatedAt = Date.now();
+        map[examId] = prog;
+        this.saveProgressMap(map);
+        return prog;
+      },
+
+      recordFlashcardMastered(examId, masteredCount, totalCount) {
+        if (!examId) return;
+        const map = this.getProgressMap();
+        const prog = map[examId] || {
+          examId: examId,
+          solvedCount: 0,
+          totalCount: totalCount || 0,
+          lastQuestionIdx: 0,
+          answeredMap: {},
+          flashcardMastered: 0,
+          rate: 0
+        };
+        prog.totalCount = totalCount || prog.totalCount || 0;
+        prog.flashcardMastered = masteredCount;
+        prog.solvedCount = Math.max(prog.solvedCount || 0, masteredCount);
+        prog.rate = prog.totalCount > 0 ? Math.round((prog.solvedCount / prog.totalCount) * 100) : 0;
+        prog.updatedAt = Date.now();
+        map[examId] = prog;
+        this.saveProgressMap(map);
+        return prog;
+      }
+    };
 
     const StudyTimerManager = {
       timerId: null,
