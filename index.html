@@ -892,49 +892,72 @@
       }
     }
 
-    /* ✨ 진화 축하 연출 팝업 */
+    /* ✨ 진화 및 부화 축하 팝업 모달 (화면 정중앙 풀 팝업 모달) */
     .evolve-overlay {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(circle, rgba(30,58,138,0.95) 0%, rgba(10,15,30,0.98) 100%);
-      z-index: 300;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      background: rgba(15, 23, 42, 0.85) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      z-index: 10000 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 20px !important;
+      box-sizing: border-box !important;
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
-      transition: all 0.4s ease;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
     }
     .evolve-overlay.active {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+    }
+    .evolve-modal-card {
+      background: #1e293b;
+      border: 1.5px solid #38bdf8;
+      border-radius: 24px;
+      box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.8);
+      padding: 26px 22px;
+      width: 100%;
+      max-width: 350px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-sizing: border-box;
+      animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     .evolve-title {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 900;
-      color: #60a5fa;
-      margin-bottom: 16px;
-      text-shadow: 0 0 12px rgba(96,165,250,0.8);
+      color: #38bdf8;
+      margin-bottom: 14px;
+      text-shadow: 0 0 12px rgba(56,189,248,0.5);
       text-align: center;
     }
     .evolve-sprite {
-      width: 130px;
-      height: 130px;
+      width: 88px;
+      height: 88px;
       object-fit: contain;
       image-rendering: pixelated;
       animation: evolveGlow 1.2s infinite alternate;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
     @keyframes evolveGlow {
-      0% { filter: drop-shadow(0 0 8px #60a5fa) brightness(1); transform: scale(1); }
-      100% { filter: drop-shadow(0 0 24px #38bdf8) brightness(1.3); transform: scale(1.1); }
+      0% { filter: drop-shadow(0 0 6px #60a5fa) brightness(1); transform: scale(1); }
+      100% { filter: drop-shadow(0 0 18px #38bdf8) brightness(1.25); transform: scale(1.08); }
     }
     .evolve-desc {
-      font-size: 14px;
+      font-size: 13.5px;
       color: #e2e8f0;
       font-weight: 800;
       text-align: center;
@@ -945,123 +968,21 @@
       background: linear-gradient(135deg, #2563eb, #1d4ed8);
       color: white;
       border: none;
-      padding: 12px 28px;
-      border-radius: 14px;
+      padding: 12px 24px;
+      border-radius: 12px;
       font-size: 14px;
       font-weight: 900;
       cursor: pointer;
-      box-shadow: 0 6px 20px rgba(37,99,235,0.5);
+      box-shadow: 0 4px 12px rgba(37,99,235,0.4);
+      width: 100%;
+      transition: all 0.15s ease;
     }
-
-    /* 🏆 주간 졸업 & 등급 알 수령 시네마틱 오버레이 스타일 */
-    .graduation-overlay {
-      background: radial-gradient(circle, rgba(15, 23, 42, 0.98) 0%, rgba(2, 6, 23, 0.99) 100%) !important;
+    @keyframes localEggFlash {
+      0% { opacity: 0; transform: scale(0.85); }
+      35% { opacity: 1; transform: scale(1); }
+      70% { opacity: 0.85; }
+      100% { opacity: 0; transform: scale(1.05); }
     }
-    .graduation-overlay .grad-aura-box {
-      position: relative;
-      margin: 12px 0;
-      padding: 12px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .graduation-overlay .grad-aura-box.egg-glow img {
-      filter: drop-shadow(0 0 24px rgba(250, 204, 21, 0.95)) drop-shadow(0 0 45px rgba(56, 189, 248, 0.7));
-      animation: eggGlowFloat 2s ease-in-out infinite alternate;
-    }
-    @keyframes eggGlowFloat {
-      0% { transform: translateY(0) scale(1); }
-      100% { transform: translateY(-8px) scale(1.06); }
-    }
-
-    /* 하단 네비게이션 바 (투명도 50% + 블러 16px 글래스모피즘 & 1.2배 확대) */
-    .bottom-nav {
-      position: absolute;
-      bottom: max(14px, env(safe-area-inset-bottom));
-      left: max(14px, env(safe-area-inset-left));
-      right: max(14px, env(safe-area-inset-right));
-      background: rgba(255, 255, 255, 0.5); /* 🌟 투명도 50% */
-      backdrop-filter: blur(16px);          /* 🌟 블러 효과 */
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      border-radius: 26px;
-      padding: 10px 16px;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
-      z-index: 20;
-    }
-
-    .nav-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: none;
-      border: none;
-      color: #64748b;
-      font-size: 13px;
-      font-weight: 900;
-      cursor: pointer;
-      gap: 3px;
-      flex: 1;
-      padding: 4px 0;
-      transition: color 0.15s ease, transform 0.15s ease;
-    }
-    .nav-btn .icon { font-size: 24px; line-height: 1; }
-    .nav-btn.active { color: #0284c7; transform: scale(1.06); }
-
-    /* 📋 퀘스트 상단 툴바 */
-    .quest-toolbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .quest-toolbar-left { display: flex; gap: 6px; }
-    .quest-toolbar-right { display: flex; gap: 6px; }
-
-    /* 📋 퀘스트 카드 (화이트 글래스모피즘) */
-    .quest-card {
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(255, 255, 255, 0.7);
-      border-radius: 14px;
-      padding: 12px 14px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-      transition: all 0.2s ease;
-    }
-    .quest-card-left { display: flex; align-items: center; gap: 10px; flex: 1; }
-    .quest-batch-cb { width: 20px; height: 20px; accent-color: #ef4444; cursor: pointer; display: none; }
-    .quest-info { flex: 1; }
-    .quest-title { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .req-tag { background: #FF9800; color: white; font-size: 10px; font-weight: 900; padding: 1px 6px; border-radius: 4px; }
-    .rec-tag { background: #3b82f6; color: white; font-size: 10px; font-weight: 900; padding: 1px 6px; border-radius: 4px; }
-    .quest-meta, .quest-top-meta { font-size: 11px; color: #64748b; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 2px; }
-    .quest-desc { font-size: 11px; color: #475569; line-height: 1.3; margin-top: 3px; }
-    
-    .quest-card-btns { display: flex; align-items: center; gap: 6px; }
-    .btn-quest-edit {
-      background: rgba(255, 255, 255, 0.85); color: #2563eb; border: 1px solid rgba(0, 0, 0, 0.08);
-      padding: 7px 10px; border-radius: 9px; font-size: 12px; font-weight: 800;
-      cursor: pointer; display: flex; align-items: center; gap: 3px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.04);
-    }
-    .btn-quest-edit:active { transform: scale(0.95); background: #e2e8f0; }
-    .btn-quest-done {
-      background: #4CAF50; color: white; border: none; padding: 8px 12px;
-      border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer;
-      box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
-    }
-    .btn-quest-done.disabled { background: #cbd5e1; color: #64748b; cursor: default; box-shadow: none; }
-    .btn-quest-add { background: #2196F3; color: white; border: none; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; }
     .btn-quest-add:active { transform: scale(0.95); }
     .btn-quest-batch-del { background: #e2e8f0; color: #ef4444; border: 1px solid #cbd5e1; padding: 8px 10px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; }
     .btn-quest-batch-del:active { transform: scale(0.95); }
@@ -2251,48 +2172,7 @@
 
       </div>
 
-      <!-- ✨ 자동 진화 축하 연출 팝업 모달 -->
-      <div class="evolve-overlay" id="evolveOverlay">
-        <div class="evolve-title" id="evolveTitleText">✨ 축하합니다! 포켓몬 진화! ✨</div>
-        <img id="evolveSpriteImg" class="evolve-sprite" src="" alt="진화 포켓몬">
-        <div class="evolve-desc" id="evolveDescText">포켓몬이 새로운 모습으로 진화했습니다!</div>
-        <button class="btn-evolve-confirm" onclick="closeEvolveOverlay()">멋져요! 확인 👍</button>
       </div>
-
-      <!-- 🏆 일요일 22:00 주간 육성 정산 및 등급 알 지급 시네마틱 모달 -->
-      <div class="evolve-overlay graduation-overlay" id="graduationOverlay">
-        <div id="gradStep1" style="display:flex; flex-direction:column; align-items:center; width:100%;">
-          <div class="evolve-title" style="color:#facc15; font-size:19px;">🏆 이번 주 명예의 전당 졸업!</div>
-          <div class="grad-aura-box">
-            <img id="gradPokemonImg" class="evolve-sprite" src="./images/pokemon/showdown/1.gif" alt="졸업 포켓몬">
-          </div>
-          <div class="evolve-desc" id="gradPokemonDesc" style="color:#f8fafc; font-size:13.5px; line-height:1.5; margin-bottom:18px;">
-            <b id="gradPokemonNameLv" style="font-size:16px; color:#ffffff;">이상해씨 (Lv.13)</b><br>
-            <span id="gradPokemonXpScore" style="color:#38bdf8; font-size:12px; font-weight:800;">누적 성과 점수: 3,485 XP</span><br>
-            <span style="color:#94a3b8; font-size:11.5px; margin-top:3px; display:inline-block;">📖 도감의 [역대 육성 히스토리]에 영구 박제되었습니다!</span>
-          </div>
-          <button class="btn-evolve-confirm" style="background:linear-gradient(135deg, #f59e0b, #d97706); box-shadow:0 4px 15px rgba(245,158,11,0.4);" onclick="goToGraduationStep2()">
-            🎁 주간 보상 등급 알 받기 ➜
-          </button>
-        </div>
-
-        <div id="gradStep2" style="display:none; flex-direction:column; align-items:center; width:100%;">
-          <div class="evolve-title" style="color:#38bdf8; font-size:19px;">✨ 새로운 여정의 시작! ✨</div>
-          <div class="grad-aura-box egg-glow">
-            <img id="gradEggImg" class="evolve-sprite" src="./images/items/poke-ball.png" alt="새로운 알" style="width:110px; height:110px; object-fit:contain;">
-          </div>
-          <div class="evolve-desc" id="gradEggDesc" style="color:#f8fafc; font-size:13.5px; line-height:1.5; margin-bottom:18px;">
-            <b id="gradEggTitle" style="color:#fde047; font-size:16px;">[🥉 브론즈 알 (Tier 2)]</b><br>
-            <span style="color:#cbd5e1; font-size:12px;" id="gradEggRateInfo">스타팅 25% • 희귀 15% • 전설 5%</span><br>
-            <span style="color:#94a3b8; font-size:11.5px; margin-top:4px; display:inline-block;">To-Do를 완료하여 경험치를 모으고 새로운 포켓몬을 부화시켜 보세요!</span>
-          </div>
-          <button class="btn-evolve-confirm" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); box-shadow:0 4px 15px rgba(37,99,235,0.4);" onclick="finishGraduationAndStartNewEgg()">
-            새로운 알과 함께 출발! 🐣
-          </button>
-        </div>
-      </div>
-
-    </div>
 
     <!-- 🌟 [하단 70% 영역]: 메인 콘텐츠 뷰포트 (퀘스트 기본 노출 & 5개 탭 전환) -->
     <div class="workspace-pane" id="workspacePane">
@@ -2637,6 +2517,53 @@
         <button class="cheat-btn empty"><span class="cheat-btn-label">23</span></button>
         <button class="cheat-btn danger" onclick="executeCheatCustom(24)"><span class="cheat-btn-icon">🧹</span><span class="cheat-btn-label">24. 기록초기화</span></button>
         <button class="cheat-btn close" onclick="executeCheatCustom(25)"><span class="cheat-btn-icon">✕</span><span class="cheat-btn-label">25. 닫기</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✨ 자동 진화 & 부화 축하 팝업 모달 (화면 정중앙) -->
+  <div class="evolve-overlay" id="evolveOverlay">
+    <div class="evolve-modal-card">
+      <div class="evolve-title" id="evolveTitleText">✨ 축하합니다! 포켓몬 진화! ✨</div>
+      <div style="width:110px; height:110px; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle, rgba(56,189,248,0.2) 0%, rgba(0,0,0,0) 70%); border-radius:50%; margin-bottom:14px;">
+        <img id="evolveSpriteImg" class="evolve-sprite" src="" alt="진화 포켓몬" style="margin:0;">
+      </div>
+      <div class="evolve-desc" id="evolveDescText">포켓몬이 새로운 모습으로 진화했습니다!</div>
+      <button class="btn-evolve-confirm" onclick="closeEvolveOverlay()">멋져요! 확인 👍</button>
+    </div>
+  </div>
+
+  <!-- 🏆 주간 명예의 전당 졸업 & 도감 등록 시네마틱 팝업 모달 (화면 정중앙) -->
+  <div class="evolve-overlay graduation-overlay" id="graduationOverlay">
+    <div class="evolve-modal-card" style="border-color:#f59e0b; box-shadow: 0 20px 60px rgba(245,158,11,0.25);">
+      <div id="gradStep1" style="display:flex; flex-direction:column; align-items:center; width:100%;">
+        <div class="evolve-title" style="color:#facc15; font-size:18px; margin-bottom:12px;">🏆 이번 주 명예의 전당 졸업!</div>
+        <div class="grad-aura-box" style="width:110px; height:110px; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle, rgba(245,158,11,0.25) 0%, rgba(0,0,0,0) 70%); border-radius:50%; margin-bottom:14px;">
+          <img id="gradPokemonImg" class="evolve-sprite" src="./images/pokemon/showdown/1.gif" alt="졸업 포켓몬" style="margin:0;">
+        </div>
+        <div class="evolve-desc" id="gradPokemonDesc" style="color:#f8fafc; font-size:13.5px; line-height:1.5; margin-bottom:20px;">
+          <b id="gradPokemonNameLv" style="font-size:16px; color:#ffffff;">이상해씨 (Lv.13)</b><br>
+          <span id="gradPokemonXpScore" style="color:#38bdf8; font-size:13px; font-weight:800;">누적 성과 점수: 3,485 XP</span><br>
+          <span style="color:#94a3b8; font-size:11.5px; margin-top:6px; display:inline-block;">📖 도감의 [역대 육성 히스토리]에 영구 등록되었습니다!</span>
+        </div>
+        <button class="btn-evolve-confirm" style="background:linear-gradient(135deg, #f59e0b, #d97706); box-shadow:0 4px 15px rgba(245,158,11,0.4);" onclick="goToGraduationStep2()">
+          🎁 주간 보상 등급 알 받기 ➜
+        </button>
+      </div>
+
+      <div id="gradStep2" style="display:none; flex-direction:column; align-items:center; width:100%;">
+        <div class="evolve-title" style="color:#38bdf8; font-size:18px; margin-bottom:12px;">✨ 새로운 여정의 시작! ✨</div>
+        <div class="grad-aura-box egg-glow" style="width:110px; height:110px; display:flex; align-items:center; justify-content:center; background:radial-gradient(circle, rgba(56,189,248,0.25) 0%, rgba(0,0,0,0) 70%); border-radius:50%; margin-bottom:14px;">
+          <img id="gradEggImg" class="evolve-sprite" src="./images/items/poke-ball.png" alt="새로운 알" style="width:76px; height:76px; object-fit:contain; margin:0;">
+        </div>
+        <div class="evolve-desc" id="gradEggDesc" style="color:#f8fafc; font-size:13.5px; line-height:1.5; margin-bottom:20px;">
+          <b id="gradEggTitle" style="color:#fde047; font-size:16px;">[🥉 브론즈 알 (Tier 2)]</b><br>
+          <span style="color:#cbd5e1; font-size:12px;" id="gradEggRateInfo">스타팅 25% • 희귀 15% • 전설 5%</span><br>
+          <span style="color:#94a3b8; font-size:11.5px; margin-top:6px; display:inline-block;">To-Do를 완료하여 첫 경험치를 얻으면 새로운 포켓몬이 부화합니다!</span>
+        </div>
+        <button class="btn-evolve-confirm" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); box-shadow:0 4px 15px rgba(37,99,235,0.4);" onclick="finishGraduationAndStartNewEgg()">
+          새로운 알과 함께 출발! 🐣
+        </button>
       </div>
     </div>
   </div>
@@ -7845,23 +7772,44 @@
       currentGraduationData = null;
     }
 
-    // 🌟 화면에서 이전 포켓몬이 큰 빛을 내면서 새로운 알로 변신하는 시네마틱 연출
+    // 🌟 상단 고정화면 좌측 3:2 다마고치 화면(#tamagotchiScreenBox) 내부에만 빛나는 알 변신 효과 연출!
     function triggerEggTransformationAnimation(tierName) {
       triggerHaptic([80, 50, 120, 60, 200, 80, 400]);
 
-      const flash = document.createElement('div');
-      flash.style.cssText = `
-        position: fixed;
-        top: 0; left: 0; width: 100vw; height: 100vh;
-        background: radial-gradient(circle, rgba(255,255,255,0.98) 0%, rgba(250,204,21,0.7) 45%, rgba(0,0,0,0) 80%);
-        z-index: 9999;
-        pointer-events: none;
-        animation: eggTransformFlash 1.6s ease-out forwards;
-      `;
-      document.body.appendChild(flash);
-      setTimeout(() => { if (flash.parentNode) flash.parentNode.removeChild(flash); }, 1700);
+      const screenBox = document.getElementById('tamagotchiScreenBox');
+      if (!screenBox) return;
 
-      logDebug(`✨ 이전 포켓몬이 눈부신 빛을 내며 [${tierName}]으로 환생했습니다!`, "success");
+      // 1) 좌측 다마고치 화면 액자 내부에만 빛나는 오라 효과 삽입 (우측 정보 패널 및 전체 화면 가림 방지)
+      const flash = document.createElement('div');
+      flash.className = 'tamagotchi-local-flash';
+      flash.style.cssText = `
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        border-radius: 12px;
+        background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(250,204,21,0.8) 50%, rgba(0,0,0,0) 85%);
+        z-index: 50;
+        pointer-events: none;
+        animation: localEggFlash 1.4s ease-out forwards;
+      `;
+      screenBox.appendChild(flash);
+
+      // 2) 좌측 액자 내부 포켓몬 스프라이트만 반짝임 및 변신 효과
+      const img = document.getElementById('pokemonImage');
+      if (img) {
+        img.style.transition = 'transform 0.4s ease, filter 0.4s ease';
+        img.style.filter = 'brightness(2.5) drop-shadow(0 0 14px #facc15)';
+        img.style.transform = 'scale(1.15)';
+        setTimeout(() => {
+          img.style.filter = '';
+          img.style.transform = '';
+        }, 1400);
+      }
+
+      setTimeout(() => {
+        if (flash.parentNode) flash.parentNode.removeChild(flash);
+      }, 1500);
+
+      logDebug(`✨ 좌측 포켓몬 화면이 빛나며 [${tierName}]으로 환생했습니다!`, "success");
     }
 
     // 🌟 KST (한국 표준시) 기준 현재 주차 키 계산 (매주 일요일 24:00 = 월요일 00:00:00 KST에 새 주차 시작)
