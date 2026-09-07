@@ -5292,6 +5292,11 @@
 
       // 🌟 배경, 캐릭터, To-Do List 즉시 렌더링!
       initUI(appState);
+      const currentCycleKey = getKstWeeklyCycleKey();
+      const todayKst = new Date().toISOString().split('T')[0];
+      if ((appState.pokemonHistory || []).some(h => h.status === 'GRADUATED' && (h.dateStr === todayKst || (h.date && h.date.includes(todayKst))))) {
+        localStorage.setItem('LAST_GRADUATED_WEEK', currentCycleKey);
+      }
       checkSundayWeeklyGraduation();
       LocalNotificationManager.scheduleAllQuestNotifications();
       StudyTimerManager.init();
@@ -5327,8 +5332,7 @@
           initUI(appState);
           logDebug(`⚡ 시트 데이터 고속 최신화 완료 (퀘스트 ${appState.quests.length}개)`, "success");
 
-          // 🏆 [일요일 22시 주간 정산 감지]: 일요일 22시 이후 접속 시 자동 정산 & 알 지급 시네마틱 실행!
-          checkSundayWeeklyGraduation();
+// (주간 정산은 window.onload 시 1회만 안전하게 검사)
         }
       } catch (err) {
         logDebug("시트 데이터 최신화 알림: 로컬 캐시 유지 중", "info");
@@ -7853,6 +7857,7 @@
       if (overlay) overlay.classList.remove('active');
 
       const cycleKey = getKstWeeklyCycleKey();
+      localStorage.setItem('LAST_GRADUATED_WEEK', cycleKey);
       localStorage.setItem('LAST_SEEN_GRAD_WEEK', cycleKey);
 
       if (currentGraduationData && currentGraduationData.newEgg) {
@@ -7941,66 +7946,64 @@
       return `WEEK_${yyyy}-${mm}-${dd}`;
     }
 
-    // 🌟 [주간 정산 & 알 지급 자동 검사]
-    // 일요일->월요일 00시 이후 접속 시: 지난주 포켓몬이라면 무조건 100% 명예의 전당 팝업 발동!
+    // 🌟 [주간 정산 & 알 지급 자동 검사] (매주 1회만 엄격하게 발동, 레벨업/동기화 시 재발동 100% 차단)
     function checkSundayWeeklyGraduation() {
       const cycleKey = getKstWeeklyCycleKey();
+      const todayStr = new Date().toISOString().split('T')[0];
 
-      // 1) 아직 살아있는 포켓몬이 있고, 이번 주차에 부화한 새 포켓몬이 아니라면 -> 즉시 정산 및 졸업 실행!
-      const isAlivePokemon = !appState.isEgg && appState.pokemon && appState.pokemon.id > 0;
-      const isCurrentWeekHatched = (appState.pokemon?.weekKey === cycleKey);
-
-      if (isAlivePokemon && !isCurrentWeekHatched) {
-        const p = appState.pokemon;
-        const s = appState.userStats || {};
-        const finalLevel = Number(s.level) || 1;
-        const currentXp = Number(s.currentXp) || 0;
-        const totalAccumulatedXp = Math.floor((finalLevel * 250) + currentXp);
-
-        let eggTier = 1;
-        let tierName = "🌱 일반 알";
-        if (totalAccumulatedXp >= 22000 || finalLevel >= 90) { eggTier = 6; tierName = "👑 전설 확정 알"; }
-        else if (totalAccumulatedXp >= 16000 || finalLevel >= 80) { eggTier = 5; tierName = "💎 마스터 알"; }
-        else if (totalAccumulatedXp >= 8000 || finalLevel >= 60) { eggTier = 4; tierName = "🥇 골드 알"; }
-        else if (totalAccumulatedXp >= 5000 || finalLevel >= 50) { eggTier = 3; tierName = "🥈 실버 알"; }
-        else if (totalAccumulatedXp >= 1500 || finalLevel >= 30) { eggTier = 2; tierName = "🥉 브론즈 알"; }
-        else { eggTier = 1; tierName = "🌱 일반 알"; }
-
-        const gradMon = { id: p.id, name: p.name, level: finalLevel, xp: totalAccumulatedXp };
-        const newEgg = { tier: eggTier, tierName: tierName };
-
-        // 도감에 졸업 기록 영구 보존
-        recordCurrentPokemonToHistory("GRADUATED");
-
-        // 백엔드에도 주간 정산 동기화 요청
-        fetch(GAS_API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "sundayGraduation" })
-        }).catch(() => {});
-
-        // 🏆 화면 중앙 시네마틱 팝업 모달 발동!
-        triggerSundayGraduationSequence(gradMon, newEgg);
+      // 🛑 [1순위 영구 락]: 이미 이번 주차에 졸업 및 새 알 수령을 마쳤다면 무조건 즉시 종료!
+      if (localStorage.getItem('LAST_GRADUATED_WEEK') === cycleKey) {
         return;
       }
 
-      // 2) 이미 알 상태인데 이번 주차 팝업을 아직 못 본 경우
-      if (appState.isEgg && localStorage.getItem('LAST_SEEN_GRAD_WEEK') !== cycleKey) {
-        const grads = (appState.pokemonHistory || []).filter(h => h.status === 'GRADUATED');
-        if (grads.length > 0) {
-          const latestGrad = grads[grads.length - 1];
-          const gLevel = latestGrad.finalLevel || latestGrad.level || 1;
-          const gXp = latestGrad.finalXp || latestGrad.currentXp || 0;
-          const gTotalXp = Math.floor((gLevel * 250) + gXp);
-          const currentEggTier = appState.eggTier || 2;
-          const tierNames = { 1: "🌱 일반 알", 2: "🥉 브론즈 알", 3: "🥈 실버 알", 4: "🥇 골드 알", 5: "💎 마스터 알", 6: "👑 전설 확정 알" };
-
-          triggerSundayGraduationSequence(
-            { id: latestGrad.pokemonId || latestGrad.id || 1, name: latestGrad.name, level: gLevel, xp: gTotalXp },
-            { tier: currentEggTier, tierName: tierNames[currentEggTier] || "등급 알" }
-          );
-        }
+      // 🛑 [2순위 기록 락]: 도감/육성 기록에 이미 오늘 날짜 졸업 기록이 있다면 이미 정산 완료된 것이므로 락 설정 후 즉시 종료!
+      const hasGraduatedToday = (appState.pokemonHistory || []).some(h => h.status === 'GRADUATED' && (h.dateStr === todayStr || (h.date && h.date.includes(todayStr))));
+      if (hasGraduatedToday) {
+        localStorage.setItem('LAST_GRADUATED_WEEK', cycleKey);
+        return;
       }
+
+      // 🛑 [3순위 알 상태 락]: 알 상태일 때는 절대 졸업 팝업을 띄우지 않음!
+      if (appState.isEgg) {
+        return;
+      }
+
+      const isAlivePokemon = !appState.isEgg && appState.pokemon && appState.pokemon.id > 0;
+      if (!isAlivePokemon) {
+        return;
+      }
+
+      const p = appState.pokemon;
+      const s = appState.userStats || {};
+      const finalLevel = Number(s.level) || 1;
+      const currentXp = Number(s.currentXp) || 0;
+      const totalAccumulatedXp = Math.floor((finalLevel * 250) + currentXp);
+
+      let eggTier = 1;
+      let tierName = "🌱 일반 알";
+      if (totalAccumulatedXp >= 22000 || finalLevel >= 90) { eggTier = 6; tierName = "👑 전설 확정 알"; }
+      else if (totalAccumulatedXp >= 16000 || finalLevel >= 80) { eggTier = 5; tierName = "💎 마스터 알"; }
+      else if (totalAccumulatedXp >= 8000 || finalLevel >= 60) { eggTier = 4; tierName = "🥇 골드 알"; }
+      else if (totalAccumulatedXp >= 5000 || finalLevel >= 50) { eggTier = 3; tierName = "🥈 실버 알"; }
+      else if (totalAccumulatedXp >= 1500 || finalLevel >= 30) { eggTier = 2; tierName = "🥉 브론즈 알"; }
+      else { eggTier = 1; tierName = "🌱 일반 알"; }
+
+      const gradMon = { id: p.id, name: p.name, level: finalLevel, xp: totalAccumulatedXp };
+      const newEgg = { tier: eggTier, tierName: tierName };
+
+      // 도감에 졸업 기록 영구 보존
+      recordCurrentPokemonToHistory("GRADUATED");
+      localStorage.setItem('LAST_GRADUATED_WEEK', cycleKey);
+
+      // 백엔드에도 주간 정산 동기화 요청
+      fetch(GAS_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "sundayGraduation" })
+      }).catch(() => {});
+
+      // 🏆 화면 중앙 시네마틱 팝업 모달 발동!
+      triggerSundayGraduationSequence(gradMon, newEgg);
     }
 
     function highlightXpBar() {
