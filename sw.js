@@ -5,10 +5,11 @@
 // - 인터랙티브 알림 액션 ([✓ 완료], [✕ 10분 뒤]) 백그라운드 처리
 // =======================================================
 
-const CACHE_NAME = 'pokettasks-app-shell-v20260907-anti-loop-v4';
+const CACHE_NAME = 'pokettasks-app-shell-v20260907-pokedex-db-v1';
 const APP_SHELL_ASSETS = [
   './',
   './index.html',
+  './data/pokedex_data.json',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
