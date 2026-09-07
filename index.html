@@ -892,7 +892,7 @@
       }
     }
 
-    /* ✨ 진화 및 부화 축하 팝업 모달 (화면 정중앙 풀 팝업 모달) */
+    /* ✨ 진화 및 부화 축하 팝업 모달 (화면 정중앙 풀 모달) */
     .evolve-overlay {
       position: fixed !important;
       top: 0 !important;
@@ -977,12 +977,118 @@
       width: 100%;
       transition: all 0.15s ease;
     }
+    .graduation-overlay .grad-aura-box {
+      width: 110px;
+      height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      margin-bottom: 14px;
+    }
+    .graduation-overlay .grad-aura-box.egg-glow img {
+      filter: drop-shadow(0 0 20px rgba(250, 204, 21, 0.95)) drop-shadow(0 0 35px rgba(56, 189, 248, 0.7));
+      animation: eggGlowFloat 2s ease-in-out infinite alternate;
+    }
+    @keyframes eggGlowFloat {
+      0% { transform: translateY(0) scale(1); }
+      100% { transform: translateY(-6px) scale(1.05); }
+    }
     @keyframes localEggFlash {
       0% { opacity: 0; transform: scale(0.85); }
       35% { opacity: 1; transform: scale(1); }
       70% { opacity: 0.85; }
       100% { opacity: 0; transform: scale(1.05); }
     }
+
+    /* 하단 네비게이션 바 (투명도 50% + 블러 16px 글래스모피즘 & 1.2배 확대) */
+    .bottom-nav {
+      position: absolute;
+      bottom: max(14px, env(safe-area-inset-bottom));
+      left: max(14px, env(safe-area-inset-left));
+      right: max(14px, env(safe-area-inset-right));
+      background: rgba(255, 255, 255, 0.5); /* 🌟 투명도 50% */
+      backdrop-filter: blur(16px);          /* 🌟 블러 효과 */
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 26px;
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+      z-index: 20;
+    }
+
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: none;
+      border: none;
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+      gap: 3px;
+      flex: 1;
+      padding: 4px 0;
+      transition: color 0.15s ease, transform 0.15s ease;
+    }
+    .nav-btn .icon { font-size: 24px; line-height: 1; }
+    .nav-btn.active { color: #0284c7; transform: scale(1.06); }
+
+    /* 📋 퀘스트 상단 툴바 */
+    .quest-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .quest-toolbar-left { display: flex; gap: 6px; }
+    .quest-toolbar-right { display: flex; gap: 6px; }
+
+    /* 📋 퀘스트 카드 (화이트 글래스모피즘) */
+    .quest-card {
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+    }
+    .quest-card-left { display: flex; align-items: center; gap: 10px; flex: 1; }
+    .quest-batch-cb { width: 20px; height: 20px; accent-color: #ef4444; cursor: pointer; display: none; }
+    .quest-info { flex: 1; }
+    .quest-title { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .req-tag { background: #FF9800; color: white; font-size: 10px; font-weight: 900; padding: 1px 6px; border-radius: 4px; }
+    .rec-tag { background: #3b82f6; color: white; font-size: 10px; font-weight: 900; padding: 1px 6px; border-radius: 4px; }
+    .quest-meta, .quest-top-meta { font-size: 11px; color: #64748b; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 2px; }
+    .quest-desc { font-size: 11px; color: #475569; line-height: 1.3; margin-top: 3px; }
+    
+    .quest-card-btns { display: flex; align-items: center; gap: 6px; }
+    .btn-quest-edit {
+      background: rgba(255, 255, 255, 0.85); color: #2563eb; border: 1px solid rgba(0, 0, 0, 0.08);
+      padding: 7px 10px; border-radius: 9px; font-size: 12px; font-weight: 800;
+      cursor: pointer; display: flex; align-items: center; gap: 3px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+    }
+    .btn-quest-edit:active { transform: scale(0.95); background: #e2e8f0; }
+    .btn-quest-done {
+      background: #4CAF50; color: white; border: none; padding: 8px 12px;
+      border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer;
+      box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+    }
+    .btn-quest-done.disabled { background: #cbd5e1; color: #64748b; cursor: default; box-shadow: none; }
+    .btn-quest-add { background: #2196F3; color: white; border: none; padding: 8px 12px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; }
     .btn-quest-add:active { transform: scale(0.95); }
     .btn-quest-batch-del { background: #e2e8f0; color: #ef4444; border: 1px solid #cbd5e1; padding: 8px 10px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; }
     .btn-quest-batch-del:active { transform: scale(0.95); }
@@ -2172,7 +2278,9 @@
 
       </div>
 
-      </div>
+
+
+    </div>
 
     <!-- 🌟 [하단 70% 영역]: 메인 콘텐츠 뷰포트 (퀘스트 기본 노출 & 5개 탭 전환) -->
     <div class="workspace-pane" id="workspacePane">
@@ -5184,7 +5292,8 @@
 
       // 🌟 배경, 캐릭터, To-Do List 즉시 렌더링!
       initUI(appState);
-          LocalNotificationManager.scheduleAllQuestNotifications();
+      checkSundayWeeklyGraduation();
+      LocalNotificationManager.scheduleAllQuestNotifications();
       StudyTimerManager.init();
 
       // 🎮 미니게임에서 복귀 시 대기 중인 경험치 보상 확인 및 오라 연출
@@ -5350,7 +5459,7 @@
         const localTotalScore = localLevel * 10000 + localXp;
         const backendTotalScore = backendLevel * 10000 + backendXp;
 
-        if (localTotalScore > backendTotalScore) {
+        if (!appState.isEgg && !data.isEgg && localTotalScore > backendTotalScore) {
           // 1) 이 기기에서 새로 경험치를 올린 상태라면 -> 로컬 데이터 유지 & 구글 시트로 즉시 전송
           syncCurrentPokemonStatsToBackend();
         } else {
@@ -7578,7 +7687,8 @@
         natureBuff: natureBuffMap[hatchedNature] || "균형",
         type: hatched.type,
         growth: hatched.growth,
-        idleGif: `./images/pokemon/showdown/${drawn.id}.gif`
+        idleGif: `./images/pokemon/showdown/${drawn.id}.gif`,
+        weekKey: getKstWeeklyCycleKey()
       };
       appState.userStats.requiredXp = calculateRequiredXpForLevel(appState.userStats.level, hatched.growth);
 
@@ -7742,6 +7852,9 @@
       const overlay = document.getElementById('graduationOverlay');
       if (overlay) overlay.classList.remove('active');
 
+      const cycleKey = getKstWeeklyCycleKey();
+      localStorage.setItem('LAST_SEEN_GRAD_WEEK', cycleKey);
+
       if (currentGraduationData && currentGraduationData.newEgg) {
         const tier = currentGraduationData.newEgg.tier || 2;
         const tierName = currentGraduationData.newEgg.tierName || "브론즈 알";
@@ -7772,14 +7885,14 @@
       currentGraduationData = null;
     }
 
-    // 🌟 상단 고정화면 좌측 3:2 다마고치 화면(#tamagotchiScreenBox) 내부에만 빛나는 알 변신 효과 연출!
+// 🌟 상단 고정화면 좌측 3:2 다마고치 화면(#tamagotchiScreenBox) 내부에만 빛나는 알 변신 효과 연출!
     function triggerEggTransformationAnimation(tierName) {
       triggerHaptic([80, 50, 120, 60, 200, 80, 400]);
 
       const screenBox = document.getElementById('tamagotchiScreenBox');
       if (!screenBox) return;
 
-      // 1) 좌측 다마고치 화면 액자 내부에만 빛나는 오라 효과 삽입 (우측 정보 패널 및 전체 화면 가림 방지)
+      // 1) 좌측 다마고치 화면 액자 내부에만 빛나는 오라 효과 삽입 (우측 정보 패널 및 To-Do 화면 가림 완전 방지)
       const flash = document.createElement('div');
       flash.className = 'tamagotchi-local-flash';
       flash.style.cssText = `
@@ -7829,22 +7942,15 @@
     }
 
     // 🌟 [주간 정산 & 알 지급 자동 검사]
-    // 일요일->월요일 00시 이후 언제 접속하더라도 이전 포켓몬 도감 등록 ➔ 새로운 알 지급 시네마틱 100% 발동!
+    // 일요일->월요일 00시 이후 접속 시: 지난주 포켓몬이라면 무조건 100% 명예의 전당 팝업 발동!
     function checkSundayWeeklyGraduation() {
       const cycleKey = getKstWeeklyCycleKey();
-      const lastProcessedCycle = localStorage.getItem('LAST_PROCESSED_WEEKLY_GRAD_CYCLE');
 
-      // 이미 이번 주차에 졸업 & 알 수령을 마쳤다면 중복 실행 방지
-      if (lastProcessedCycle === cycleKey) {
-        return;
-      }
-
+      // 1) 아직 살아있는 포켓몬이 있고, 이번 주차에 부화한 새 포켓몬이 아니라면 -> 즉시 정산 및 졸업 실행!
       const isAlivePokemon = !appState.isEgg && appState.pokemon && appState.pokemon.id > 0;
+      const isCurrentWeekHatched = (appState.pokemon?.weekKey === cycleKey);
 
-      // 1) 아직 살아있는 포켓몬이 있는 상태에서 월요일 이후 처음 접속한 경우: 즉시 정산 및 졸업 실행!
-      if (isAlivePokemon) {
-        localStorage.setItem('LAST_PROCESSED_WEEKLY_GRAD_CYCLE', cycleKey);
-
+      if (isAlivePokemon && !isCurrentWeekHatched) {
         const p = appState.pokemon;
         const s = appState.userStats || {};
         const finalLevel = Number(s.level) || 1;
@@ -7873,16 +7979,15 @@
           body: JSON.stringify({ action: "sundayGraduation" })
         }).catch(() => {});
 
-        // 시네마틱 팝업 발동!
+        // 🏆 화면 중앙 시네마틱 팝업 모달 발동!
         triggerSundayGraduationSequence(gradMon, newEgg);
         return;
       }
 
-      // 2) 백엔드에서 이미 알로 변환되었거나 이전 졸업 기록이 있는데, 이번 주차 팝업을 아직 못 본 경우:
-      if (appState.isEgg) {
+      // 2) 이미 알 상태인데 이번 주차 팝업을 아직 못 본 경우
+      if (appState.isEgg && localStorage.getItem('LAST_SEEN_GRAD_WEEK') !== cycleKey) {
         const grads = (appState.pokemonHistory || []).filter(h => h.status === 'GRADUATED');
         if (grads.length > 0) {
-          localStorage.setItem('LAST_PROCESSED_WEEKLY_GRAD_CYCLE', cycleKey);
           const latestGrad = grads[grads.length - 1];
           const gLevel = latestGrad.finalLevel || latestGrad.level || 1;
           const gXp = latestGrad.finalXp || latestGrad.currentXp || 0;
